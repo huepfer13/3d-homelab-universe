@@ -394,18 +394,7 @@ function simMsg(){
 // Start 1s message sim
 setInterval(simMsg,1000);
 async function fl(){
-    // Try real API first
-    try{const r=await fetch('./api/universe-state');const d=await r.json();
-        if(d.pipeline&&d.pipeline.length>0){
-            document.getElementById('node-count').textContent=((d.nodes||[]).filter(n=>n.online).length||3)+' Galaxies';
-            document.getElementById('paperless-count').textContent=(d.paperless_docs||0)+' Documents';
-            document.getElementById('issue-count').textContent=(d.issues_open||5)+' Open';
-            const lr=d.pipeline[0];const el=document.getElementById('pl-badge');
-            if(lr&&lr.conclusion){el.textContent=(lr.conclusion==='success'?'●':'●')+' '+(lr.title||'Pipeline');el.style.color=lr.conclusion==='success'?'#00ff88':'#ff4444';}
-            return; // Real data — skip simulation
-        }
-    }catch(e){}
-    // Simulation fallback for demo (metrics only — events are via simMsg)
+    // Simulation first — always update immediately (API may take seconds)
     simCount++;
     document.getElementById('node-count').textContent='5 Nodes';
     document.getElementById('paperless-count').textContent='Demo Mode';
@@ -414,6 +403,16 @@ async function fl(){
     const el=document.getElementById('pl-badge');
     el.textContent='● '+(st==='success'?'Monitoring':st==='error'?'Fehler':'Warning');
     el.style.color=st==='success'?'#00ff88':st==='error'?'#ff4444':'#ffaa00';
+    // Try real API (async, non-blocking)
+    try{const r=await fetch('./api/universe-state');const d=await r.json();
+        if(d.pipeline&&d.pipeline.length>0){
+            document.getElementById('node-count').textContent=((d.nodes||[]).filter(n=>n.online).length||3)+' Galaxies';
+            document.getElementById('paperless-count').textContent=(d.paperless_docs||0)+' Documents';
+            document.getElementById('issue-count').textContent=(d.issues_open||5)+' Open';
+            const lr=d.pipeline[0];const el2=document.getElementById('pl-badge');
+            if(lr&&lr.conclusion){el2.textContent=(lr.conclusion==='success'?'●':'●')+' '+(lr.title||'Pipeline');el2.style.color=lr.conclusion==='success'?'#00ff88':'#ff4444';}
+        }
+    }catch(e){}
 }
 function logMsg(txt,level,targetId){
     addEventTask({text:txt,status:level==='error'?'error':level==='warning'?'warning':level==='success'?'success':'pending',startTime:new Date().toLocaleTimeString(),sourceUrl:targetId?targetId:null});
