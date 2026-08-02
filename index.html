@@ -590,14 +590,65 @@ function beep(freq,dur,vol,type){const o=AC.createOscillator(),g=AC.createGain()
 function sfx(status){if(status==='error')beep(200,0.3,0.06,'square');else if(status==='success')beep(800,0.1,0.03,'sine');else if(status==='warning')beep(400,0.15,0.04,'triangle');}
 // Config modal (DE/EN help)
 let currentConfig={};
-async function loadCfg(){try{const r=await fetch('config.json');currentConfig=await r.json();}catch(e){console.error('Config load error:',e);}}
-function renderCfg(){try{const c=document.getElementById('cfg-content');if(!c)return;c.innerHTML='';
-    for(const[sk,so]of Object.entries(currentConfig||{})){
-        const h=document.createElement('div');h.style.cssText='color:#38f;font-weight:bold;font-size:12px;margin-top:10px;border-bottom:1px dashed rgba(51,136,255,.3);padding-bottom:3px;';h.textContent='[ '+sk.toUpperCase()+' ]';c.appendChild(h);
-        for(const[pk,pd]of Object.entries(so)){
-            const b=document.createElement('div');b.style.cssText='background:rgba(0,255,204,.03);border:1px solid rgba(0,255,204,.15);padding:8px;border-radius:4px;';
-            b.innerHTML='<div style=\"display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;\"><span style=\"color:#0fc;font-weight:bold;\">'+pk+'</span><span style=\"color:#fa0;font-size:10px;background:rgba(255,170,0,.1);padding:1px 4px;border-radius:2px;\">'+pd.value+'</span></div><div style=\"font-size:11px;color:#ccc;margin-bottom:4px;\">🇩🇪 '+pd.desc_de+'</div><div style=\"font-size:10px;color:#888;font-style:italic;\">🇬🇧 '+pd.desc_en+'</div>';
-            c.appendChild(b);}}}catch(e){console.error('Config render error:',e);}}
+let currentConfig=null;
+async function loadCfg(){
+    // Try local config first, fall back to default
+    try{const r=await fetch('config.local.json');currentConfig=await r.json();console.log('Loaded local config');}
+    catch(e){try{const r=await fetch('config.json');currentConfig=await r.json();}catch(e2){console.error('Config load error:',e2);}}
+}
+function renderCfg(){
+    const c=document.getElementById('cfg-content');if(!c)return;c.innerHTML='';
+    if(!currentConfig){c.innerHTML='<div style=\"color:#faa;\">⚠ Keine Konfiguration geladen</div>';return;}
+    const lang=navigator.language.startsWith('de')?'de':'en';
+    const t=(de,en)=>lang==='de'?de:en;
+    // Title
+    const title=currentConfig.title||'Dashboard';
+    c.innerHTML='<div style=\"color:#0fc;font-size:14px;font-weight:bold;margin-bottom:8px;\">'+title+'</div>';
+    const help={
+        galaxies:{de:'Galaxien — die Hauptknoten deines Universums. Jede Galaxie hat Position (x,y,z), Radius (r) und Farbe.',en:'Galaxies — main nodes of your universe. Each has position (x,y,z), radius (r) and color.'},
+        systems:{de:'Container/Systeme innerhalb der Galaxien. g=Galaxie-ID, r=Halo-Radius, c=Farbe (hex).',en:'Containers/systems inside galaxies. g=galaxy ID, r=halo radius, c=color (hex).'},
+        connections:{de:'Verbindungen zwischen Systemen. Typen: active (durchgezogen), ping (gestrichelt), tube (3D-Röhre).',en:'Links between systems. Types: active (solid), ping (dashed), tube (3D pipe).'},
+        packets:{de:'Datenpakete die zwischen Systemen fliegen. type=issue|deploy|data|ping|error. speed=Bewegungsgeschwindigkeit.',en:'Data packets flying between systems. type=issue|deploy|data|ping|error. speed=movement speed.'},
+    };
+    for(const[sk,so]of Object.entries(currentConfig)){
+        if(sk==='title'||sk==='_comment'||typeof so!=='object')continue;
+        const h=document.createElement('div');
+        h.style.cssText='color:#38f;font-weight:bold;font-size:12px;margin-top:10px;border-bottom:1px dashed rgba(51,136,255,.3);padding-bottom:3px;';
+        h.textContent=sk.toUpperCase()+' ('+so.length+' '+t('Einträge','entries')+')';
+        c.appendChild(h);
+        // Help text
+        if(help[sk]){
+            const hp=document.createElement('div');
+            hp.style.cssText='font-size:10px;color:#888;margin:3px 0 6px;font-style:italic;';
+            hp.textContent=t(help[sk].de,help[sk].en);
+            c.appendChild(hp);
+        }
+        // Render first 3 items as examples
+        const items=Array.isArray(so)?so.slice(0,3):[so];
+        items.forEach(item=>{
+            const b=document.createElement('div');
+            b.style.cssText='background:rgba(0,255,204,.03);border:1px solid rgba(0,255,204,.15);padding:6px 8px;border-radius:4px;margin:3px 0;font-size:10px;';
+            const keys=Object.keys(item).filter(k=>k!=='_comment');
+            const vals=keys.map(k=>'<span style=\"color:#fa0;\">'+k+'</span>=<span style=\"color:#0fc;\">'+JSON.stringify(item[k])+'</span>');
+            b.innerHTML=vals.join(' | ');
+            c.appendChild(b);
+        });
+        if(so.length>3){
+            const more=document.createElement('div');
+            more.style.cssText='font-size:9px;color:#666;padding:2px 8px;';
+            more.textContent='... und '+(so.length-3)+' '+t('weitere','more');
+            c.appendChild(more);
+        }
+    }
+    // Footer help
+    const foot=document.createElement('div');
+    foot.style.cssText='margin-top:16px;padding-top:10px;border-top:1px solid rgba(0,255,204,.2);font-size:10px;color:#888;';
+    foot.innerHTML=t(
+        '<b>Tipp:</b> Erstelle eine <code>config.local.json</code> im gleichen Ordner um diese Werte zu überschreiben. Die lokale Datei wird nicht auf GitHub veröffentlicht.',
+        '<b>Tip:</b> Create a <code>config.local.json</code> in the same folder to override these values. The local file is not published to GitHub.'
+    );
+    c.appendChild(foot);
+}
 document.getElementById('cfg-btn').addEventListener('click',async()=>{await loadCfg();renderCfg();document.getElementById('cfg-modal').style.display='flex';});
 document.getElementById('cfg-close').addEventListener('click',()=>{document.getElementById('cfg-modal').style.display='none';});
 loadCfg();
