@@ -119,7 +119,7 @@ let R,scene,cam,controls,U,PkG;
 // Scene objects always created (independent of WebGL)
 const C=document.getElementById('canvas-container');
 scene=new THREE.Scene();scene.fog=new THREE.FogExp2(0x020208,0.01);
-cam=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,0.1,1200);cam.position.set(0,20,65);cam.lookAt(0,-6,0);
+cam=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,0.1,1200);cam.position.set(0,25,70);cam.lookAt(0,0,-12);
 U=new THREE.Group();scene.add(U);
 PkG=new THREE.Group();U.add(PkG);
 // WebGL renderer — may fail in headless browsers
