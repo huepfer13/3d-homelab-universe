@@ -1,37 +1,56 @@
 # Changelog
 
-## [1.1.0] - 2025-08-02
+## [v2.0.0] — 2026-08-03
+
 ### Added
-- **OrbitControls**: drag to rotate, scroll to zoom, right-drag to pan with damping
-- **3D Multi-Axis Halos with AdditiveBlending**: Three orthogonal rings (XY, XZ, YZ) per galaxy and system — true 3D volume from any angle
-- **Packet Fade-In/Out**: Opacity transition at halo entry/exit points
-- **Accordion Hierarchy**: Expandable legend showing galaxies and systems, click to focus any node
-- **Pipeline Badge**: HUD shows live CI/CD pipeline status with color coding
-- **Event Log**: Streaming event stream with timestamps, color-coded by severity
-- **Hover Tooltips**: Mouse-over nodes show metadata (type, radius, parent galaxy)
-- **Connection Types**: active (solid cyan), ping (dim dashed), tube (curved red/orange arc)
-- **Extended connection format**: Support `[from, to, type]` triples in config.json
+- **Multi-Metric Halos**: 3 independent rings per object (X=CPU, Y=RAM, Z=Disk I/O)
+  - Color transitions: cyan (idle) → orange (busy) → red (critical)
+  - Per-ring pulsing with metric-specific frequency
+  - Simulated metric drift for live data effect
+  - Legend in HUD explaining ring/metric mapping
+- **Canvas2D Fallback**: 25 animated pulsating dots when WebGL unavailable
+- **GitHub Actions CI**: Tests, HTML validation, config check on every push
+- **README_EN.md**: Full English documentation
+- **5 Galaxy Layout**: Expanded from 3 to 5 galaxies (Alpha..Epsilon) with 25 containers
+- **Ring Metrics Legend**: Visual guide for X/Y/Z → CPU/RAM/Disk mapping
 
 ### Changed
-- Updated config.json with real 3-node homelab topology (11 systems, 12 packets)
-- Universe position follows OrbitControls target for smoother click-to-center
-- Improved camera damping behavior
+- Expanded from 3 galaxies / 11 containers → 5 galaxies / 25 containers
+- Container IDs simplified: `a1..e5` instead of `node-a1..node-c3`
+- Galaxy routes: 4 connections (alpha→beta→gamma→delta→epsilon)
+- `fl()` updates simulation HUD immediately (was: after API timeout)
+- Galaxy positions widened to -40..+40 on X-axis
 
 ### Fixed
-- Test suite updated to support extended connection format
+- Removed broken `no-webgl` banner with escape issues
+- `cl` TDZ bug causing Gg/Sg undefined on some browsers
+- Accordion now shows all 5 galaxies and 25 containers
+- `config.json` anonymized — zero project-specific names
+- All project names removed from GitHub repo (BCHC, hostnames, CT-IDs)
 
-## [1.0.0] - 2024-08-02
+### Removed
+- All hardcoded project infrastructure names (Hermes, Paperless, Nextcloud, etc.)
+- Three.js CDN dependency guard complexity (back to clean structure)
+- Broken WebGL error banner with escape bugs
+
+## [v1.1.0] — 2026-08-02
+
 ### Added
-- Initial release: universal config-driven 3D spiderweb dashboard
-- Galaxy → Solar System → Planet hierarchical nesting
-- 3D multi-axis ring halos (XY, XZ, YZ orthogonal rings)
-- Color-coded animated packets with trails (ping-pong bounce)
-- Click-to-center: shift universe to focus any object
-- Pulsing load rings, permanent floating labels, crosshair
-- try-catch safe animation loop
-- Dual PointLights for even illumination
-- Config-driven via `config.json`
-- Live API integration (30s poll)
-- 11 unit tests (config validation + HTML structure)
-- SKILL.md for AI Agent integration
-- MIT License
+- OrbitControls with damping
+- Multi-axis halo rings (XY, XZ, YZ planes)
+- Click-to-center universe
+- Crosshair HUD overlay
+- Event stream with expandable sub-tasks
+- Pipeline stages orbit animation
+- Loop tubes between nodes
+
+### Changed
+- Packet labels projected 3D→2D with visibility culling
+- Trail history for packet paths (comet tail effect)
+
+## [v1.0.0] — 2026-07-27
+
+- Initial release
+- 3D spiderweb dashboard
+- config.json-driven architecture
+- Unit tests (test_universe.py)
