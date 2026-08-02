@@ -2,7 +2,7 @@
 
 > **Dein gesamtes Homelab als lebendiges, leuchtendes Sci-Fi-Universum – auf einen Blick.**
 >
-> 🚀 **[LIVE DEMO](https://huepfer13.github.io/3d-homelab-universe/universe.html)** — direkt im Browser testen!
+> 🚀 **[LIVE DEMO](https://huepfer13.github.io/3d-homelab-universe/)** — direkt im Browser testen!
 
 **3D Homelab Universe** verwandelt deine Server, Nodes und Container in eine atemberaubende 3D-Galaxie. Beobachte Live-Datenpakete mit *Additive-Blending*-Glow, springe per Klick zu einzelnen Containern und verfolge Task-Ketten im interaktiven Event-Stream.
 
@@ -14,10 +14,10 @@
 git clone https://github.com/huepfer13/3d-homelab-universe.git
 cd 3d-homelab-universe
 python3 -m http.server 8000
-# Open http://localhost:8000/universe.html
+# Open http://localhost:8000/index.html
 ```
 
-> 💡 **Kein Klonen noetig?** [Live-Demo auf GitHub Pages](https://huepfer13.github.io/3d-homelab-universe/universe.html)
+> 💡 **Kein Klonen noetig?** [Live-Demo auf GitHub Pages](https://huepfer13.github.io/3d-homelab-universe/)
 
 ### ✨ Killer-Features
 
@@ -32,7 +32,7 @@ python3 -m http.server 8000
 ### 📁 Struktur
 
 ```
-├── universe.html       # Dashboard (self-contained)
+├── index.html          # Dashboard (self-contained)
 ├── config.json         # Konfiguration
 ├── test_universe.py    # 11 Unit-Tests
 ├── SKILL.md            # Hermes Agent Integration

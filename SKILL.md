@@ -16,7 +16,7 @@ Config-driven Three.js dashboard — galaxies, solar systems, animated packets w
 git clone https://github.com/huepfer13/3d-homelab-universe.git
 cd 3d-homelab-universe
 python3 -m http.server 8000
-# Open http://localhost:8000/universe.html
+# Open http://localhost:8000/index.html
 ```
 
 ## Kiosk Mode — Vollbild-Display ohne Browser-Chrome
@@ -26,7 +26,7 @@ python3 -m http.server 8000
 # Vollbild, keine Tab-Leiste, kein erstmaliges Setup-Popup
 chromium --kiosk --no-first-run --disable-infobars --disable-session-crashed-bubble \
   --disable-translate --no-default-browser-check \
-  http://your-host:8000/universe.html
+  http://your-host:8000/index.html
 ```
 
 ### Chromium mit Autostart (Linux Desktop)
@@ -35,7 +35,7 @@ chromium --kiosk --no-first-run --disable-infobars --disable-session-crashed-bub
 [Desktop Entry]
 Type=Application
 Name=3D Universe Kiosk
-Exec=chromium --kiosk --no-first-run --disable-infobars --disable-session-crashed-bubble --disable-translate --no-default-browser-check http://your-host:8000/universe.html
+Exec=chromium --kiosk --no-first-run --disable-infobars --disable-session-crashed-bubble --disable-translate --no-default-browser-check http://your-host:8000/index.html
 X-GNOME-Autostart-enabled=true
 ```
 
@@ -50,7 +50,7 @@ After=graphical.target
 Type=simple
 User=kiosk
 Environment=DISPLAY=:0
-ExecStart=/usr/bin/chromium --kiosk --no-first-run --disable-infobars --disable-session-crashed-bubble --disable-translate --no-default-browser-check http://your-host:8000/universe.html
+ExecStart=/usr/bin/chromium --kiosk --no-first-run --disable-infobars --disable-session-crashed-bubble --disable-translate --no-default-browser-check http://your-host:8000/index.html
 Restart=always
 RestartSec=10
 
@@ -62,12 +62,12 @@ WantedBy=graphical.target
 ```bash
 # Chromium im Kiosk-Mode ohne GPU-Beschleunigung (fallback)
 chromium-browser --kiosk --no-first-run --disable-gpu --disable-software-rasterizer \
-  http://your-host:8000/universe.html
+  http://your-host:8000/index.html
 ```
 
 ### Firefox Kiosk
 ```bash
-firefox --kiosk http://your-host:8000/universe.html
+firefox --kiosk http://your-host:8000/index.html
 ```
 
 ### Troubleshooting Kiosk
@@ -83,7 +83,7 @@ firefox --kiosk http://your-host:8000/universe.html
 
 ### Iframe Embed
 ```html
-<iframe src="http://<host>:8000/universe.html" width="100%" height="600" frameborder="0"></iframe>
+<iframe src="http://<host>:8000/index.html" width="100%" height="600" frameborder="0"></iframe>
 ```
 
 ### Live API Integration
