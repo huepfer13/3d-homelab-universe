@@ -112,7 +112,7 @@ PkG=new THREE.Group();U.add(PkG);
 // WebGL renderer — may fail in headless browsers
 try{
 R=new THREE.WebGLRenderer({antialias:true});R.setSize(innerWidth,innerHeight);R.setPixelRatio(devicePixelRatio);C.appendChild(R.domElement);
-}catch(e){console.warn('WebGL unavailable — simulation mode');R=null;}
+}catch(e){console.warn('WebGL unavailable — simulation mode');R=null;document.body.insertAdjacentHTML('beforeend','<div id=no-webgl style=\"position:fixed;bottom:10px;left:50%;transform:translateX(-50%);background:rgba(255,100,0,.9);color:#fff;padding:8px 20px;border-radius:6px;font-family:monospace;font-size:12px;z-index:200;pointer-events:none;\">⚠ Simulation Mode — 3D unavailable in this browser</div>');}
 
 if(R){
 controls=new THREE.OrbitControls(cam,R.domElement);
@@ -504,7 +504,7 @@ fl();setInterval(fl,30000);
 setTimeout(()=>{
     addEventTask({text:'Universe initialisiert',status:'success',startTime:new Date().toLocaleTimeString(),endTime:new Date().toLocaleTimeString(),ghost:false,sourceUrl:null});
 },1500);
-window.addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();R.setSize(innerWidth,innerHeight);});
+window.addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();if(R)R.setSize(innerWidth,innerHeight);});
 
 // ═══ CLICK-TO-CENTER: Universe verschiebt sich zum angeklickten Objekt ═══
 let camTarget=new THREE.Vector3(0,0,0),camDirty=false,uniOffset=new THREE.Vector3(0,0,0);
