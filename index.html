@@ -102,8 +102,8 @@ function simNode(n){return NODES[n%NODES.length];}
 function simCT(){return 'Node-'+String.fromCharCode(65+Math.floor(Math.random()*NODES.length))+String(1+Math.floor(Math.random()*CT_PER_NODE));}
 
 // ═══ THREE.JS 3D SCENE ═══
-let R,scene,cam,controls,U,PkG;
-// Scene objects always created (independent of WebGL)
+let R=null,scene=null,cam=null,controls=null,U=null,PkG=null;
+if(typeof THREE!=='undefined'){
 const C=document.getElementById('canvas-container');
 scene=new THREE.Scene();scene.fog=new THREE.FogExp2(0x020208,0.01);
 cam=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,0.1,1200);cam.position.set(0,20,65);cam.lookAt(0,-6,0);
@@ -382,6 +382,7 @@ function animate(){
     }catch(e){console.error(e);}
 }
 if(R)animate();
+}else{console.warn('Three.js CDN not loaded — simulation only');}
 
 // ═══ LIVE API / SIMULATION ═══
 function simMsg(){
@@ -503,12 +504,15 @@ fl();setInterval(fl,30000);
 setTimeout(()=>{
     addEventTask({text:'Universe initialisiert',status:'success',startTime:new Date().toLocaleTimeString(),endTime:new Date().toLocaleTimeString(),ghost:false,sourceUrl:null});
 },1500);
-window.addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();if(R)R.setSize(innerWidth,innerHeight);});
+window.addEventListener('resize',()=>{if(cam){cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();}if(R)R.setSize(innerWidth,innerHeight);});
 
-// ═══ CLICK-TO-CENTER: Universe verschiebt sich zum angeklickten Objekt ═══
-let camTarget=new THREE.Vector3(0,0,0),camDirty=false,uniOffset=new THREE.Vector3(0,0,0);
+// ═══ CLICK-TO-CENTER (only with WebGL) ═══
+let camTarget, camDirty=false, uniOffset;
+if(typeof THREE!=='undefined' && scene){
+camTarget=new THREE.Vector3(0,0,0);uniOffset=new THREE.Vector3(0,0,0);
 const rc=new THREE.Raycaster();const mc=new THREE.Vector2();
 window.addEventListener('click',e=>{
+    if(!R)return;
     mc.x=(e.clientX/innerWidth)*2-1;mc.y=-(e.clientY/innerHeight)*2+1;
     rc.setFromCamera(mc,cam);
     const hits=rc.intersectObjects(U.children,true);
@@ -516,12 +520,12 @@ window.addEventListener('click',e=>{
         let tg=hits[0].object;
         while(tg.parent&&tg.parent!==U&&tg.parent!==scene)tg=tg.parent;
         const wp=new THREE.Vector3();tg.getWorldPosition(wp);
-        // Shift universe so clicked object becomes (0,0,0)
         uniOffset.copy(wp).negate();
         camTarget.set(0,0,0);camDirty=true;
     }
 });
-window.addEventListener('dblclick',e=>{uniOffset.set(0,0,0);camTarget.set(0,0,0);camDirty=true;});
+window.addEventListener('dblclick',e=>{if(!R)return;uniOffset.set(0,0,0);camTarget.set(0,0,0);camDirty=true;});
+}
 </script>
 </body>
 </html>
