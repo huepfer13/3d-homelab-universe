@@ -395,7 +395,7 @@ function simMsg(){
 setInterval(simMsg,1000);
 async function fl(){
     // Try real API first
-    try{const r=await fetch('/api/universe-state');const d=await r.json();
+    try{const r=await fetch('./api/universe-state');const d=await r.json();
         if(d.pipeline&&d.pipeline.length>0){
             document.getElementById('node-count').textContent=((d.nodes||[]).filter(n=>n.online).length||3)+' Galaxies';
             document.getElementById('paperless-count').textContent=(d.paperless_docs||0)+' Documents';
