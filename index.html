@@ -5,72 +5,142 @@
 <title>3D Universe Demo</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-body{background:#020208;color:#00ffcc;font-family:monospace;overflow:hidden;width:100vw;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;}
-#hud{background:rgba(5,10,25,.95);border:1px solid #00ffcc44;border-radius:10px;padding:20px 30px;min-width:320px;text-align:center;}
-h1{font-size:18px;color:#fff;margin-bottom:4px;letter-spacing:2px;}
-.sub{font-size:10px;color:#0cf;margin-bottom:16px;opacity:.7;}
-.m{display:flex;justify-content:space-between;font-size:13px;margin:6px 0;padding:4px 0;border-bottom:1px solid #0cf1;}
-.m span{color:#fff;font-weight:bold;}
-#log{position:fixed;bottom:10px;left:20px;right:20px;background:rgba(5,5,15,.9);border:1px solid #0cf3;border-radius:8px;padding:10px;max-height:180px;overflow-y:auto;z-index:10;}
-#log .title{color:#0fc;font-size:11px;font-weight:bold;margin-bottom:6px;border-bottom:1px solid #0cf3;padding-bottom:4px;}
-#log .entry{font-size:10px;padding:2px 6px;margin:1px 0;border-radius:3px;}
-.e-success{border-left:2px solid #0f8;background:rgba(0,255,136,.05);color:#0f8;}
-.e-error{border-left:2px solid #f33;background:rgba(255,51,51,.08);color:#f33;}
-.e-warning{border-left:2px solid #fa0;background:rgba(255,170,0,.05);color:#fa0;}
-#banner{position:fixed;top:10px;right:10px;background:rgba(255,100,0,.15);border:1px solid rgba(255,100,0,.4);color:#fa0;padding:6px 14px;border-radius:5px;font-size:11px;z-index:20;}
+body{background:#020208;color:#00ffcc;font-family:monospace;width:100vw;height:100vh;overflow:hidden;display:flex;}
+#tree{width:320px;min-width:280px;height:100vh;overflow-y:auto;background:rgba(5,10,25,.95);border-right:1px solid #0cf3;padding:15px;z-index:10;}
+#tree h1{font-size:14px;color:#fff;margin-bottom:2px;letter-spacing:1px;}
+#tree .sub{font-size:9px;color:#0cf;margin-bottom:12px;opacity:.7;}
+.galaxy{margin:3px 0;border-left:2px solid #08f;padding-left:8px;}
+.galaxy>.name{color:#08f;font-weight:bold;font-size:12px;cursor:pointer;padding:3px 0;}
+.galaxy>.name:hover{color:#0af;}
+.container{margin:2px 0;border-left:1px solid #0f8;padding-left:10px;display:none;}
+.galaxy.open>.container{display:block;}
+.container>.name{color:#0f8;font-size:11px;padding:2px 0;cursor:pointer;}
+.container>.name:hover{color:#5f8;}
+.service{margin:1px 0;border-left:1px solid #fa0;padding-left:8px;display:none;}
+.container.open>.service{display:block;}
+.service>.name{color:#fa0;font-size:10px;padding:1px 0;}
+.stage{margin:1px 0;padding-left:6px;font-size:9px;}
+.stage::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:5px;}
+.stage.ok::before{background:#0f8;box-shadow:0 0 4px #0f8;}
+.stage.busy::before{background:#fa0;box-shadow:0 0 4px #fa0;animation:pulse 1s infinite;}
+.stage.error::before{background:#f33;box-shadow:0 0 4px #f33;animation:pulse .5s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+#stats{position:fixed;top:10px;right:10px;background:rgba(5,10,25,.9);border:1px solid #0cf3;border-radius:6px;padding:10px 15px;font-size:11px;z-index:20;}
+#stats span{color:#fff;}
+#log{position:fixed;bottom:10px;right:10px;left:330px;background:rgba(5,5,15,.9);border:1px solid #0cf3;border-radius:8px;padding:10px;max-height:200px;overflow-y:auto;z-index:10;}
+#log .title{color:#0fc;font-size:11px;font-weight:bold;margin-bottom:6px;}
+.entry{font-size:10px;padding:2px 5px;margin:1px 0;border-radius:3px;}
+.e-ok{border-left:2px solid #0f8;color:#0f8;}
+.e-busy{border-left:2px solid #fa0;color:#fa0;}
+.e-error{border-left:2px solid #f33;color:#f33;}
+#center{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;z-index:5;}
+#center .big{font-size:60px;opacity:.15;color:#0cf;text-shadow:0 0 40px #0cf;}
 </style>
 </head>
 <body>
-<div id="hud">
+<div id="tree">
 <h1>3D UNIVERSE</h1>
-<div class="sub">Simulation Demo</div>
-<div class="m">Nodes: <span id="nc">5 Active</span></div>
-<div class="m">Status: <span id="st">● Running</span></div>
-<div class="m">Connections: <span id="cc">15 Links</span></div>
-<div class="m">Uptime: <span id="up">0s</span></div>
+<div class="sub">5 Galaxies · 25 Containers · 75 Services · 225 Stages</div>
+<div id="galaxies"></div>
 </div>
-<div id="banner">⚠ Simulation — 3D unavailable</div>
+<div id="center"><div class="big">◈</div></div>
+<div id="stats">
+<div>Uptime: <span id="up">0s</span></div>
+<div>Events: <span id="ev">0</span></div>
+<div>Errors: <span id="er">0</span></div>
+</div>
 <div id="log"><div class="title">EVENT STREAM</div><div id="entries"></div></div>
 
 <script>
-// ═══ PURE SIMULATION — no external deps ═══
-const NODES=['Alpha','Beta','Gamma','Delta','Epsilon'];
-const SVCS=['API','DB','Cache','Queue','Worker','Gateway','Proxy'];
-const STAGES=['Init','Build','Test','Deploy','Done'];
-const TYPES=['deploy','data','ping','sync','backup','health'];
-const STATUS=['success','success','success','warning','error'];
+// ═══ UNIVERSE HIERARCHY ═══
+const GALAXIES = ['Alpha','Beta','Gamma','Delta','Epsilon'];
+const CONTAINERS = ['C1','C2','C3','C4','C5'];
+const SERVICES = ['API','DB','Queue'];
+const STAGES = ['boot','health','watchdog'];
 
-let tick=0, start=Date.now();
+// State: stage -> current status
+const state = {};
+GALAXIES.forEach(g => {
+  state[g] = {};
+  CONTAINERS.forEach(c => {
+    state[g][c] = {};
+    SERVICES.forEach(s => {
+      state[g][c][s] = {};
+      STAGES.forEach(t => { state[g][c][s][t] = 'ok'; });
+    });
+  });
+});
 
-function rnd(a){return a[Math.floor(Math.random()*a.length)];}
-function simNode(){return 'Node-'+String.fromCharCode(65+Math.floor(Math.random()*5))+Math.ceil(Math.random()*5);}
+let tick = 0, start = Date.now(), errors = 0;
 
-function simMsg(){
-    tick++;
-    const from=simNode(),to=simNode();if(from===to)return simMsg();
-    const type=rnd(TYPES),status=rnd(STATUS);
-    const titles={deploy:'Deploy '+rnd(SVCS)+' '+rnd(STAGES),data:'Sync '+rnd(SVCS),
-        ping:'Heartbeat '+from, sync:'Replicate '+rnd(SVCS),
-        backup:'Backup '+rnd(STAGES), health:'Health '+from};
-    const e=document.createElement('div');
-    e.className='entry e-'+status;
-    e.textContent='['+new Date().toLocaleTimeString()+'] '+titles[type];
-    const c=document.getElementById('entries');
-    c.insertBefore(e,c.firstChild);
-    if(c.children.length>50)c.lastChild.remove();
+function setStage(g,c,s,t,status){
+  state[g][c][s][t] = status;
+  const el = document.getElementById(`st-${g}-${c}-${s}-${t}`);
+  if(el){ el.className = 'stage '+status; el.textContent = t + ' ('+status+')'; }
 }
 
-function fl(){
-    document.getElementById('nc').textContent=5+Math.floor(Math.random()*3)+' Active';
-    document.getElementById('st').textContent=(tick%10===0?'⚠ Warning':tick%7===0?'● Error':'● Running');
-    document.getElementById('st').style.color=tick%10===0?'#fa0':tick%7===0?'#f33':'#0f8';
-    document.getElementById('cc').textContent=(12+Math.floor(Math.random()*8))+' Links';
-    document.getElementById('up').textContent=Math.floor((Date.now()-start)/1000)+'s';
+function rnd(a){ return a[Math.floor(Math.random()*a.length)]; }
+
+// Build DOM tree
+const tree = document.getElementById('galaxies');
+GALAXIES.forEach(g => {
+  const gdiv = document.createElement('div'); gdiv.className = 'galaxy open';
+  gdiv.innerHTML = `<div class="name" onclick="this.parentElement.classList.toggle('open')">▶ 🪐 ${g}</div>`;
+  CONTAINERS.forEach(c => {
+    const cdiv = document.createElement('div'); cdiv.className = 'container open';
+    cdiv.innerHTML = `<div class="name" onclick="event.stopPropagation();this.parentElement.classList.toggle('open')">▸ 📦 ${c}</div>`;
+    SERVICES.forEach(s => {
+      const sdiv = document.createElement('div'); sdiv.className = 'service open';
+      sdiv.innerHTML = `<div class="name">▹ ⚙ ${s}</div>`;
+      STAGES.forEach(t => {
+        const st = document.createElement('div');
+        st.className = 'stage ok'; st.id = `st-${g}-${c}-${s}-${t}`;
+        st.textContent = t + ' (ok)';
+        sdiv.appendChild(st);
+      });
+      cdiv.appendChild(sdiv);
+    });
+    gdiv.appendChild(cdiv);
+  });
+  tree.appendChild(gdiv);
+});
+
+// Simulate stage changes
+function simTick(){
+  tick++;
+  const g = rnd(GALAXIES), c = rnd(CONTAINERS), s = rnd(SERVICES), t = rnd(STAGES);
+  const oldStatus = state[g][c][s][t];
+  const r = Math.random();
+  const newStatus = oldStatus === 'error' ? (r < .7 ? 'ok' : 'busy') :
+                    oldStatus === 'busy' ? (r < .5 ? 'ok' : r < .8 ? 'busy' : 'error') :
+                    r < .15 ? 'busy' : r < .04 ? 'error' : 'ok';
+  
+  if(newStatus !== oldStatus){
+    setStage(g,c,s,t,newStatus);
+    if(newStatus === 'error') errors++;
+    addEvent(g,c,s,t,oldStatus,newStatus);
+  }
 }
 
-setInterval(simMsg,800);
-setInterval(fl,3000);
-fl();
+function addEvent(g,c,s,t,from,to){
+  const e = document.createElement('div');
+  e.className = 'entry e-' + (to === 'error' ? 'error' : to === 'busy' ? 'busy' : 'ok');
+  const arrow = to === 'error' ? '🔥' : to === 'busy' ? '⚠' : '✓';
+  e.textContent = `[${new Date().toLocaleTimeString()}] ${arrow} ${g}/${c}/${s}/${t}: ${from}→${to}`;
+  const entries = document.getElementById('entries');
+  entries.insertBefore(e, entries.firstChild);
+  if(entries.children.length > 80) entries.lastChild.remove();
+}
+
+function updateStats(){
+  document.getElementById('up').textContent = Math.floor((Date.now()-start)/1000)+'s';
+  document.getElementById('ev').textContent = tick;
+  document.getElementById('er').textContent = errors;
+}
+
+setInterval(simTick, 150);
+setInterval(updateStats, 2000);
+updateStats();
 </script>
 </body>
 </html>
