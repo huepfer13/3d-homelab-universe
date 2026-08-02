@@ -33,5 +33,5 @@
 - Config-driven via `config.json`
 - Live API integration (30s poll)
 - 11 unit tests (config validation + HTML structure)
-- SKILL.md for Hermes Agent integration
+- SKILL.md for AI Agent integration
 - MIT License

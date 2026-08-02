@@ -24,7 +24,7 @@ python3 -m http.server 8000
 * **🚀 3D-Volumen-Halos** — XYZ-Energieringe, die aus jedem Blickwinkel strahlen
 * **☄️ Datenpakete mit Trail-History** — Kometen-Schweife folgen physikalisch der Bewegungsrichtung + Fade-In/Out
 * **🧠 Task- & Trace-Monitor** — Event-Stream mit Zeitstempeln, farbcodiertem Status-Gluehen, aufklappbaren Sub-Tasks
-* **🔗 Direkte Quell-Verknuepfung** — Klick oeffnet Gitea-Issue oder Paperless-Dokument
+* **🔗 Direkte Quell-Verknuepfung** — Klick oeffnet Issue-Tracker oder Dokumenten-Link
 * **📂 Aufklappbare Hierarchie** — Accordion fuer Galaxien, Container, Pipelines
 * **🕹️ OrbitControls** — Zoom, Orbit, Pan + Center-Universe-Button
 * **⚙️ `config.json`** — externe Konfiguration mit DE/EN-Hilfe im Modal
@@ -35,7 +35,7 @@ python3 -m http.server 8000
 ├── index.html          # Dashboard (self-contained)
 ├── config.json         # Konfiguration
 ├── test_universe.py    # 11 Unit-Tests
-├── SKILL.md            # Hermes Agent Integration
+├── SKILL.md            # AI Agent Integration
 ├── README.md / CHANGELOG.md / LICENSE
 ```
 
