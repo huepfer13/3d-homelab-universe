@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run unit tests
+        run: python3 test_universe.py
+
+      - name: Validate HTML
+        run: |
+          python3 -c "
+          import sys
+          with open('index.html') as f:
+              html = f.read()
+          checks = [
+              ('DOCTYPE', '<!DOCTYPE html>' in html),
+              ('html tag', '<html' in html and '</html>' in html),
+              ('head tag', '<head>' in html and '</head>' in html),
+              ('body tag', '<body>' in html and '</body>' in html),
+              ('script tag', '<script>' in html and '</script>' in html),
+              ('config.json ref', 'config.json' in html),
+          ]
+          failed = [c[0] for c in checks if not c[1]]
+          if failed:
+              print(f'FAIL: {failed}')
+              sys.exit(1)
+          print('HTML validation: ALL PASSED')
+          "
+
+      - name: Validate config.json
+        run: |
+          python3 -c "
+          import json, sys
+          with open('config.json') as f:
+              cfg = json.load(f)
+          assert 'galaxies' in cfg, 'missing galaxies'
+          assert len(cfg['galaxies']) == 5, f'expected 5 galaxies, got {len(cfg[\"galaxies\"])}'
+          assert 'systems' in cfg, 'missing systems'
+          assert len(cfg['systems']) == 25, f'expected 25 systems, got {len(cfg[\"systems\"])}'
+          print('config.json: 5 galaxies, 25 systems — OK')
+          "
