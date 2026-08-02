@@ -589,21 +589,19 @@ const AC=new(window.AudioContext||window.webkitAudioContext)();
 function beep(freq,dur,vol,type){const o=AC.createOscillator(),g=AC.createGain();o.type=type||'sine';o.frequency.value=freq;g.gain.setValueAtTime(vol||0.05,AC.currentTime);g.gain.exponentialRampToValueAtTime(0.001,AC.currentTime+dur);o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+dur);}
 function sfx(status){if(status==='error')beep(200,0.3,0.06,'square');else if(status==='success')beep(800,0.1,0.03,'sine');else if(status==='warning')beep(400,0.15,0.04,'triangle');}
 // Config modal (DE/EN help)
-let currentConfig={};
 let currentConfig=null;
 async function loadCfg(){
-    // Try local config first, fall back to default
     try{const r=await fetch('config.local.json');currentConfig=await r.json();console.log('Loaded local config');}
     catch(e){try{const r=await fetch('config.json');currentConfig=await r.json();}catch(e2){console.error('Config load error:',e2);}}
 }
 function renderCfg(){
     const c=document.getElementById('cfg-content');if(!c)return;c.innerHTML='';
-    if(!currentConfig){c.innerHTML='<div style=\"color:#faa;\">⚠ Keine Konfiguration geladen</div>';return;}
+    if(!currentConfig){c.innerHTML='<div style="color:#faa;">⚠ Keine Konfiguration geladen</div>';return;}
     const lang=navigator.language.startsWith('de')?'de':'en';
     const t=(de,en)=>lang==='de'?de:en;
     // Title
     const title=currentConfig.title||'Dashboard';
-    c.innerHTML='<div style=\"color:#0fc;font-size:14px;font-weight:bold;margin-bottom:8px;\">'+title+'</div>';
+    c.innerHTML='<div style="color:#0fc;font-size:14px;font-weight:bold;margin-bottom:8px;">'+title+'</div>';
     const help={
         galaxies:{de:'Galaxien — die Hauptknoten deines Universums. Jede Galaxie hat Position (x,y,z), Radius (r) und Farbe.',en:'Galaxies — main nodes of your universe. Each has position (x,y,z), radius (r) and color.'},
         systems:{de:'Container/Systeme innerhalb der Galaxien. g=Galaxie-ID, r=Halo-Radius, c=Farbe (hex).',en:'Containers/systems inside galaxies. g=galaxy ID, r=halo radius, c=color (hex).'},
@@ -629,7 +627,7 @@ function renderCfg(){
             const b=document.createElement('div');
             b.style.cssText='background:rgba(0,255,204,.03);border:1px solid rgba(0,255,204,.15);padding:6px 8px;border-radius:4px;margin:3px 0;font-size:10px;';
             const keys=Object.keys(item).filter(k=>k!=='_comment');
-            const vals=keys.map(k=>'<span style=\"color:#fa0;\">'+k+'</span>=<span style=\"color:#0fc;\">'+JSON.stringify(item[k])+'</span>');
+            const vals=keys.map(k=>{var s='<span style="color:#fa0;">'+k+'</span>=<span style="color:#0fc;">'+JSON.stringify(item[k])+'</span>';return s;});
             b.innerHTML=vals.join(' | ');
             c.appendChild(b);
         });
