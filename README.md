@@ -1,22 +1,10 @@
 # 🌌 3D Homelab Universe
 
 > **Dein gesamtes Homelab als lebendiges, leuchtendes Sci-Fi-Universum – auf einen Blick.**
+>
+> 🚀 **[LIVE DEMO](https://huepfer13.github.io/3d-homelab-universe/universe.html)** — direkt im Browser testen!
 
-Vergiss trockene Tabellen und sterile Status-Listen. **3D Homelab Universe** verwandelt deine Server, Nodes und Container in eine atemberaubende 3D-Galaxie direkt auf deinem Kiosk-Display oder Browser!
-
-Beobachte Live-Datenpakete, die als glühende Kometen mit echtem *Additive-Blending*-Glow durch den Raum flitzen, springe per Mausklick direkt in den Fokus einzelner Container oder verfolge komplexe Task-Ketten im interaktiven Event-Stream.
-
----
-
-### ✨ Die Killer-Features
-
-* **🚀 3D-Volumen-Halos:** Nodes und Container werden von dreidimensionalen XYZ-Energieringen eingefasst, die aus jedem Blickwinkel perfekt strahlen.
-* **☄️ Lebendige Datenpakete:** Datenströme mit intelligentem Trail-History-Buffer und butterweichem Fade-In/Fade-Out beim Verlassen und Erreichen der Halos.
-* **🧠 Interaktiver Task- & Trace-Monitor:** Event-Stream mit Start/End-Zeiten, farbcodiertem Status-Glühen (Grün/Erfolg, Rot/Fehler, Orange/Warnung) und aufklappbaren Folge-Nachrichten.
-* **🔗 Direkte Quell-Verknüpfung:** Klick auf einen fertigen Auftrag öffnet die zugehörige externe Quelle (Gitea, Paperless) in einem neuen Tab.
-* **📂 Aufklappbare Hierarchie-Legende:** Accordion-Menüs für blitzschnellen Zugriff auf alle Objekte im Universum.
-* **🕹️ Volle 3D-Kontrolle:** Stufenloses Zoomen per Scrollrad, Orbit-Drehung per Mausklick, Pan-Verschiebung und "Center Universe"-Button.
-* **⚙️ Externe Konfiguration (`config.json`):** Parameter von außen anpassbar, mit DE/EN-Hilfe im integrierten Modal-Fenster.
+**3D Homelab Universe** verwandelt deine Server, Nodes und Container in eine atemberaubende 3D-Galaxie. Beobachte Live-Datenpakete mit *Additive-Blending*-Glow, springe per Klick zu einzelnen Containern und verfolge Task-Ketten im interaktiven Event-Stream.
 
 ---
 
@@ -29,42 +17,33 @@ python3 -m http.server 8000
 # Open http://localhost:8000/universe.html
 ```
 
-### 🔧 Kiosk Mode
+> 💡 **Kein Klonen noetig?** [Live-Demo auf GitHub Pages](https://huepfer13.github.io/3d-homelab-universe/universe.html)
 
-```bash
-chromium --kiosk --no-first-run --disable-infobars http://localhost:8000/universe.html
+### ✨ Killer-Features
+
+* **🚀 3D-Volumen-Halos** — XYZ-Energieringe, die aus jedem Blickwinkel strahlen
+* **☄️ Datenpakete mit Trail-History** — Kometen-Schweife folgen physikalisch der Bewegungsrichtung + Fade-In/Out
+* **🧠 Task- & Trace-Monitor** — Event-Stream mit Zeitstempeln, farbcodiertem Status-Gluehen, aufklappbaren Sub-Tasks
+* **🔗 Direkte Quell-Verknuepfung** — Klick oeffnet Gitea-Issue oder Paperless-Dokument
+* **📂 Aufklappbare Hierarchie** — Accordion fuer Galaxien, Container, Pipelines
+* **🕹️ OrbitControls** — Zoom, Orbit, Pan + Center-Universe-Button
+* **⚙️ `config.json`** — externe Konfiguration mit DE/EN-Hilfe im Modal
+
+### 📁 Struktur
+
+```
+├── universe.html       # Dashboard (self-contained)
+├── config.json         # Konfiguration
+├── test_universe.py    # 11 Unit-Tests
+├── SKILL.md            # Hermes Agent Integration
+├── README.md / CHANGELOG.md / LICENSE
 ```
 
-### 🧪 Tests
+### 🎥 Preview-GIF
 
-```bash
-python3 test_universe.py  # 11 unit tests
-```
-
-### 📁 Project Structure
-
-```
-3d-homelab-universe/
-├── universe.html       # Main dashboard (self-contained)
-├── config.json         # External configuration
-├── test_universe.py    # 11 unit tests
-├── SKILL.md            # Hermes Agent integration
-├── README.md           # This file
-├── CHANGELOG.md
-└── LICENSE             # MIT
-```
-
-### 🎥 Create a Preview GIF
-
-1. Record a 5-10s clip of the dashboard (Peek/OBS/ShareX)
-2. Save as `assets/preview.gif`
-3. Commit and push:
-```bash
-git add assets/preview.gif
-git commit -m "docs: add live preview gif"
-git push origin main
-```
-4. It appears automatically in this README!
+1. 5-10s aufnehmen (Peek/OBS/ShareX)
+2. Als `assets/preview.gif` speichern + pushen
+3. Erscheint automatisch im README!
 
 ### 🐛 Known Issues
 
@@ -72,4 +51,4 @@ git push origin main
 
 ### 📜 License
 
-MIT — see [LICENSE](LICENSE)
+MIT
