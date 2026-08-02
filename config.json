@@ -1,0 +1,29 @@
+{
+  "title": "3D Spiderweb Universe",
+  "galaxies": [
+    {"id":"g1","name":"Alpha Node","x":-25,"y":0,"z":-10,"r":12,"color":39423},
+    {"id":"g2","name":"Beta Node","x":0,"y":0,"z":-15,"r":13,"color":34695},
+    {"id":"g3","name":"Gamma Node","x":25,"y":0,"z":-10,"r":12,"color":39423}
+  ],
+  "systems": [
+    {"id":"s1","name":"Web Server","g":"g1","x":-6,"y":6,"z":-3,"r":5,"color":65535},
+    {"id":"s2","name":"Database","g":"g1","x":5,"y":-3,"z":-5,"r":5,"color":65535},
+    {"id":"s3","name":"Cache","g":"g1","x":-4,"y":-7,"z":3,"r":3.5,"color":65535},
+    {"id":"s4","name":"API Gateway","g":"g2","x":-8,"y":5,"z":-2,"r":5,"color":65535},
+    {"id":"s5","name":"Auth Service","g":"g2","x":3,"y":-2,"z":-5,"r":5,"color":65535},
+    {"id":"s6","name":"Worker","g":"g2","x":-3,"y":-7,"z":3,"r":3.5,"color":3368448},
+    {"id":"s7","name":"Monitor","g":"g3","x":-7,"y":5,"z":-2,"r":4,"color":65535},
+    {"id":"s8","name":"CI/CD","g":"g3","x":4,"y":-2,"z":-4,"r":4,"color":65535},
+    {"id":"s9","name":"Dashboard","g":"g3","x":7,"y":-6,"z":3,"r":4,"color":65535}
+  ],
+  "connections": [
+    ["s1","s2"],["s2","s3"],["s1","s4"],["s4","s5"],["s5","s6"],["s4","s7"],["s7","s8"],["s8","s9"],["s2","s5"],["s6","s9"]
+  ],
+  "packets": [
+    {"type":"issue","title":"#42 Fix Login Bug","status":"In Progress","from":"s1","to":"s8","speed":0.003},
+    {"type":"deploy","title":"Release v2.1","status":"Deploying","from":"s4","to":"s9","speed":0.0025},
+    {"type":"error","title":"DB Connection Timeout","status":"Alert","from":"s2","to":"s1","speed":0.004},
+    {"type":"ping","title":"Heartbeat","status":"OK","from":"s6","to":"s7","speed":0.001},
+    {"type":"data","title":"Metrics Sync","status":"Syncing","from":"s5","to":"s7","speed":0.0015}
+  ]
+}

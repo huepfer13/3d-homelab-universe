@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>3D Universe · Spiderweb Dashboard</title>
+<style>
+body{margin:0;padding:0;overflow:hidden;width:100vw;height:100vh;background:#020208;font-family:system-ui,sans-serif;color:#0cf;}
+#c{position:absolute;top:0;left:0;width:100vw;height:100vh;display:block;}
+#hud{position:absolute;top:20px;left:20px;background:rgba(5,10,25,.9);border:1px solid #0cf4;padding:15px 20px;border-radius:8px;pointer-events:none;z-index:10;max-width:340px;}
+#cross{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:30px;height:30px;border:1px solid rgba(0,255,204,.3);border-radius:50%;pointer-events:none;z-index:25;box-shadow:0 0 15px rgba(0,255,204,.1);}
+#cross::before,#cross::after{content:'';position:absolute;background:rgba(0,255,204,.15);}
+#cross::before{top:50%;left:0;right:0;height:1px;transform:translateY(-50%);}
+#cross::after{left:50%;top:0;bottom:0;width:1px;transform:translateX(-50%);}
+.lbl{position:absolute;left:0;top:0;background:rgba(5,10,20,.85);border:1px solid #0cf4;color:#0cf;padding:3px 10px;font-size:10px;border-radius:4px;pointer-events:none;white-space:nowrap;z-index:5;transform:translate(-50%,-100%);text-shadow:0 0 6px rgba(0,255,204,.5);}
+.pk{position:absolute;left:0;top:0;background:rgba(10,5,15,.9);border:1px solid rgba(255,0,255,.4);color:#fcf;padding:1px 4px;font-size:9px;border-radius:3px;pointer-events:none;white-space:nowrap;transform:translate(8px,-8px);z-index:10;}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+<div id="hud"><h1>3D Universe</h1>
+<div class="metric">Nodes: <span id="nc" style="color:#08f;">-</span></div>
+<div class="metric">Connections: <span id="cc" style="color:#0fc;">-</span></div>
+<div class="metric">Packets: <span id="pc" style="color:#f0f;">-</span></div>
+</div>
+<div id="c"></div><div id="cross"></div>
+<script>
+// ═══════ Load config ═══════
+fetch(CONFIG_URL||'config.json').then(r=>r.json()).then(cfg=>init(cfg)).catch(()=>init(DEFAULT_CONFIG));
+
+function init(C){
+document.title=C.title||'3D Universe';
+document.querySelector('h1').textContent=C.title||'3D Universe';
+document.getElementById('nc').textContent=C.galaxies.length+' Galaxies';
+document.getElementById('cc').textContent=C.connections.length+' Links';
+document.getElementById('pc').textContent=C.packets.length+' Active';
+
+const can=document.getElementById('c');
+const scene=new THREE.Scene();scene.fog=new THREE.FogExp2(0x020208,.01);
+const cam=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,.1,2000);
+cam.position.set(0,25,80);cam.lookAt(0,0,0);
+const R=new THREE.WebGLRenderer({antialias:true});
+R.setSize(innerWidth,innerHeight);R.setPixelRatio(devicePixelRatio);can.appendChild(R.domElement);
+
+scene.add(new THREE.AmbientLight(0xffffff,.7));
+const pl=new THREE.PointLight(0x0fc,3,300);pl.position.set(0,10,0);scene.add(pl);
+const pl2=new THREE.PointLight(0x38f,2,200);pl2.position.set(0,-5,30);scene.add(pl2);
+
+const U=new THREE.Group();scene.add(U);
+const PkG=new THREE.Group();U.add(PkG);
+const labels=[],pkLabels=[];
+const TL=25;
+const PKT={issue:{c:0xf0f,e:0xf0f,s:.7},deploy:{c:0x0fc,e:0x0fc,s:.6},error:{c:0xf11,e:0xf33,s:.9},ping:{c:0x335,e:0x112,s:.3},data:{c:0xfa0,e:0xf80,s:.5}};
+const pks=[];
+const Gg={},Sg={};
+
+function mkPkt(type,t,st,sx,sy,sz,ex,ey,ez,spd){
+ const cfg=PKT[type]||PKT.issue;
+ const mat=new THREE.MeshStandardMaterial({color:cfg.c,emissive:cfg.e,emissiveIntensity:.9,roughness:.1});
+ const m=new THREE.Mesh(new THREE.SphereGeometry(1,16,16),mat);m.scale.setScalar(cfg.s);
+ m.userData={t,st,type:cfg.n,color:'#'+cfg.c.toString(16).padStart(6,'0')};
+ PkG.add(m);
+ const tp=new Float32Array(TL*3),tg=new THREE.BufferGeometry();
+ tg.setAttribute('position',new THREE.BufferAttribute(tp,3));
+ const tl=new THREE.Line(tg,new THREE.LineBasicMaterial({color:cfg.c,transparent:true,opacity:.35}));
+ PkG.add(tl);
+ const pk={mesh:m,startCT:null,endCT:null,tl,tg,progress:Math.random(),speed:spd||.003};
+ pks.push(pk);
+ const lb=document.createElement('div');lb.className='pk';lb.textContent=t;
+ lb.style.borderColor='#'+cfg.c.toString(16).padStart(6,'0');
+ document.body.appendChild(lb);pkLabels.push({e:lb,p:pk});
+}
+
+// ── Galaxies ──
+C.galaxies.forEach(g=>{
+ const gr=new THREE.Group();gr.position.set(g.x,g.y,g.z);U.add(gr);Gg[g.id]=gr;
+ gr.add(new THREE.Mesh(new THREE.SphereGeometry(.9,16,16),new THREE.MeshStandardMaterial({color:g.color,emissive:g.color,emissiveIntensity:1,roughness:.05})));
+ const r=g.r||12,hpts=[];
+ for(let i=0;i<=64;i++){const a=(i/64)*Math.PI*2;hpts.push(Math.cos(a)*r,0,Math.sin(a)*r);}
+ const hg=new THREE.BufferGeometry();hg.setAttribute('position',new THREE.Float32BufferAttribute(hpts,3));
+ gr.add(new THREE.LineLoop(hg,new THREE.LineBasicMaterial({color:g.color,transparent:true,opacity:.5})));
+ const ring=new THREE.Mesh(new THREE.RingGeometry(r-.5,r+.2,64),new THREE.MeshBasicMaterial({color:0x0f8,side:2,transparent:true,opacity:.3}));
+ ring.rotateX(Math.PI/2);gr.add(ring);g._ring=ring;
+ const lb=document.createElement('div');lb.className='lbl';lb.textContent=g.name;
+ document.body.appendChild(lb);labels.push({e:lb,m:gr.children[0]});
+});
+
+function clampToParent(pos,pr){const mx=pr*.85;if(pos.length()>mx)pos.setLength(mx);return pos;}
+
+// ── Solar Systems ──
+(C.systems||[]).forEach(s=>{
+ if(!Gg[s.g])return;
+ const p=Gg[s.g],sg=new THREE.Group();
+ const pos=new THREE.Vector3(s.x,s.y,s.z);clampToParent(pos,(C.galaxies.find(g=>g.id===s.g)||{}).r||12);
+ sg.position.copy(pos);p.add(sg);Sg[s.id]=sg;
+ const r=s.r||4,hpts=[];
+ for(let i=0;i<=48;i++){const a=(i/48)*Math.PI*2;hpts.push(Math.cos(a)*r,0,Math.sin(a)*r);}
+ const hg=new THREE.BufferGeometry();hg.setAttribute('position',new THREE.Float32BufferAttribute(hpts,3));
+ sg.add(new THREE.LineLoop(hg,new THREE.LineBasicMaterial({color:s.color||0x0fc,transparent:true,opacity:.3})));
+ const co=new THREE.Mesh(new THREE.SphereGeometry(1,24,24),new THREE.MeshStandardMaterial({color:s.color||0x0fc,emissive:s.color||0x0fc,emissiveIntensity:.6,roughness:.1}));
+ sg.add(co);
+ const lb=document.createElement('div');lb.className='lbl';lb.textContent=s.name;
+ document.body.appendChild(lb);labels.push({e:lb,m:co});
+});
+
+// ── Connections ──
+C.connections.forEach(([a,b])=>{
+ const sa=C.systems.find(s=>s.id===a),sb=C.systems.find(s=>s.id===b);
+ if(sa&&sb){
+  const ga=C.galaxies.find(g=>g.id===sa.g),gb=C.galaxies.find(g=>g.id===sb.g);
+  const p1=new THREE.Vector3(ga.x+sa.x,ga.y+sa.y,ga.z+sa.z);
+  const p2=new THREE.Vector3(gb.x+sb.x,gb.y+sb.y,gb.z+sb.z);
+  U.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([p1,p2]),new THREE.LineBasicMaterial({color:0x0fc,transparent:true,opacity:.2})));
+ }
+});
+
+// ── Packets ──
+(C.packets||[]).forEach(p=>{
+ const ct1=C.systems.find(s=>s.id===p.from),ct2=C.systems.find(s=>s.id===p.to);
+ if(!ct1||!ct2)return;
+ const g1=C.galaxies.find(g=>g.id===ct1.g),g2=C.galaxies.find(g=>g.id===ct2.g);
+ mkPkt(p.type,p.title,p.status,g1.x+ct1.x,g1.y+ct1.y,g1.z+ct1.z,g2.x+ct2.x,g2.y+ct2.y,g2.z+ct2.z,p.speed||.003);
+ const pk=pks[pks.length-1];
+ pk.startCT=Sg[p.from]?.children[1];pk.endCT=Sg[p.to]?.children[1];
+});
+
+// ── Starfield ──
+const sg=new THREE.BufferGeometry(),sp=new Float32Array(800*3);
+for(let i=0;i<800*3;i++)sp[i]=(Math.random()-.5)*300;
+sg.setAttribute('position',new THREE.BufferAttribute(sp,3));
+scene.add(new THREE.Points(sg,new THREE.PointsMaterial({color:0x36f,size:.5})));
+
+// ── Animation ──
+let cl=new THREE.Clock(),tv=new THREE.Vector3(),uniOffset=new THREE.Vector3(),camDirty=false,camTarget=new THREE.Vector3();
+const rc=new THREE.Raycaster(),mc=new THREE.Vector2();
+
+function animate(){
+ requestAnimationFrame(animate);
+ try{
+ const t=cl.getElapsedTime();
+ U.rotation.y=Math.sin(t*.08)*.5;
+ U.position.lerp(uniOffset,.08);
+ Object.values(Gg).forEach(g=>g.rotation.y=Math.sin(t*.12)*.3);
+ Object.values(Sg).forEach(s=>s.rotation.y=Math.sin(t*.18)*.4);
+ // Tubes update
+ C.galaxies.forEach(g=>{if(g._ring){g._ring.scale.setScalar(.9+Math.sin(t*3)*.15);g._ring.material.opacity=.2+Math.sin(t*3)*.1;}});
+ // Packets
+ pks.forEach(p=>{
+  if(!p.startCT||!p.endCT)return;
+  const sp=new THREE.Vector3();p.startCT.getWorldPosition(sp);
+  const ep=new THREE.Vector3();p.endCT.getWorldPosition(ep);
+  p.progress+=p.speed;
+  if(p.progress>=1){p.progress=1;p.speed*=-1;}
+  else if(p.progress<=0){p.progress=0;p.speed*=-1;}
+  const pa=p.tg.attributes.position,ts=.008;
+  for(let i=0;i<TL;i++){let pp=p.progress-(i*ts);if(pp<0)pp=0;if(pp>1)pp=1;const tp=new THREE.Vector3().lerpVectors(sp,ep,pp);pa.setXYZ(i,tp.x,tp.y,tp.z);}
+  pa.needsUpdate=true;
+  p.mesh.position.copy(new THREE.Vector3().lerpVectors(sp,ep,p.progress));
+ });
+ // Packet labels
+ pkLabels.forEach(l=>{l.p.mesh.getWorldPosition(tv);tv.project(cam);if(tv.z>=-1&&tv.z<=1){l.e.style.display='block';l.e.style.left=((tv.x*.5+.5)*innerWidth)+'px';l.e.style.top=((-tv.y*.5+.5)*innerHeight)+'px';}else l.e.style.display='none';});
+ // Camera smooth
+ if(camDirty){const d=new THREE.Vector3(0,25,80);if(cam.position.distanceTo(d)>.5)cam.position.lerp(d,.08);else{cam.position.copy(d);camDirty=false;}}
+ cam.lookAt(0,0,0);
+ // Labels
+ U.updateMatrixWorld();
+ labels.forEach(l=>{l.m.getWorldPosition(tv);tv.project(cam);if(tv.z>=-1&&tv.z<=1){l.e.style.display='block';l.e.style.left=((tv.x*.5+.5)*innerWidth)+'px';l.e.style.top=((-tv.y*.5+.5)*innerHeight)+'px';}else l.e.style.display='none';});
+ R.render(scene,cam);
+ }catch(e){console.error(e);}
+}
+animate();
+
+// ── Click to Center ──
+window.addEventListener('click',e=>{
+ mc.x=(e.clientX/innerWidth)*2-1;mc.y=-(e.clientY/innerHeight)*2+1;
+ rc.setFromCamera(mc,cam);
+ const hits=rc.intersectObjects(U.children,true);
+ if(hits.length>0){let tg=hits[0].object;while(tg.parent&&tg.parent!==U&&tg.parent!==scene)tg=tg.parent;const wp=new THREE.Vector3();tg.getWorldPosition(wp);uniOffset.copy(wp).negate();camTarget.set(0,0,0);camDirty=true;}
+});
+window.addEventListener('dblclick',e=>{uniOffset.set(0,0,0);camTarget.set(0,0,0);camDirty=true;});
+window.addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();R.setSize(innerWidth,innerHeight);});
+</script>
+</body>
+</html>
