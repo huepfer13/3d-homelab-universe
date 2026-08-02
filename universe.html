@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<title>BCHC Homelab · 3D Universe Demo</title>
+<title>3D Universe Demo</title>
 <style>
 body{margin:0;padding:0;overflow:hidden;width:100vw;height:100vh;background:#020208;font-family:'Segoe UI',Tahoma,sans-serif;color:#00ffcc;}
 #canvas-container{position:absolute;top:0;left:0;width:100vw;height:100vh;display:block;}
@@ -33,12 +33,12 @@ h1{font-size:16px;margin:0 0 10px;color:#fff;letter-spacing:1px;text-transform:u
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js"></script>
 </head>
 <body>
-<div id="hud"><h1>BCHC Homelab</h1>
-<div style="font-size:10px;color:#00ffcc;margin:-5px 0 8px;opacity:.7;">3D Universe Demo</div>
+<div id="hud"><h1>3D Universe</h1>
+<div style="font-size:10px;color:#00ffcc;margin:-5px 0 8px;opacity:.7;">Interactive Demo</div>
 <div class="metric">Nodes: <span id="node-count" style="color:#0088ff;">5 Nodes</span></div>
 <div class="metric">CTs/VMs: <span id="ct-count" style="color:#00ffcc;">Demo</span></div>
 <div class="metric">Pipeline: <span id="pl-badge" style="color:#00ff88;">● Simulation</span></div>
-<div class="metric">Paperless: <span id="paperless-count" style="color:#ffaa00;">—</span></div>
+<div class="metric">Documents: <span id="paperless-count" style="color:#ffaa00;">—</span></div>
 <div class="metric">Issues: <span id="issue-count" style="color:#ff00ff;">—</span></div>
 <div style="margin-top:10px;border-top:1px solid rgba(0,255,204,.2);padding-top:8px;">
 <button id="center-btn" style="width:100%;background:rgba(0,255,204,.15);border:1px solid #0fc;color:#0fc;padding:5px;border-radius:4px;cursor:pointer;font-family:monospace;font-size:11px;font-weight:bold;">⌖ CENTER UNIVERSE</button>
@@ -49,27 +49,27 @@ h1{font-size:16px;margin:0 0 10px;color:#fff;letter-spacing:1px;text-transform:u
 <div style="font-weight:bold;color:#0fc;margin-bottom:6px;">HOMELAB HIERARCHIE</div>
 <div><div class="legend-toggle" onclick="tgl('sub-gal')" style="cursor:pointer;color:#08f;padding:3px 0;">▶ Galaxien (3)</div>
 <div id="sub-gal" style="display:none;padding-left:12px;border-left:1px solid rgba(0,136,255,.3);margin-left:4px;">
-<div class="legend-subitem" onclick="focusNode('acemagic')" style="cursor:pointer;color:#fff;padding:2px 0;">• acemagic</div>
-<div class="legend-subitem" onclick="focusNode('proxmox')" style="cursor:pointer;color:#fff;padding:2px 0;">• proxmox</div>
-<div class="legend-subitem" onclick="focusNode('xshaka')" style="cursor:pointer;color:#fff;padding:2px 0;">• xshaka</div>
+<div class="legend-subitem" onclick="focusNode('galaxy-alpha')" style="cursor:pointer;color:#fff;padding:2px 0;">• Galaxy Alpha</div>
+<div class="legend-subitem" onclick="focusNode('galaxy-beta')" style="cursor:pointer;color:#fff;padding:2px 0;">• Galaxy Beta</div>
+<div class="legend-subitem" onclick="focusNode('galaxy-gamma')" style="cursor:pointer;color:#fff;padding:2px 0;">• Galaxy Gamma</div>
 </div></div>
 <div style="margin-top:4px;"><div class="legend-toggle" onclick="tgl('sub-ct')" style="cursor:pointer;color:#0f8;padding:3px 0;">▶ Container (10)</div>
 <div id="sub-ct" style="display:none;padding-left:12px;border-left:1px solid rgba(0,255,136,.3);margin-left:4px;">
-<div class="legend-subitem" onclick="focusNode('CT-102')" style="cursor:pointer;color:#fff;padding:2px 0;">• CT-102 Hermes</div>
-<div class="legend-subitem" onclick="focusNode('CT-109')" style="cursor:pointer;color:#fff;padding:2px 0;">• CT-109 Worker</div>
-<div class="legend-subitem" onclick="focusNode('CT-100')" style="cursor:pointer;color:#fff;padding:2px 0;">• CT-100 Paperless</div>
-<div class="legend-subitem" onclick="focusNode('CT-103')" style="cursor:pointer;color:#fff;padding:2px 0;">• CT-103 PL v3.0</div>
-<div class="legend-subitem" onclick="focusNode('CT-242')" style="cursor:pointer;color:#fff;padding:2px 0;">• CT-242 Nextcloud</div>
-<div class="legend-subitem" onclick="focusNode('CT-241')" style="cursor:pointer;color:#fff;padding:2px 0;">• CT-241 Gitea</div>
-<div class="legend-subitem" onclick="focusNode('CT-105')" style="cursor:pointer;color:#fff;padding:2px 0;">• CT-105 Dashboard</div>
-<div class="legend-subitem" onclick="focusNode('CT-108')" style="cursor:pointer;color:#fff;padding:2px 0;">• CT-108 SearXNG</div>
-<div class="legend-subitem" onclick="focusNode('CT-250')" style="cursor:pointer;color:#fff;padding:2px 0;">• CT-250 WireGuard</div>
-<div class="legend-subitem" onclick="focusNode('CT-106')" style="cursor:pointer;color:#fff;padding:2px 0;">• CT-106 HA</div>
+<div class="legend-subitem" onclick="focusNode('node-a1')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node A1</div>
+<div class="legend-subitem" onclick="focusNode('node-a2')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node A2</div>
+<div class="legend-subitem" onclick="focusNode('node-b2')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node B2</div>
+<div class="legend-subitem" onclick="focusNode('node-b3')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node B3</div>
+<div class="legend-subitem" onclick="focusNode('node-b1')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node B1</div>
+<div class="legend-subitem" onclick="focusNode('node-c2')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node C2</div>
+<div class="legend-subitem" onclick="focusNode('node-c3')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node C3</div>
+<div class="legend-subitem" onclick="focusNode('node-c1')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node C1</div>
+<div class="legend-subitem" onclick="focusNode('node-a3')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node A3</div>
+<div class="legend-subitem" onclick="focusNode('node-b4')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node B4</div>
 </div></div>
 <div style="margin-top:4px;"><div class="legend-toggle" onclick="tgl('sub-pipe')" style="cursor:pointer;color:#fa0;padding:3px 0;">▶ Pipelines (2)</div>
 <div id="sub-pipe" style="display:none;padding-left:12px;border-left:1px solid rgba(255,170,0,.3);margin-left:4px;">
-<div class="legend-subitem" onclick="focusNode('CT-100')" style="cursor:pointer;color:#fff;padding:2px 0;">• Tag-Sync PL→NC</div>
-<div class="legend-subitem" onclick="focusNode('CT-241')" style="cursor:pointer;color:#fff;padding:2px 0;">• CI/CD Gitea</div>
+<div class="legend-subitem" onclick="focusNode('node-b2')" style="cursor:pointer;color:#fff;padding:2px 0;">• Data Sync A→B</div>
+<div class="legend-subitem" onclick="focusNode('node-c2')" style="cursor:pointer;color:#fff;padding:2px 0;">• CI/CD Pipeline</div>
 </div></div>
 </div>
 </div>
@@ -103,10 +103,14 @@ function simCT(){return 'Node-'+String.fromCharCode(65+Math.floor(Math.random()*
 
 // ═══ THREE.JS 3D SCENE ═══
 let R,scene,cam,controls,U,PkG;
-try{
+// Scene objects always created (independent of WebGL)
 const C=document.getElementById('canvas-container');
 scene=new THREE.Scene();scene.fog=new THREE.FogExp2(0x020208,0.01);
 cam=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,0.1,1200);cam.position.set(0,20,65);cam.lookAt(0,-6,0);
+U=new THREE.Group();scene.add(U);
+PkG=new THREE.Group();U.add(PkG);
+// WebGL renderer — may fail in headless browsers
+try{
 R=new THREE.WebGLRenderer({antialias:true});R.setSize(innerWidth,innerHeight);R.setPixelRatio(devicePixelRatio);C.appendChild(R.domElement);
 }catch(e){console.warn('WebGL unavailable — simulation mode');R=null;}
 
@@ -119,8 +123,6 @@ controls.target.set(0,0,0);controls.update();
 scene.add(new THREE.AmbientLight(0xffffff,0.7));
 const pl=new THREE.PointLight(0x00ffcc,3,200);pl.position.set(0,5,0);scene.add(pl);
 const pl2=new THREE.PointLight(0x3388ff,2,150);pl2.position.set(0,-5,20);scene.add(pl2);
-U=new THREE.Group();scene.add(U);
-PkG=new THREE.Group();U.add(PkG);
 cl=new THREE.Clock();
 }
 const labels=[];
@@ -147,7 +149,7 @@ function mkPkt(type,title,status,sx,sy,sz,ex,ey,ez,spd){
 }
 
 // ═══ GALAXIES ═══
-const G={acemagic:{x:-28,y:0,z:-10,color:0x0088ff,name:'🪐 acemagic',r:12},proxmox:{x:0,y:0,z:-16,color:0x0088ff,name:'🪐 proxmox',r:13},xshaka:{x:28,y:0,z:-10,color:0x0088ff,name:'🪐 xshaka',r:12}};
+const G={alpha:{x:-28,y:0,z:-10,color:0x0088ff,name:'🪐 Galaxy Alpha',r:12},beta:{x:0,y:0,z:-16,color:0x0088ff,name:'🪐 Galaxy Beta',r:13},gamma:{x:28,y:0,z:-10,color:0x0088ff,name:'🪐 Galaxy Gamma',r:12}};
 const Gg={};
 Object.entries(G).forEach(([id,g])=>{
     const gr=new THREE.Group();gr.position.set(g.x,g.y,g.z);U.add(gr);Gg[id]=gr;
@@ -171,17 +173,17 @@ function clampToParent(pos,parentR){const max=parentR*0.85;if(pos.length()>max)p
 
 // ═══ SOLAR SYSTEMS (inside galaxies) ═══
 const S=[
-    {id:'CT-102',g:'acemagic',x:-8,y:6,z:-3,r:5.5,name:'🌐 Hermes',c:0x00ffcc},
-    {id:'CT-109',g:'acemagic',x:4,y:-4,z:-5,r:5,name:'🌐 Worker',c:0x00ffcc},
-    {id:'CT-250',g:'acemagic',x:-5,y:-8,z:3,r:3.5,name:'🔒 WireGuard',c:0x00ffcc},
-    {id:'VM-120',g:'acemagic',x:8,y:-8,z:2,r:4,name:'🖥️ Windows',c:0xffaa00},
-    {id:'CT-242',g:'proxmox',x:-10,y:6,z:-2,r:5.5,name:'📁 Nextcloud',c:0x00ffcc},
-    {id:'CT-100',g:'proxmox',x:4,y:-2,z:-5,r:5.5,name:'📄 Paperless',c:0x00ffcc},
-    {id:'CT-103',g:'proxmox',x:10,y:4,z:-2,r:3.5,name:'🧪 PL v3.0',c:0xffaa00},
-    {id:'CT-106',g:'proxmox',x:-3,y:-8,z:3,r:3.5,name:'🏠 HA',c:0xffaa00},
-    {id:'CT-108',g:'xshaka',x:-8,y:6,z:-2,r:4.5,name:'🔍 SearXNG',c:0x00ffcc},
-    {id:'CT-241',g:'xshaka',x:4,y:-2,z:-4,r:4.5,name:'🐙 Gitea',c:0x00ffcc},
-    {id:'CT-105',g:'xshaka',x:8,y:-6,z:3,r:4.5,name:'📊 Dashboard',c:0x00ffcc},
+    {id:'node-a1',g:'alpha',x:-8,y:6,z:-3,r:5.5,name:'🌐 Node A1',c:0x00ffcc},
+    {id:'node-a2',g:'alpha',x:4,y:-4,z:-5,r:5,name:'🌐 Node A2',c:0x00ffcc},
+    {id:'node-a3',g:'alpha',x:-5,y:-8,z:3,r:3.5,name:'🔒 Node A3',c:0x00ffcc},
+    {id:'node-a4',g:'alpha',x:8,y:-8,z:2,r:4,name:'🖥️ Node A4',c:0xffaa00},
+    {id:'node-b1',g:'beta',x:-10,y:6,z:-2,r:5.5,name:'📁 Node B1',c:0x00ffcc},
+    {id:'node-b2',g:'beta',x:4,y:-2,z:-5,r:5.5,name:'📄 Node B2',c:0x00ffcc},
+    {id:'node-b3',g:'beta',x:10,y:4,z:-2,r:3.5,name:'🧪 Node B3',c:0xffaa00},
+    {id:'node-b4',g:'beta',x:-3,y:-8,z:3,r:3.5,name:'🏠 Node B4',c:0xffaa00},
+    {id:'node-c1',g:'gamma',x:-8,y:6,z:-2,r:4.5,name:'🔍 Node C1',c:0x00ffcc},
+    {id:'node-c2',g:'gamma',x:4,y:-2,z:-4,r:4.5,name:'🐙 Node C2',c:0x00ffcc},
+    {id:'node-c3',g:'gamma',x:8,y:-6,z:3,r:4.5,name:'📊 Node C3',c:0x00ffcc},
 ];
 const Sg={};
 S.forEach(s=>{
@@ -204,30 +206,30 @@ S.forEach(s=>{
     p.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0),new THREE.Vector3(s.x,s.y,s.z)]),new THREE.LineBasicMaterial({color:s.c,transparent:true,opacity:0.1})));
 });
 
-// ═══ PLANETS (services inside CTs) ═══
+// ═══ PLANETS (services inside nodes) ═══
 const P=[
-    {s:'CT-100',x:-2,y:0,z:0,c:0xff6600},{s:'CT-100',x:2,y:0,z:0,c:0xff0000},
-    {s:'CT-242',x:-1.8,y:0,z:0,c:0x3366ff},{s:'CT-242',x:1.8,y:0,z:0,c:0x33ccff},
-    {s:'CT-241',x:-1.5,y:0,z:0,c:0xff8800},{s:'CT-241',x:1.5,y:0,z:0,c:0x88ff00},
-    {s:'CT-105',x:-1.6,y:0,z:0,c:0xff6600},{s:'CT-105',x:1.6,y:0,z:0,c:0x6600ff},
-    {s:'CT-102',x:-1.4,y:0,z:0,c:0x00ff88},{s:'CT-109',x:0,y:0,z:0,c:0xffaa00},
+    {s:'node-b2',x:-2,y:0,z:0,c:0xff6600},{s:'node-b2',x:2,y:0,z:0,c:0xff0000},
+    {s:'node-b1',x:-1.8,y:0,z:0,c:0x3366ff},{s:'node-b1',x:1.8,y:0,z:0,c:0x33ccff},
+    {s:'node-c2',x:-1.5,y:0,z:0,c:0xff8800},{s:'node-c2',x:1.5,y:0,z:0,c:0x88ff00},
+    {s:'node-c3',x:-1.6,y:0,z:0,c:0xff6600},{s:'node-c3',x:1.6,y:0,z:0,c:0x6600ff},
+    {s:'node-a1',x:-1.4,y:0,z:0,c:0x00ff88},{s:'node-a2',x:0,y:0,z:0,c:0xffaa00},
 ];
 P.forEach(p=>{const m=new THREE.Mesh(new THREE.SphereGeometry(0.5,16,16),new THREE.MeshStandardMaterial({color:p.c,emissive:p.c,emissiveIntensity:0.7,roughness:0.05}));
     const sys=S.find(s=>s.id===p.s);const pos=new THREE.Vector3(p.x,p.y,p.z);
     if(sys)clampToParent(pos,sys.r);m.position.copy(pos);Sg[p.s].add(m)});
 
-// ═══ PIPELINE STAGES (inside CT-109 worker bubble) ═══
+// ═══ PIPELINE STAGES (inside node-a2 bubble) ═══
 const stages=[{a:0,n:'⚙️ Build'},{a:2.1,n:'🧪 Test'},{a:4.2,n:'🚀 Deploy'}];
 const stageList=[];
 stages.forEach(s=>{
     const m=new THREE.Mesh(new THREE.SphereGeometry(0.7,20,20),new THREE.MeshStandardMaterial({color:0xff00ff,emissive:0xff00ff,emissiveIntensity:0.8,roughness:0.05}));
-    m.position.set(Math.cos(s.a)*4.5,Math.sin(s.a)*3-1,1);Sg['CT-109'].add(m);stageList.push({m,angle:s.a});
+    m.position.set(Math.cos(s.a)*4.5,Math.sin(s.a)*3-1,1);Sg['node-a2'].add(m);stageList.push({m,angle:s.a});
     const lb=document.createElement('div');lb.className='node-label';lb.textContent=s.n;document.body.appendChild(lb);labels.push({e:lb,m});
 });
 
 // ═══ INTERSTELLAR ROUTES (galaxy-to-galaxy) ═══
 const irMat=new THREE.LineBasicMaterial({color:0x0088ff,transparent:true,opacity:0.12});
-[['acemagic','proxmox'],['proxmox','xshaka']].forEach(([a,b])=>{
+[['alpha','beta'],['beta','gamma']].forEach(([a,b])=>{
     const ga=G[a],gb=G[b];
     U.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(ga.x,ga.y,ga.z),new THREE.Vector3(gb.x,gb.y,gb.z)]),irMat));
 });
@@ -237,7 +239,7 @@ const irMat=new THREE.LineBasicMaterial({color:0x0088ff,transparent:true,opacity
 const pingMat=new THREE.LineDashedMaterial({color:0x334455,transparent:true,opacity:0.08,dashSize:1,gapSize:1});
 const activeMat=new THREE.LineBasicMaterial({color:0x00ffcc,transparent:true,opacity:0.2});
 // Active inter-CT connections (bright solid)
-[['CT-102','CT-109'],['CT-102','CT-105'],['CT-100','CT-242'],['CT-241','CT-108']].forEach(([a,b])=>{
+[['node-a1','node-a2'],['node-a1','node-c3'],['node-b2','node-b1'],['node-c2','node-c1']].forEach(([a,b])=>{
     const sa=S.find(s=>s.id===a),sb=S.find(s=>s.id===b);
     if(sa&&sb){
         const ga=G[sa.g],gb=G[sb.g];
@@ -265,8 +267,8 @@ function makeTube(sid1,sid2,color,thickness){
     return {mesh,src,dst};
 }
 const loopTubes=[
-    makeTube('CT-100','CT-242',0xff1111,0.8),   // Paperless↔Nextcloud (thick red)
-    makeTube('CT-102','CT-241',0xff4400,0.5),   // Hermes↔Gitea (orange)
+    makeTube('node-b2','node-b1',0xff1111,0.8),   // Node B2↔B1 (thick red)
+    makeTube('node-a1','node-c2',0xff4400,0.5),   // Node A1↔C2 (orange)
 ];
 
 // ═══ STARFIELD ═══
@@ -290,18 +292,18 @@ function mkPktOnPath(type,title,status,sid1,sid2,spd){
 
 // ═══ SEED PACKETS (demo data) ═══
 if(R){
-mkPktOnPath('issue','#255.1 Plan: Hermes→Gitea','Draft','CT-102','CT-241',0.003);
-mkPktOnPath('issue','#255.2 Triaged','Open','CT-241','CT-109',0.003);
-mkPktOnPath('deploy','#255.3 Test Generated','Testing','CT-109','CT-241',0.002);
-mkPktOnPath('deploy','#255.4 CI Build','Building','CT-241','CT-105',0.0025);
-mkPktOnPath('data','#255.5 Deploy Target','Done','CT-105','CT-100',0.003);
-mkPktOnPath('deploy','Tag-Sync 1.167 Docs','Active','CT-100','CT-242',0.0025);
-mkPktOnPath('issue','#263 Dashboard','Building','CT-102','CT-105',0.002);
-mkPktOnPath('error','Paperless API Timeout','Alert','CT-100','CT-102',0.004);
-mkPktOnPath('ping','Heartbeat acemagic','OK','CT-102','CT-109',0.001);
-mkPktOnPath('ping','Heartbeat proxmox','OK','CT-100','CT-242',0.0012);
-mkPktOnPath('ping','Heartbeat xshaka','OK','CT-241','CT-105',0.001);
-mkPktOnPath('data','Mail-Fetch +65 Docs','Syncing','CT-100','CT-105',0.0015);
+mkPktOnPath('issue','Demo: Plan','Draft','node-a1','node-c2',0.003);
+mkPktOnPath('issue','Demo: Review','Open','node-c2','node-a2',0.003);
+mkPktOnPath('deploy','Demo: Test','Testing','node-a2','node-c2',0.002);
+mkPktOnPath('deploy','Demo: Build','Building','node-c2','node-c3',0.0025);
+mkPktOnPath('data','Demo: Deploy','Done','node-c3','node-b2',0.003);
+mkPktOnPath('deploy','Data Sync','Active','node-b2','node-b1',0.0025);
+mkPktOnPath('issue','Dashboard','Building','node-a1','node-c3',0.002);
+mkPktOnPath('error','API Timeout','Alert','node-b2','node-a1',0.004);
+mkPktOnPath('ping','Heartbeat Alpha','OK','node-a1','node-a2',0.001);
+mkPktOnPath('ping','Heartbeat Beta','OK','node-b2','node-b1',0.0012);
+mkPktOnPath('ping','Heartbeat Gamma','OK','node-c2','node-c3',0.001);
+mkPktOnPath('data','Data Fetch','Syncing','node-b2','node-c3',0.0015);
 }
 
 // ═══ ANIMATION ═══
@@ -396,7 +398,7 @@ async function fl(){
     try{const r=await fetch('/api/universe-state');const d=await r.json();
         if(d.pipeline&&d.pipeline.length>0){
             document.getElementById('node-count').textContent=((d.nodes||[]).filter(n=>n.online).length||3)+' Galaxies';
-            document.getElementById('paperless-count').textContent=(d.paperless_docs||1289)+' Docs';
+            document.getElementById('paperless-count').textContent=(d.paperless_docs||0)+' Documents';
             document.getElementById('issue-count').textContent=(d.issues_open||5)+' Open';
             const lr=d.pipeline[0];const el=document.getElementById('pl-badge');
             if(lr&&lr.conclusion){el.textContent=(lr.conclusion==='success'?'●':'●')+' '+(lr.title||'Pipeline');el.style.color=lr.conclusion==='success'?'#00ff88':'#ff4444';}
@@ -406,7 +408,7 @@ async function fl(){
     // Simulation fallback for demo (metrics only — events are via simMsg)
     simCount++;
     document.getElementById('node-count').textContent='5 Nodes';
-    document.getElementById('paperless-count').textContent=(1289+simCount%50)+' Docs';
+    document.getElementById('paperless-count').textContent='Demo Mode';
     document.getElementById('issue-count').textContent=(5+simCount%3)+' Open';
     const st=simCount%10===0?'warning':simCount%7===0?'error':'success';
     const el=document.getElementById('pl-badge');
