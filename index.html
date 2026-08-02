@@ -87,6 +87,7 @@ h1{font-size:16px;margin:0 0 10px;color:#fff;letter-spacing:1px;text-transform:u
 </div>
 </div>
 <div id="canvas-container"></div>
+<canvas id="sim-canvas" style="position:absolute;top:0;left:0;width:100vw;height:100vh;display:none;z-index:2;"></canvas>
 <div id="crosshair"></div>
 
 <div id="cfg-modal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:600px;max-height:80vh;background:rgba(8,8,20,.95);border:1px solid #0fc;box-shadow:0 0 25px rgba(0,255,204,.4);border-radius:8px;z-index:1000;padding:20px;font-family:monospace;color:#fff;flex-direction:column;">
@@ -125,7 +126,39 @@ PkG=new THREE.Group();U.add(PkG);
 // WebGL renderer — may fail in headless browsers
 try{
 R=new THREE.WebGLRenderer({antialias:true});R.setSize(innerWidth,innerHeight);R.setPixelRatio(devicePixelRatio);C.appendChild(R.domElement);
-}catch(e){console.warn('WebGL unavailable — simulation mode');R=null;document.body.insertAdjacentHTML('beforeend','<div id=no-webgl style=\"position:fixed;bottom:10px;left:50%;transform:translateX(-50%);background:rgba(255,100,0,.9);color:#fff;padding:8px 20px;border-radius:6px;font-family:monospace;font-size:12px;z-index:200;pointer-events:none;\">⚠ Simulation Mode — 3D unavailable in this browser</div>');}
+}catch(e){console.warn('WebGL unavailable — starting 2D simulation');R=null;
+// Start Canvas2D fallback
+(function(){
+var sc=document.getElementById('sim-canvas');
+sc.style.display='block';
+sc.width=innerWidth;sc.height=innerHeight;
+var ctx=sc.getContext('2d');
+var dots=[];
+for(var i=0;i<25;i++){
+    var gx=(i%5-2)*sc.width/6+sc.width/2;
+    var gy=(Math.floor(i/5)-2)*sc.height/5+sc.height/2;
+    dots.push({x:gx,y:gy,r:3+Math.random()*4,phase:Math.random()*Math.PI*2,color:i<5?'#08f':i<10?'#38f':i<15?'#0af':i<20?'#38f':'#08f'});
+}
+function draw2D(){
+    if(R)return;
+    ctx.clearRect(0,0,sc.width,sc.height);
+    ctx.fillStyle='#020208';ctx.fillRect(0,0,sc.width,sc.height);
+    dots.forEach(function(d,i){
+        var pulse=1+Math.sin(Date.now()*0.003+d.phase)*0.3;
+        var r=d.r*pulse;
+        ctx.beginPath();ctx.arc(d.x,d.y,r,0,Math.PI*2);
+        ctx.fillStyle=d.color;ctx.globalAlpha=0.6;
+        ctx.fill();
+        ctx.beginPath();ctx.arc(d.x,d.y,r+2,0,Math.PI*2);
+        ctx.strokeStyle=d.color;ctx.globalAlpha=0.15;ctx.lineWidth=1;
+        ctx.stroke();
+    });
+    ctx.globalAlpha=1;
+    requestAnimationFrame(draw2D);
+}
+draw2D();
+})();
+}
 
 if(R){
 controls=new THREE.OrbitControls(cam,R.domElement);
