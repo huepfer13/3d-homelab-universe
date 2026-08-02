@@ -102,7 +102,7 @@ function simNode(n){return NODES[n%NODES.length];}
 function simCT(){return 'Node-'+String.fromCharCode(65+Math.floor(Math.random()*NODES.length))+String(1+Math.floor(Math.random()*CT_PER_NODE));}
 
 // ═══ THREE.JS 3D SCENE ═══
-let R=null,scene=null,cam=null,controls=null,U=null,PkG=null;
+let R=null,scene=null,cam=null,controls=null,U=null,PkG=null,cl=null;
 if(typeof THREE!=='undefined'){
 const C=document.getElementById('canvas-container');
 scene=new THREE.Scene();scene.fog=new THREE.FogExp2(0x020208,0.01);
@@ -307,7 +307,7 @@ mkPktOnPath('data','Data Fetch','Syncing','node-b2','node-c3',0.0015);
 }
 
 // ═══ ANIMATION ═══
-let cl=null;const tv=new THREE.Vector3();
+let tv=new THREE.Vector3();
 function animate(){
     requestAnimationFrame(animate);
     if(!R)return;
