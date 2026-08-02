@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Unit tests for 3D Spiderweb Dashboard (universe.html).
+"""Unit tests for 3D Spiderweb Dashboard (index.html).
 Tests config validation, rendering structure, and feature detection.
 Run: python3 test_universe.py"""
 import unittest, json, os, sys, subprocess
 
 CONFIG_FILE = os.path.join(os.path.dirname(__file__) or ".", "config.json")
-HTML_FILE = os.path.join(os.path.dirname(__file__) or ".", "universe.html")
+HTML_FILE = os.path.join(os.path.dirname(__file__) or ".", "index.html")
 
 class TestConfig(unittest.TestCase):
     @classmethod
