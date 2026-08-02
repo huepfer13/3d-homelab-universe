@@ -35,11 +35,11 @@ h1{font-size:16px;margin:0 0 10px;color:#fff;letter-spacing:1px;text-transform:u
 <body>
 <div id="hud"><h1>BCHC Homelab</h1>
 <div style="font-size:10px;color:#00ffcc;margin:-5px 0 8px;opacity:.7;">3D Universe Demo</div>
-<div class="metric">Nodes: <span id="node-count" style="color:#0088ff;">3 Galaxies</span></div>
-<div class="metric">CTs/VMs: <span id="ct-count" style="color:#00ffcc;">10 Active</span></div>
-<div class="metric">Pipeline: <span id="pl-badge" style="color:#00ff88;">● Monitoring</span></div>
-<div class="metric">Paperless: <span id="paperless-count" style="color:#ffaa00;">1.289 Docs</span></div>
-<div class="metric">Issues: <span id="issue-count" style="color:#ff00ff;">5 Open</span></div>
+<div class="metric">Nodes: <span id="node-count" style="color:#0088ff;">5 Nodes</span></div>
+<div class="metric">CTs/VMs: <span id="ct-count" style="color:#00ffcc;">Demo</span></div>
+<div class="metric">Pipeline: <span id="pl-badge" style="color:#00ff88;">● Simulation</span></div>
+<div class="metric">Paperless: <span id="paperless-count" style="color:#ffaa00;">—</span></div>
+<div class="metric">Issues: <span id="issue-count" style="color:#ff00ff;">—</span></div>
 <div style="margin-top:10px;border-top:1px solid rgba(0,255,204,.2);padding-top:8px;">
 <button id="center-btn" style="width:100%;background:rgba(0,255,204,.15);border:1px solid #0fc;color:#0fc;padding:5px;border-radius:4px;cursor:pointer;font-family:monospace;font-size:11px;font-weight:bold;">⌖ CENTER UNIVERSE</button>
 </div>
@@ -90,12 +90,28 @@ h1{font-size:16px;margin:0 0 10px;color:#fff;letter-spacing:1px;text-transform:u
 </div>
 
 <script>
+// ═══ SIMULATION DATA (declared first — survives WebGL failures) ═══
+let simCount=0;
+const NODES=['Alpha','Beta','Gamma','Delta','Epsilon'];
+const CT_PER_NODE=4;
+const SVCS=['API','DB','Cache','Queue','Worker'];
+const STAGES=['Init','Build','Test','Deploy','Done'];
+const MSG_TYPES=['deploy','data','ping','issue','error','sync','backup','health'];
+function rnd(arr){return arr[Math.floor(Math.random()*arr.length)];}
+function simNode(n){return NODES[n%NODES.length];}
+function simCT(){return 'Node-'+String.fromCharCode(65+Math.floor(Math.random()*NODES.length))+String(1+Math.floor(Math.random()*CT_PER_NODE));}
+
+// ═══ THREE.JS 3D SCENE ═══
+let R,scene,cam,controls,U,PkG;
+try{
 const C=document.getElementById('canvas-container');
-const scene=new THREE.Scene();scene.fog=new THREE.FogExp2(0x020208,0.01);
-const cam=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,0.1,1200);cam.position.set(0,20,65);cam.lookAt(0,-6,0);
-const R=new THREE.WebGLRenderer({antialias:true});R.setSize(innerWidth,innerHeight);R.setPixelRatio(devicePixelRatio);C.appendChild(R.domElement);
-// OrbitControls: drag to rotate, scroll to zoom, right-drag to pan
-const controls=new THREE.OrbitControls(cam,R.domElement);
+scene=new THREE.Scene();scene.fog=new THREE.FogExp2(0x020208,0.01);
+cam=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,0.1,1200);cam.position.set(0,20,65);cam.lookAt(0,-6,0);
+R=new THREE.WebGLRenderer({antialias:true});R.setSize(innerWidth,innerHeight);R.setPixelRatio(devicePixelRatio);C.appendChild(R.domElement);
+}catch(e){console.warn('WebGL unavailable — simulation mode');R=null;}
+
+if(R){
+controls=new THREE.OrbitControls(cam,R.domElement);
 controls.enableDamping=true;controls.dampingFactor=0.08;
 controls.minDistance=15;controls.maxDistance=250;
 controls.minPolarAngle=0.2;controls.maxPolarAngle=Math.PI*0.65;
@@ -103,9 +119,10 @@ controls.target.set(0,0,0);controls.update();
 scene.add(new THREE.AmbientLight(0xffffff,0.7));
 const pl=new THREE.PointLight(0x00ffcc,3,200);pl.position.set(0,5,0);scene.add(pl);
 const pl2=new THREE.PointLight(0x3388ff,2,150);pl2.position.set(0,-5,20);scene.add(pl2);
-
-const U=new THREE.Group();scene.add(U);
-const PkG=new THREE.Group();U.add(PkG);
+U=new THREE.Group();scene.add(U);
+PkG=new THREE.Group();U.add(PkG);
+cl=new THREE.Clock();
+}
 const labels=[];
 
 // ═══ PACKET TYPES ═══
@@ -271,14 +288,13 @@ function mkPktOnPath(type,title,status,sid1,sid2,spd){
     pk.endCT=Sg[sid2].children[1];
 }
 
-// ═══ ISSUE LIFECYCLE CHAIN: Hermes→Gitea→Test→Build→Deploy→Target ═══
-// Each step is a separate packet with a common issue ID color
+// ═══ SEED PACKETS (demo data) ═══
+if(R){
 mkPktOnPath('issue','#255.1 Plan: Hermes→Gitea','Draft','CT-102','CT-241',0.003);
 mkPktOnPath('issue','#255.2 Triaged','Open','CT-241','CT-109',0.003);
 mkPktOnPath('deploy','#255.3 Test Generated','Testing','CT-109','CT-241',0.002);
 mkPktOnPath('deploy','#255.4 CI Build','Building','CT-241','CT-105',0.0025);
 mkPktOnPath('data','#255.5 Deploy Target','Done','CT-105','CT-100',0.003);
-// Other active packets
 mkPktOnPath('deploy','Tag-Sync 1.167 Docs','Active','CT-100','CT-242',0.0025);
 mkPktOnPath('issue','#263 Dashboard','Building','CT-102','CT-105',0.002);
 mkPktOnPath('error','Paperless API Timeout','Alert','CT-100','CT-102',0.004);
@@ -286,11 +302,13 @@ mkPktOnPath('ping','Heartbeat acemagic','OK','CT-102','CT-109',0.001);
 mkPktOnPath('ping','Heartbeat proxmox','OK','CT-100','CT-242',0.0012);
 mkPktOnPath('ping','Heartbeat xshaka','OK','CT-241','CT-105',0.001);
 mkPktOnPath('data','Mail-Fetch +65 Docs','Syncing','CT-100','CT-105',0.0015);
+}
 
 // ═══ ANIMATION ═══
-let cl=new THREE.Clock();const tv=new THREE.Vector3();
+let cl=null;const tv=new THREE.Vector3();
 function animate(){
     requestAnimationFrame(animate);
+    if(!R)return;
     try{
     const t=cl.getElapsedTime();
     // Oscillating rotation: bounce at ±30° instead of continuous spin
@@ -361,18 +379,9 @@ function animate(){
     R.render(scene,cam);
     }catch(e){console.error(e);}
 }
-animate();
+if(R)animate();
 
-// ═══ LIVE API ═══
-let simCount=0;
-const NODES=['Alpha','Beta','Gamma','Delta','Epsilon'];
-const CT_PER_NODE=4;
-const SVCS=['API','DB','Cache','Queue','Worker'];
-const STAGES=['Init','Build','Test','Deploy','Done'];
-const MSG_TYPES=['deploy','data','ping','issue','error','sync','backup','health'];
-function rnd(arr){return arr[Math.floor(Math.random()*arr.length)];}
-function simNode(n){return NODES[n%NODES.length];}
-function simCT(){return 'Node-'+String.fromCharCode(65+Math.floor(Math.random()*NODES.length))+String(1+Math.floor(Math.random()*CT_PER_NODE));}
+// ═══ LIVE API / SIMULATION ═══
 function simMsg(){
     const from=simCT(),to=simCT();if(from===to)return simMsg();
     const type=rnd(MSG_TYPES);
