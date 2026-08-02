@@ -363,7 +363,23 @@ animate();
 
 // ═══ LIVE API ═══
 let simCount=0;
-const simTasks=['Tag-Sync PL➔NC','CI Pipeline #'+(42+simCount),'Backup Check acemagic','Disk Monitor xshaka','Certificate Renewal','Mail-Fetch +'+(60+simCount%30)+' Docs','DB Vacuum proxmox','Health Check CT-109'];
+const NODES=['acemagic','proxmox','xshaka','pve-02','nuc-01'];
+const CT_PER_NODE=5;
+const SVCS=['API','DB','Cache','Queue','Worker'];
+const STAGES=['Init','Build','Test','Deploy','Done'];
+const MSG_TYPES=['deploy','data','ping','issue','error','sync','backup','health'];
+function rnd(arr){return arr[Math.floor(Math.random()*arr.length)];}
+function simNode(n){return NODES[n%NODES.length];}
+function simCT(){return 'CT-'+String(100+Math.floor(Math.random()*CT_PER_NODE*NODES.length)).padStart(3,'0');}
+function simMsg(){
+    const from=simCT(),to=simCT();if(from===to)return simMsg();
+    const type=rnd(MSG_TYPES);
+    const titles={deploy:'Deploy '+rnd(SVCS)+' '+rnd(STAGES),data:'Sync '+rnd(SVCS)+' Data',ping:'Heartbeat '+from+'→'+to,issue:'Issue #'+(200+simCount%100),error:'Timeout '+rnd(SVCS),sync:'Tag-Sync '+rnd(SVCS),backup:'Backup '+rnd(STAGES),health:'Health Check '+from};
+    const status=type==='error'?'error':type==='ping'?'success':Math.random()<0.15?'warning':'success';
+    addEventTask({text:titles[type],status,startTime:new Date().toLocaleTimeString(),endTime:new Date(Date.now()+2000).toLocaleTimeString()});
+}
+// Start 1s message sim
+setInterval(simMsg,1000);
 async function fl(){
     // Try real API first
     try{const r=await fetch('/api/universe-state');const d=await r.json();
@@ -376,18 +392,15 @@ async function fl(){
             return; // Real data — skip simulation
         }
     }catch(e){}
-    // Simulation fallback for demo
+    // Simulation fallback for demo (metrics only — events are via simMsg)
     simCount++;
-    document.getElementById('node-count').textContent='3 Galaxies';
+    document.getElementById('node-count').textContent='5 Nodes';
     document.getElementById('paperless-count').textContent=(1289+simCount%50)+' Docs';
     document.getElementById('issue-count').textContent=(5+simCount%3)+' Open';
     const st=simCount%10===0?'warning':simCount%7===0?'error':'success';
     const el=document.getElementById('pl-badge');
     el.textContent='● '+(st==='success'?'Monitoring':st==='error'?'Fehler':'Warning');
     el.style.color=st==='success'?'#00ff88':st==='error'?'#ff4444':'#ffaa00';
-    // Simulated event
-    const task=simTasks[simCount%simTasks.length]+(Math.random()>0.7?' #'+(simCount%50):'');
-    addEventTask({text:task,status:st,startTime:new Date().toLocaleTimeString(),endTime:new Date(Date.now()+2000).toLocaleTimeString()});
 }
 function logMsg(txt,level,targetId){
     addEventTask({text:txt,status:level==='error'?'error':level==='warning'?'warning':level==='success'?'success':'pending',startTime:new Date().toLocaleTimeString(),sourceUrl:targetId?targetId:null});
