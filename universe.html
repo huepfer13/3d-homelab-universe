@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<title>Homelab 3D Universe</title>
+<title>BCHC Homelab · 3D Universe Demo</title>
 <style>
 body{margin:0;padding:0;overflow:hidden;width:100vw;height:100vh;background:#020208;font-family:'Segoe UI',Tahoma,sans-serif;color:#00ffcc;}
 #canvas-container{position:absolute;top:0;left:0;width:100vw;height:100vh;display:block;}
@@ -33,7 +33,8 @@ h1{font-size:16px;margin:0 0 10px;color:#fff;letter-spacing:1px;text-transform:u
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js"></script>
 </head>
 <body>
-<div id="hud"><h1>Homelab Universe</h1>
+<div id="hud"><h1>BCHC Homelab</h1>
+<div style="font-size:10px;color:#00ffcc;margin:-5px 0 8px;opacity:.7;">3D Universe Demo</div>
 <div class="metric">Nodes: <span id="node-count" style="color:#0088ff;">3 Galaxies</span></div>
 <div class="metric">CTs/VMs: <span id="ct-count" style="color:#00ffcc;">10 Active</span></div>
 <div class="metric">Pipeline: <span id="pl-badge" style="color:#00ff88;">● Monitoring</span></div>
@@ -97,6 +98,7 @@ const R=new THREE.WebGLRenderer({antialias:true});R.setSize(innerWidth,innerHeig
 const controls=new THREE.OrbitControls(cam,R.domElement);
 controls.enableDamping=true;controls.dampingFactor=0.08;
 controls.minDistance=15;controls.maxDistance=250;
+controls.minPolarAngle=0.2;controls.maxPolarAngle=Math.PI*0.65;
 controls.target.set(0,0,0);controls.update();
 scene.add(new THREE.AmbientLight(0xffffff,0.7));
 const pl=new THREE.PointLight(0x00ffcc,3,200);pl.position.set(0,5,0);scene.add(pl);
@@ -363,14 +365,14 @@ animate();
 
 // ═══ LIVE API ═══
 let simCount=0;
-const NODES=['acemagic','proxmox','xshaka','pve-02','nuc-01'];
-const CT_PER_NODE=5;
+const NODES=['Alpha','Beta','Gamma','Delta','Epsilon'];
+const CT_PER_NODE=4;
 const SVCS=['API','DB','Cache','Queue','Worker'];
 const STAGES=['Init','Build','Test','Deploy','Done'];
 const MSG_TYPES=['deploy','data','ping','issue','error','sync','backup','health'];
 function rnd(arr){return arr[Math.floor(Math.random()*arr.length)];}
 function simNode(n){return NODES[n%NODES.length];}
-function simCT(){return 'CT-'+String(100+Math.floor(Math.random()*CT_PER_NODE*NODES.length)).padStart(3,'0');}
+function simCT(){return 'Node-'+String.fromCharCode(65+Math.floor(Math.random()*NODES.length))+String(1+Math.floor(Math.random()*CT_PER_NODE));}
 function simMsg(){
     const from=simCT(),to=simCT();if(from===to)return simMsg();
     const type=rnd(MSG_TYPES);
