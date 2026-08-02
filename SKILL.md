@@ -1,58 +1,117 @@
 ---
-name: 3d-homelab-universe
-description: Use to integrate the 3D Spiderweb Universe dashboard. Drop config.json, serve with any HTTP server, embed in iframes or kiosk displays.
+name: 3d-homelab-universe-dashboard
+description: Deploy 3D spiderweb dashboard from config.json.
 category: creative
+trigger: Dashboard setup, 3D visualization, kiosk mode
 ---
 
-# 3D Spiderweb Universe Integration
+# 3D Spiderweb Universe Dashboard
 
-Config-driven Three.js dashboard — galaxies, solar systems, animated packets. Drop your own `config.json`, no code changes.
+Config-driven Three.js dashboard — galaxies, solar systems, animated packets with trails. Drop your own `config.json`, no code changes needed.
 
 ## Quick Start
-
 ```bash
+git clone https://github.com/huepfer13/3d-homelab-universe.git
+cd 3d-homelab-universe
 python3 -m http.server 8000
 # Open http://localhost:8000/universe.html
 ```
 
-## Embedding
+## Kiosk Mode — Vollbild-Display ohne Browser-Chrome
 
-### Iframe
-```html
-<iframe src="http://your-host:8000/universe.html" width="100%" height="600" frameborder="0"></iframe>
-```
-
-### Kiosk Mode (Chromium)
+### Chromium (Linux/macOS/Windows)
 ```bash
-chromium --kiosk --no-first-run http://your-host:8000/universe.html
+# Vollbild, keine Tab-Leiste, kein erstmaliges Setup-Popup
+chromium --kiosk --no-first-run --disable-infobars --disable-session-crashed-bubble \
+  --disable-translate --no-default-browser-check \
+  http://your-host:8000/universe.html
 ```
 
-## Configuration (`config.json`)
+### Chromium mit Autostart (Linux Desktop)
+```bash
+# ~/.config/autostart/universe-kiosk.desktop
+[Desktop Entry]
+Type=Application
+Name=3D Universe Kiosk
+Exec=chromium --kiosk --no-first-run --disable-infobars --disable-session-crashed-bubble --disable-translate --no-default-browser-check http://192.168.2.184:9120/
+X-GNOME-Autostart-enabled=true
+```
 
+### Systemd Kiosk Service (headless display)
+```ini
+# /etc/systemd/system/universe-kiosk.service
+[Unit]
+Description=3D Universe Kiosk Display
+After=graphical.target
+
+[Service]
+Type=simple
+User=kiosk
+Environment=DISPLAY=:0
+ExecStart=/usr/bin/chromium --kiosk --no-first-run --disable-infobars --disable-session-crashed-bubble --disable-translate --no-default-browser-check http://your-host:8000/universe.html
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=graphical.target
+```
+
+### Raspberry Pi / ARM
+```bash
+# Chromium im Kiosk-Mode ohne GPU-Beschleunigung (fallback)
+chromium-browser --kiosk --no-first-run --disable-gpu --disable-software-rasterizer \
+  http://your-host:8000/universe.html
+```
+
+### Firefox Kiosk
+```bash
+firefox --kiosk http://your-host:8000/universe.html
+```
+
+### Acemagic Display (unser Setup)
+```bash
+# Läuft auf xomni (192.168.2.191) via User-Systemd-Service
+# Dashboard hosted auf CT 105 (192.168.2.184:9120)
+chromium --kiosk --no-first-run --disable-infobars \
+  http://192.168.2.184:9120/
+```
+
+### Troubleshooting Kiosk
+| Problem | Lösung |
+|---------|--------|
+| Schwarzer Bildschirm | `--disable-gpu` oder `--disable-software-rasterizer` |
+| "Chrome wurde nicht sauber beendet" | `--disable-session-crashed-bubble` |
+| Mauszeiger sichtbar | `--disable-mouse-cursor` (nicht standard) |
+| Falsche Auflösung | `--window-size=1920,1080` oder `--start-fullscreen` |
+| WebGL-Fehler | GPU-Treiber prüfen, `--ignore-gpu-blocklist` |
+
+## Integration Patterns
+
+### Iframe Embed
+```html
+<iframe src="http://<host>:8000/universe.html" width="100%" height="600" frameborder="0"></iframe>
+```
+
+### Live API Integration
+Create a `/api/universe-state` endpoint returning:
 ```json
-{
-  "title": "My Dashboard",
-  "galaxies": [{ "id":"g1","name":"Node A","x":-25,"y":0,"z":-10,"r":12,"color":39423 }],
-  "systems": [{ "id":"s1","name":"Service","g":"g1","x":-6,"y":6,"z":-3,"r":5,"color":65535 }],
-  "connections": [["s1","s2"]],
-  "packets": [{ "type":"issue","title":"Bug #42","status":"Open","from":"s1","to":"s2","speed":0.003 }]
-}
+{"nodes":[],"pipeline":[],"paperless":{"docs":1289},"issues_open":5}
 ```
-
-### Packet Types
-| Type   | Color  | Use Case |
-|--------|--------|----------|
-| issue  | Magenta | Tickets, bugs |
-| deploy | Cyan   | Builds, releases |
-| error  | Red    | Alerts, failures |
-| ping   | Dim    | Heartbeats |
-| data   | Orange | Sync, transfers |
+The dashboard polls this endpoint every 30s via `fetch()`.
 
 ## Tests
 ```bash
-python3 test_universe.py
+cd 3d-homelab-universe && python3 test_universe.py  # 11 unit tests
 ```
-11 unit tests cover config validation, HTML structure, feature detection.
+
+## Configuration (`config.json`)
+- `galaxies`: top-level nodes (clusters/servers) with x, y, z, radius, color
+- `systems`: child services inside galaxies, each referencing a parent galaxy ID
+- `connections`: [fromId, toId] pairs linking systems
+- `packets`: animated data with type (issue/deploy/error/ping/data), title, status, from, to, speed
+
+## Known Issue
+[#1 Stale verification engine](https://github.com/huepfer13/3d-homelab-universe/issues/1).
 
 ## License
-MIT
+MIT — [Repository](https://github.com/huepfer13/3d-homelab-universe)
