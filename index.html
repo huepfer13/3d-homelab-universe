@@ -40,18 +40,6 @@ h1{font-size:16px;margin:0 0 10px;color:#fff;letter-spacing:1px;text-transform:u
 <div class="metric">Pipeline: <span id="pl-badge" style="color:#00ff88;">● Simulation</span></div>
 <div class="metric">Documents: <span id="paperless-count" style="color:#ffaa00;">—</span></div>
 <div class="metric">Issues: <span id="issue-count" style="color:#ff00ff;">—</span></div>
-<div style="margin-top:8px;border-top:1px solid rgba(0,255,204,.2);padding-top:6px;font-size:9px;">
-<div style="color:#fa0;font-weight:bold;margin-bottom:3px;">🔗 <a href="sim.html" style="color:#fa0;">Open Simulation</a></div>
-<div style="color:#0fc;font-weight:bold;margin-bottom:3px;">RING METRICS</div>
-<div style="color:#aaa;">⬤ Horizontal (X) = CPU</div>
-<div style="color:#aaa;">⬤ Vertikal (Y) = RAM</div>
-<div style="color:#aaa;">⬤ Tiefe (Z) = Disk I/O</div>
-<div style="margin-top:3px;display:flex;gap:6px;">
-<span style="color:#0f8;">● idle</span>
-<span style="color:#fa0;">● busy</span>
-<span style="color:#f33;">● critical</span>
-</div>
-</div>
 <div style="margin-top:10px;border-top:1px solid rgba(0,255,204,.2);padding-top:8px;">
 <button id="center-btn" style="width:100%;background:rgba(0,255,204,.15);border:1px solid #0fc;color:#0fc;padding:5px;border-radius:4px;cursor:pointer;font-family:monospace;font-size:11px;font-weight:bold;">⌖ CENTER UNIVERSE</button>
 </div>
@@ -59,31 +47,29 @@ h1{font-size:16px;margin:0 0 10px;color:#fff;letter-spacing:1px;text-transform:u
 </div></div>
 <div id="legend-acc" style="margin-top:10px;border-top:1px solid rgba(0,255,204,.2);padding-top:8px;font-family:monospace;font-size:10px;pointer-events:auto;">
 <div style="font-weight:bold;color:#0fc;margin-bottom:6px;">HOMELAB HIERARCHIE</div>
-<div><div class="legend-toggle" onclick="tgl('sub-gal')" style="cursor:pointer;color:#08f;padding:3px 0;">▶ Galaxien (5)</div>
+<div><div class="legend-toggle" onclick="tgl('sub-gal')" style="cursor:pointer;color:#08f;padding:3px 0;">▶ Galaxien (3)</div>
 <div id="sub-gal" style="display:none;padding-left:12px;border-left:1px solid rgba(0,136,255,.3);margin-left:4px;">
-<div class="legend-subitem" onclick="focusNode('alpha')" style="cursor:pointer;color:#fff;padding:2px 0;">• 🪐 Alpha</div>
-<div class="legend-subitem" onclick="focusNode('beta')" style="cursor:pointer;color:#fff;padding:2px 0;">• 🪐 Beta</div>
-<div class="legend-subitem" onclick="focusNode('gamma')" style="cursor:pointer;color:#fff;padding:2px 0;">• 🪐 Gamma</div>
-<div class="legend-subitem" onclick="focusNode('delta')" style="cursor:pointer;color:#fff;padding:2px 0;">• 🪐 Delta</div>
-<div class="legend-subitem" onclick="focusNode('epsilon')" style="cursor:pointer;color:#fff;padding:2px 0;">• 🪐 Epsilon</div>
+<div class="legend-subitem" onclick="focusNode('galaxy-alpha')" style="cursor:pointer;color:#fff;padding:2px 0;">• Galaxy Alpha</div>
+<div class="legend-subitem" onclick="focusNode('galaxy-beta')" style="cursor:pointer;color:#fff;padding:2px 0;">• Galaxy Beta</div>
+<div class="legend-subitem" onclick="focusNode('galaxy-gamma')" style="cursor:pointer;color:#fff;padding:2px 0;">• Galaxy Gamma</div>
 </div></div>
-<div style="margin-top:4px;"><div class="legend-toggle" onclick="tgl('sub-ct')" style="cursor:pointer;color:#0f8;padding:3px 0;">▶ Container (25)</div>
+<div style="margin-top:4px;"><div class="legend-toggle" onclick="tgl('sub-ct')" style="cursor:pointer;color:#0f8;padding:3px 0;">▶ Container (10)</div>
 <div id="sub-ct" style="display:none;padding-left:12px;border-left:1px solid rgba(0,255,136,.3);margin-left:4px;">
-<div class="legend-subitem" onclick="focusNode('a1')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node A1</div>
-<div class="legend-subitem" onclick="focusNode('a2')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node A2</div>
-<div class="legend-subitem" onclick="focusNode('b2')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node B2</div>
-<div class="legend-subitem" onclick="focusNode('b3')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node B3</div>
-<div class="legend-subitem" onclick="focusNode('b1')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node B1</div>
-<div class="legend-subitem" onclick="focusNode('c2')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node C2</div>
-<div class="legend-subitem" onclick="focusNode('c3')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node C3</div>
-<div class="legend-subitem" onclick="focusNode('c1')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node C1</div>
-<div class="legend-subitem" onclick="focusNode('a3')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node A3</div>
-<div class="legend-subitem" onclick="focusNode('b4')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node B4</div>
+<div class="legend-subitem" onclick="focusNode('node-a1')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node A1</div>
+<div class="legend-subitem" onclick="focusNode('node-a2')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node A2</div>
+<div class="legend-subitem" onclick="focusNode('node-b2')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node B2</div>
+<div class="legend-subitem" onclick="focusNode('node-b3')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node B3</div>
+<div class="legend-subitem" onclick="focusNode('node-b1')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node B1</div>
+<div class="legend-subitem" onclick="focusNode('node-c2')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node C2</div>
+<div class="legend-subitem" onclick="focusNode('node-c3')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node C3</div>
+<div class="legend-subitem" onclick="focusNode('node-c1')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node C1</div>
+<div class="legend-subitem" onclick="focusNode('node-a3')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node A3</div>
+<div class="legend-subitem" onclick="focusNode('node-b4')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node B4</div>
 </div></div>
 <div style="margin-top:4px;"><div class="legend-toggle" onclick="tgl('sub-pipe')" style="cursor:pointer;color:#fa0;padding:3px 0;">▶ Pipelines (2)</div>
 <div id="sub-pipe" style="display:none;padding-left:12px;border-left:1px solid rgba(255,170,0,.3);margin-left:4px;">
-<div class="legend-subitem" onclick="focusNode('b2')" style="cursor:pointer;color:#fff;padding:2px 0;">• Data Sync A→B</div>
-<div class="legend-subitem" onclick="focusNode('c2')" style="cursor:pointer;color:#fff;padding:2px 0;">• CI/CD Pipeline</div>
+<div class="legend-subitem" onclick="focusNode('node-b2')" style="cursor:pointer;color:#fff;padding:2px 0;">• Data Sync A→B</div>
+<div class="legend-subitem" onclick="focusNode('node-c2')" style="cursor:pointer;color:#fff;padding:2px 0;">• CI/CD Pipeline</div>
 </div></div>
 </div>
 </div>
@@ -113,27 +99,20 @@ const STAGES=['Init','Build','Test','Deploy','Done'];
 const MSG_TYPES=['deploy','data','ping','issue','error','sync','backup','health'];
 function rnd(arr){return arr[Math.floor(Math.random()*arr.length)];}
 function simNode(n){return NODES[n%NODES.length];}
-function simCT(){return String.fromCharCode(97+Math.floor(Math.random()*5))+Math.ceil(Math.random()*5);}
+function simCT(){return 'Node-'+String.fromCharCode(65+Math.floor(Math.random()*NODES.length))+String(1+Math.floor(Math.random()*CT_PER_NODE));}
 
 // ═══ THREE.JS 3D SCENE ═══
 let R,scene,cam,controls,U,PkG;
 // Scene objects always created (independent of WebGL)
 const C=document.getElementById('canvas-container');
 scene=new THREE.Scene();scene.fog=new THREE.FogExp2(0x020208,0.01);
-cam=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,0.1,1200);cam.position.set(0,25,70);cam.lookAt(0,0,-12);
+cam=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,0.1,1200);cam.position.set(0,20,65);cam.lookAt(0,-6,0);
 U=new THREE.Group();scene.add(U);
 PkG=new THREE.Group();U.add(PkG);
 // WebGL renderer — may fail in headless browsers
 try{
 R=new THREE.WebGLRenderer({antialias:true});R.setSize(innerWidth,innerHeight);R.setPixelRatio(devicePixelRatio);C.appendChild(R.domElement);
-}catch(e){console.warn('WebGL unavailable — simulation mode');R=null;
-// Show center status indicator
-var si=document.createElement('div');
-si.id='sim-indicator';
-si.innerHTML='<div style=\"text-align:center;color:#0fc;font-size:14px;margin-top:40vh;\">◈<br><span style=\"font-size:11px;opacity:.7;\">Simulation Active</span></div>';
-si.style.cssText='position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:3;';
-document.body.appendChild(si);
-}
+}catch(e){console.warn('WebGL unavailable — simulation mode');R=null;document.body.insertAdjacentHTML('beforeend','<div id=no-webgl style=\"position:fixed;bottom:10px;left:50%;transform:translateX(-50%);background:rgba(255,100,0,.9);color:#fff;padding:8px 20px;border-radius:6px;font-family:monospace;font-size:12px;z-index:200;pointer-events:none;\">⚠ Simulation Mode — 3D unavailable in this browser</div>');}
 
 if(R){
 controls=new THREE.OrbitControls(cam,R.domElement);
@@ -170,27 +149,20 @@ function mkPkt(type,title,status,sx,sy,sz,ex,ey,ez,spd){
 }
 
 // ═══ GALAXIES ═══
-const G={alpha:{x:-40,y:0,z:-15,color:0x0088ff,name:'🪐 Alpha',r:10},beta:{x:-20,y:0,z:-10,color:0x3388ff,name:'🪐 Beta',r:10},gamma:{x:0,y:0,z:-16,color:0x00aaff,name:'🪐 Gamma',r:11},delta:{x:20,y:0,z:-10,color:0x3388ff,name:'🪐 Delta',r:10},epsilon:{x:40,y:0,z:-15,color:0x0088ff,name:'🪐 Epsilon',r:10}};
+const G={alpha:{x:-28,y:0,z:-10,color:0x0088ff,name:'🪐 Galaxy Alpha',r:12},beta:{x:0,y:0,z:-16,color:0x0088ff,name:'🪐 Galaxy Beta',r:13},gamma:{x:28,y:0,z:-10,color:0x0088ff,name:'🪐 Galaxy Gamma',r:12}};
 const Gg={};
 Object.entries(G).forEach(([id,g])=>{
     const gr=new THREE.Group();gr.position.set(g.x,g.y,g.z);U.add(gr);Gg[id]=gr;
     // Compact core (small, bright)
     gr.add(new THREE.Mesh(new THREE.SphereGeometry(0.9,16,16),new THREE.MeshStandardMaterial({color:g.color,emissive:g.color,emissiveIntensity:1.0,roughness:0.05})));
-    // 3D Multi-Axis Halo: 3 independent rings (X=CPU, Y=RAM, Z=Disk)
-    const rR=g.r,wR=g.r*0.15;
-    const rings=[];
-    const colors=[0x00ffcc,0x00ffcc,0x00ffcc]; // Start: all cyan
+    // 3D Multi-Axis Halo: 3 orthogonal rings (XY, XZ, YZ)
+    const rR=g.r,wR=g.r*0.15,rM=new THREE.MeshBasicMaterial({color:g.color,transparent:true,opacity:0.25,side:2,blending:THREE.AdditiveBlending});
     [0,Math.PI/2,Math.PI/2].forEach((rot,idx)=>{
-        const mat=new THREE.MeshBasicMaterial({color:colors[idx],transparent:true,opacity:0.25,side:2,blending:THREE.AdditiveBlending});
-        const ring=new THREE.Mesh(new THREE.RingGeometry(rR-wR,rR,48),mat);
-        if(idx===0)ring.rotation.x=Math.PI/2;  // X = horizontal = CPU
-        else if(idx===2)ring.rotation.y=Math.PI/2;  // Z = depth = Disk
-        // idx===1 = Y = vertical = RAM (no rotation needed for YZ plane)
+        const ring=new THREE.Mesh(new THREE.RingGeometry(rR-wR,rR,48),rM);
+        if(idx===0)ring.rotation.x=Math.PI/2;
+        else if(idx===2)ring.rotation.y=Math.PI/2;
         gr.add(ring);
-        rings.push(ring);
     });
-    g._halos=rings;
-    g._metrics={cpu:0.2+Math.random()*0.6,ram:0.2+Math.random()*0.6,disk:0.1+Math.random()*0.4};
     // Load ring for pulsing
     const ring=new THREE.Mesh(new THREE.RingGeometry(g.r-0.5,g.r+0.2,64),new THREE.MeshBasicMaterial({color:0x00ff88,side:2,transparent:true,opacity:0.3}));ring.rotateX(Math.PI/2);gr.add(ring);g._ring=ring;
     const lb=document.createElement('div');lb.className='node-label';lb.textContent=g.name;lb.title=g.name;document.body.appendChild(lb);labels.push({e:lb,m:gr.children[0]});
@@ -199,23 +171,19 @@ Object.entries(G).forEach(([id,g])=>{
 // Helper: clamp child position within parent halo (max 85% of radius)
 function clampToParent(pos,parentR){const max=parentR*0.85;if(pos.length()>max)pos.setLength(max);return pos;}
 
-// ═══ SOLAR SYSTEMS (25 containers: 5 per galaxy) ═══
+// ═══ SOLAR SYSTEMS (inside galaxies) ═══
 const S=[
-    {id:'a1',g:'alpha',x:-5,y:5,z:-3,r:4,name:'🌐 A1',c:0x00ffcc},{id:'a2',g:'alpha',x:5,y:-4,z:-3,r:4,name:'📦 A2',c:0x00ffcc},
-    {id:'a3',g:'alpha',x:-3,y:-6,z:2,r:3,name:'🔒 A3',c:0x00ffcc},{id:'a4',g:'alpha',x:6,y:4,z:2,r:3,name:'⚙ A4',c:0xffaa00},
-    {id:'a5',g:'alpha',x:0,y:7,z:-1,r:3,name:'📊 A5',c:0xffaa00},
-    {id:'b1',g:'beta',x:-5,y:5,z:-3,r:4,name:'🌐 B1',c:0x00ffcc},{id:'b2',g:'beta',x:5,y:-3,z:-3,r:4,name:'📦 B2',c:0x00ffcc},
-    {id:'b3',g:'beta',x:6,y:3,z:2,r:3,name:'🔒 B3',c:0x00ffcc},{id:'b4',g:'beta',x:-4,y:-6,z:2,r:3,name:'⚙ B4',c:0xffaa00},
-    {id:'b5',g:'beta',x:0,y:6,z:-2,r:3,name:'📊 B5',c:0xffaa00},
-    {id:'c1',g:'gamma',x:-5,y:5,z:-3,r:4,name:'🌐 C1',c:0x00ffcc},{id:'c2',g:'gamma',x:5,y:-3,z:-3,r:4,name:'📦 C2',c:0x00ffcc},
-    {id:'c3',g:'gamma',x:-3,y:-6,z:2,r:3,name:'🔒 C3',c:0x00ffcc},{id:'c4',g:'gamma',x:6,y:4,z:2,r:3,name:'⚙ C4',c:0xffaa00},
-    {id:'c5',g:'gamma',x:0,y:7,z:-1,r:3,name:'📊 C5',c:0xffaa00},
-    {id:'d1',g:'delta',x:-5,y:5,z:-3,r:4,name:'🌐 D1',c:0x00ffcc},{id:'d2',g:'delta',x:5,y:-3,z:-3,r:4,name:'📦 D2',c:0x00ffcc},
-    {id:'d3',g:'delta',x:5,y:3,z:2,r:3,name:'🔒 D3',c:0x00ffcc},{id:'d4',g:'delta',x:-4,y:-6,z:2,r:3,name:'⚙ D4',c:0xffaa00},
-    {id:'d5',g:'delta',x:0,y:6,z:-2,r:3,name:'📊 D5',c:0xffaa00},
-    {id:'e1',g:'epsilon',x:-5,y:5,z:-3,r:4,name:'🌐 E1',c:0x00ffcc},{id:'e2',g:'epsilon',x:5,y:-3,z:-3,r:4,name:'📦 E2',c:0x00ffcc},
-    {id:'e3',g:'epsilon',x:-3,y:-6,z:2,r:3,name:'🔒 E3',c:0x00ffcc},{id:'e4',g:'epsilon',x:6,y:4,z:2,r:3,name:'⚙ E4',c:0xffaa00},
-    {id:'e5',g:'epsilon',x:0,y:7,z:-1,r:3,name:'📊 E5',c:0xffaa00},
+    {id:'node-a1',g:'alpha',x:-8,y:6,z:-3,r:5.5,name:'🌐 Node A1',c:0x00ffcc},
+    {id:'node-a2',g:'alpha',x:4,y:-4,z:-5,r:5,name:'🌐 Node A2',c:0x00ffcc},
+    {id:'node-a3',g:'alpha',x:-5,y:-8,z:3,r:3.5,name:'🔒 Node A3',c:0x00ffcc},
+    {id:'node-a4',g:'alpha',x:8,y:-8,z:2,r:4,name:'🖥️ Node A4',c:0xffaa00},
+    {id:'node-b1',g:'beta',x:-10,y:6,z:-2,r:5.5,name:'📁 Node B1',c:0x00ffcc},
+    {id:'node-b2',g:'beta',x:4,y:-2,z:-5,r:5.5,name:'📄 Node B2',c:0x00ffcc},
+    {id:'node-b3',g:'beta',x:10,y:4,z:-2,r:3.5,name:'🧪 Node B3',c:0xffaa00},
+    {id:'node-b4',g:'beta',x:-3,y:-8,z:3,r:3.5,name:'🏠 Node B4',c:0xffaa00},
+    {id:'node-c1',g:'gamma',x:-8,y:6,z:-2,r:4.5,name:'🔍 Node C1',c:0x00ffcc},
+    {id:'node-c2',g:'gamma',x:4,y:-2,z:-4,r:4.5,name:'🐙 Node C2',c:0x00ffcc},
+    {id:'node-c3',g:'gamma',x:8,y:-6,z:3,r:4.5,name:'📊 Node C3',c:0x00ffcc},
 ];
 const Sg={};
 S.forEach(s=>{
@@ -223,19 +191,14 @@ S.forEach(s=>{
     // Clamp position within galaxy halo
     const pos=new THREE.Vector3(s.x,s.y,s.z);
     clampToParent(pos,G[s.g].r);sg.position.copy(pos);p.add(sg);Sg[s.id]=sg;
-    // 3D Multi-Axis Ring-Bubble (X=CPU, Y=RAM, Z=Disk)
-    const rR=s.r,wR=s.r*0.15;
-    const rings=[];
+    // 3D Multi-Axis Ring-Bubble (XY/XZ/YZ)
+    const rR=s.r,wR=s.r*0.15,rM=new THREE.MeshBasicMaterial({color:s.c,transparent:true,opacity:0.15,side:2,blending:THREE.AdditiveBlending});
     [0,Math.PI/2,Math.PI/2].forEach((rot,idx)=>{
-        const mat=new THREE.MeshBasicMaterial({color:0x00ffcc,transparent:true,opacity:0.15,side:2,blending:THREE.AdditiveBlending});
-        const ring=new THREE.Mesh(new THREE.RingGeometry(rR-wR,rR,32),mat);
+        const ring=new THREE.Mesh(new THREE.RingGeometry(rR-wR,rR,32),rM);
         if(idx===0)ring.rotation.x=Math.PI/2;
         else if(idx===2)ring.rotation.y=Math.PI/2;
         sg.add(ring);
-        rings.push(ring);
     });
-    s._halos=rings;
-    s._metrics={cpu:0.1+Math.random()*0.5,ram:0.1+Math.random()*0.5,disk:0.05+Math.random()*0.3};
     // Core
     const co=new THREE.Mesh(new THREE.SphereGeometry(1,24,24),new THREE.MeshStandardMaterial({color:s.c,emissive:s.c,emissiveIntensity:0.6,roughness:0.1}));sg.add(co);
     const lb=document.createElement('div');lb.className='node-label';lb.textContent=s.name;lb.title=s.name+' · '+s.g;document.body.appendChild(lb);labels.push({e:lb,m:co});
@@ -245,11 +208,11 @@ S.forEach(s=>{
 
 // ═══ PLANETS (services inside nodes) ═══
 const P=[
-    {s:'b2',x:-2,y:0,z:0,c:0xff6600},{s:'b2',x:2,y:0,z:0,c:0xff0000},
-    {s:'b1',x:-1.8,y:0,z:0,c:0x3366ff},{s:'b1',x:1.8,y:0,z:0,c:0x33ccff},
-    {s:'c2',x:-1.5,y:0,z:0,c:0xff8800},{s:'c2',x:1.5,y:0,z:0,c:0x88ff00},
-    {s:'c3',x:-1.6,y:0,z:0,c:0xff6600},{s:'c3',x:1.6,y:0,z:0,c:0x6600ff},
-    {s:'a1',x:-1.4,y:0,z:0,c:0x00ff88},{s:'a2',x:0,y:0,z:0,c:0xffaa00},
+    {s:'node-b2',x:-2,y:0,z:0,c:0xff6600},{s:'node-b2',x:2,y:0,z:0,c:0xff0000},
+    {s:'node-b1',x:-1.8,y:0,z:0,c:0x3366ff},{s:'node-b1',x:1.8,y:0,z:0,c:0x33ccff},
+    {s:'node-c2',x:-1.5,y:0,z:0,c:0xff8800},{s:'node-c2',x:1.5,y:0,z:0,c:0x88ff00},
+    {s:'node-c3',x:-1.6,y:0,z:0,c:0xff6600},{s:'node-c3',x:1.6,y:0,z:0,c:0x6600ff},
+    {s:'node-a1',x:-1.4,y:0,z:0,c:0x00ff88},{s:'node-a2',x:0,y:0,z:0,c:0xffaa00},
 ];
 P.forEach(p=>{const m=new THREE.Mesh(new THREE.SphereGeometry(0.5,16,16),new THREE.MeshStandardMaterial({color:p.c,emissive:p.c,emissiveIntensity:0.7,roughness:0.05}));
     const sys=S.find(s=>s.id===p.s);const pos=new THREE.Vector3(p.x,p.y,p.z);
@@ -260,13 +223,13 @@ const stages=[{a:0,n:'⚙️ Build'},{a:2.1,n:'🧪 Test'},{a:4.2,n:'🚀 Deploy
 const stageList=[];
 stages.forEach(s=>{
     const m=new THREE.Mesh(new THREE.SphereGeometry(0.7,20,20),new THREE.MeshStandardMaterial({color:0xff00ff,emissive:0xff00ff,emissiveIntensity:0.8,roughness:0.05}));
-    m.position.set(Math.cos(s.a)*4.5,Math.sin(s.a)*3-1,1);Sg['a2'].add(m);stageList.push({m,angle:s.a});
+    m.position.set(Math.cos(s.a)*4.5,Math.sin(s.a)*3-1,1);Sg['node-a2'].add(m);stageList.push({m,angle:s.a});
     const lb=document.createElement('div');lb.className='node-label';lb.textContent=s.n;document.body.appendChild(lb);labels.push({e:lb,m});
 });
 
 // ═══ INTERSTELLAR ROUTES (galaxy-to-galaxy) ═══
 const irMat=new THREE.LineBasicMaterial({color:0x0088ff,transparent:true,opacity:0.12});
-[['alpha','beta'],['beta','gamma'],['gamma','delta'],['delta','epsilon']].forEach(([a,b])=>{
+[['alpha','beta'],['beta','gamma']].forEach(([a,b])=>{
     const ga=G[a],gb=G[b];
     U.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(ga.x,ga.y,ga.z),new THREE.Vector3(gb.x,gb.y,gb.z)]),irMat));
 });
@@ -276,7 +239,7 @@ const irMat=new THREE.LineBasicMaterial({color:0x0088ff,transparent:true,opacity
 const pingMat=new THREE.LineDashedMaterial({color:0x334455,transparent:true,opacity:0.08,dashSize:1,gapSize:1});
 const activeMat=new THREE.LineBasicMaterial({color:0x00ffcc,transparent:true,opacity:0.2});
 // Active inter-CT connections (bright solid)
-[['a1','a2'],['b1','b2'],['c1','c2'],['d1','d2'],['e1','e2']].forEach(([a,b])=>{
+[['node-a1','node-a2'],['node-a1','node-c3'],['node-b2','node-b1'],['node-c2','node-c1']].forEach(([a,b])=>{
     const sa=S.find(s=>s.id===a),sb=S.find(s=>s.id===b);
     if(sa&&sb){
         const ga=G[sa.g],gb=G[sb.g];
@@ -304,8 +267,8 @@ function makeTube(sid1,sid2,color,thickness){
     return {mesh,src,dst};
 }
 const loopTubes=[
-    makeTube('b2','b1',0xff1111,0.8),   // Node B2↔B1 (thick red)
-    makeTube('a1','c2',0xff4400,0.5),   // Node A1↔C2 (orange)
+    makeTube('node-b2','node-b1',0xff1111,0.8),   // Node B2↔B1 (thick red)
+    makeTube('node-a1','node-c2',0xff4400,0.5),   // Node A1↔C2 (orange)
 ];
 
 // ═══ STARFIELD ═══
@@ -329,50 +292,18 @@ function mkPktOnPath(type,title,status,sid1,sid2,spd){
 
 // ═══ SEED PACKETS (demo data) ═══
 if(R){
-mkPktOnPath('issue','Demo: Plan','Draft','a1','c2',0.003);
-mkPktOnPath('issue','Demo: Review','Open','c2','a2',0.003);
-mkPktOnPath('deploy','Demo: Test','Testing','a2','c2',0.002);
-mkPktOnPath('deploy','Demo: Build','Building','c2','c3',0.0025);
-mkPktOnPath('data','Demo: Deploy','Done','c3','b2',0.003);
-mkPktOnPath('deploy','Data Sync','Active','b2','b1',0.0025);
-mkPktOnPath('issue','Dashboard','Building','a1','c3',0.002);
-mkPktOnPath('error','API Timeout','Alert','b2','a1',0.004);
-mkPktOnPath('ping','Heartbeat Alpha','OK','a1','a2',0.001);
-mkPktOnPath('ping','Heartbeat Beta','OK','b2','b1',0.0012);
-mkPktOnPath('ping','Heartbeat Gamma','OK','c2','c3',0.001);
-mkPktOnPath('data','Data Fetch','Syncing','b2','c3',0.0015);
-}
-
-// ═══ MULTI-METRIC HALOS ═══
-function updateMultiMetricHalos(time){
-    // Galaxy halos: X=CPU, Y=RAM, Z=Disk
-    Object.values(G).forEach(g=>{
-        if(!g._halos)return;
-        const v=[g._metrics.cpu,g._metrics.ram,g._metrics.disk];
-        g._halos.forEach((ring,i)=>{
-            const cv=v[i];
-            ring.material.color.lerp(new THREE.Color(cv>0.8?0xff3333:cv>0.5?0xffaa00:0x00ffcc),0.1);
-            ring.scale.setScalar(1+Math.sin(time*(2+cv*6)+i*1.5)*(0.04+cv*0.2));
-            ring.material.opacity=0.25+cv*0.45;
-        });
-        g._metrics.cpu=Math.max(0,Math.min(1,g._metrics.cpu+(Math.random()-0.5)*0.02));
-        g._metrics.ram=Math.max(0,Math.min(1,g._metrics.ram+(Math.random()-0.5)*0.02));
-        g._metrics.disk=Math.max(0,Math.min(1,g._metrics.disk+(Math.random()-0.5)*0.015));
-    });
-    // Container halos
-    S.forEach(s=>{
-        if(!s._halos)return;
-        const v=[s._metrics.cpu,s._metrics.ram,s._metrics.disk];
-        s._halos.forEach((ring,i)=>{
-            const cv=v[i];
-            ring.material.color.lerp(new THREE.Color(cv>0.8?0xff3333:cv>0.5?0xffaa00:0x00ffcc),0.1);
-            ring.scale.setScalar(1+Math.sin(time*(3+cv*8)+i*2)*(0.03+cv*0.15));
-            ring.material.opacity=0.15+cv*0.4;
-        });
-        s._metrics.cpu=Math.max(0,Math.min(1,s._metrics.cpu+(Math.random()-0.5)*0.03));
-        s._metrics.ram=Math.max(0,Math.min(1,s._metrics.ram+(Math.random()-0.5)*0.03));
-        s._metrics.disk=Math.max(0,Math.min(1,s._metrics.disk+(Math.random()-0.5)*0.02));
-    });
+mkPktOnPath('issue','Demo: Plan','Draft','node-a1','node-c2',0.003);
+mkPktOnPath('issue','Demo: Review','Open','node-c2','node-a2',0.003);
+mkPktOnPath('deploy','Demo: Test','Testing','node-a2','node-c2',0.002);
+mkPktOnPath('deploy','Demo: Build','Building','node-c2','node-c3',0.0025);
+mkPktOnPath('data','Demo: Deploy','Done','node-c3','node-b2',0.003);
+mkPktOnPath('deploy','Data Sync','Active','node-b2','node-b1',0.0025);
+mkPktOnPath('issue','Dashboard','Building','node-a1','node-c3',0.002);
+mkPktOnPath('error','API Timeout','Alert','node-b2','node-a1',0.004);
+mkPktOnPath('ping','Heartbeat Alpha','OK','node-a1','node-a2',0.001);
+mkPktOnPath('ping','Heartbeat Beta','OK','node-b2','node-b1',0.0012);
+mkPktOnPath('ping','Heartbeat Gamma','OK','node-c2','node-c3',0.001);
+mkPktOnPath('data','Data Fetch','Syncing','node-b2','node-c3',0.0015);
 }
 
 // ═══ ANIMATION ═══
@@ -387,8 +318,8 @@ function animate(){
     U.rotation.y = rotY;
     // Apply universe offset from click-to-center
     U.position.lerp(uniOffset, 0.08);
-    // Multi-metric halos: X=CPU, Y=RAM, Z=Disk
-    updateMultiMetricHalos(t);
+    // Galaxy load rings: pulse color green→orange→red
+    Object.entries(G).forEach(([id,g])=>{if(g._ring){g._ring.scale.setScalar(0.9+Math.sin(t*3)*0.15);g._ring.material.opacity=0.2+Math.sin(t*3)*0.1;}});
     Object.values(Gg).forEach(g=>g.rotation.y=Math.sin(t*0.12)*0.3);
     Object.values(Sg).forEach(s=>s.rotation.y=Math.sin(t*0.18)*0.4);
 
@@ -528,64 +459,15 @@ const AC=new(window.AudioContext||window.webkitAudioContext)();
 function beep(freq,dur,vol,type){const o=AC.createOscillator(),g=AC.createGain();o.type=type||'sine';o.frequency.value=freq;g.gain.setValueAtTime(vol||0.05,AC.currentTime);g.gain.exponentialRampToValueAtTime(0.001,AC.currentTime+dur);o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+dur);}
 function sfx(status){if(status==='error')beep(200,0.3,0.06,'square');else if(status==='success')beep(800,0.1,0.03,'sine');else if(status==='warning')beep(400,0.15,0.04,'triangle');}
 // Config modal (DE/EN help)
-let currentConfig=null;
-async function loadCfg(){
-    try{const r=await fetch('config.local.json');currentConfig=await r.json();console.log('Loaded local config');}
-    catch(e){try{const r=await fetch('config.json');currentConfig=await r.json();}catch(e2){console.error('Config load error:',e2);}}
-}
-function renderCfg(){
-    const c=document.getElementById('cfg-content');if(!c)return;c.innerHTML='';
-    if(!currentConfig){c.innerHTML='<div style="color:#faa;">⚠ Keine Konfiguration geladen</div>';return;}
-    const lang=navigator.language.startsWith('de')?'de':'en';
-    const t=(de,en)=>lang==='de'?de:en;
-    // Title
-    const title=currentConfig.title||'Dashboard';
-    c.innerHTML='<div style="color:#0fc;font-size:14px;font-weight:bold;margin-bottom:8px;">'+title+'</div>';
-    const help={
-        galaxies:{de:'Galaxien — die Hauptknoten deines Universums. Jede Galaxie hat Position (x,y,z), Radius (r) und Farbe.',en:'Galaxies — main nodes of your universe. Each has position (x,y,z), radius (r) and color.'},
-        systems:{de:'Container/Systeme innerhalb der Galaxien. g=Galaxie-ID, r=Halo-Radius, c=Farbe (hex).',en:'Containers/systems inside galaxies. g=galaxy ID, r=halo radius, c=color (hex).'},
-        connections:{de:'Verbindungen zwischen Systemen. Typen: active (durchgezogen), ping (gestrichelt), tube (3D-Röhre).',en:'Links between systems. Types: active (solid), ping (dashed), tube (3D pipe).'},
-        packets:{de:'Datenpakete die zwischen Systemen fliegen. type=issue|deploy|data|ping|error. speed=Bewegungsgeschwindigkeit.',en:'Data packets flying between systems. type=issue|deploy|data|ping|error. speed=movement speed.'},
-    };
-    for(const[sk,so]of Object.entries(currentConfig)){
-        if(sk==='title'||sk==='_comment'||typeof so!=='object')continue;
-        const h=document.createElement('div');
-        h.style.cssText='color:#38f;font-weight:bold;font-size:12px;margin-top:10px;border-bottom:1px dashed rgba(51,136,255,.3);padding-bottom:3px;';
-        h.textContent=sk.toUpperCase()+' ('+so.length+' '+t('Einträge','entries')+')';
-        c.appendChild(h);
-        // Help text
-        if(help[sk]){
-            const hp=document.createElement('div');
-            hp.style.cssText='font-size:10px;color:#888;margin:3px 0 6px;font-style:italic;';
-            hp.textContent=t(help[sk].de,help[sk].en);
-            c.appendChild(hp);
-        }
-        // Render first 3 items as examples
-        const items=Array.isArray(so)?so.slice(0,3):[so];
-        items.forEach(item=>{
-            const b=document.createElement('div');
-            b.style.cssText='background:rgba(0,255,204,.03);border:1px solid rgba(0,255,204,.15);padding:6px 8px;border-radius:4px;margin:3px 0;font-size:10px;';
-            const keys=Object.keys(item).filter(k=>k!=='_comment');
-            const vals=keys.map(k=>{var s='<span style="color:#fa0;">'+k+'</span>=<span style="color:#0fc;">'+JSON.stringify(item[k])+'</span>';return s;});
-            b.innerHTML=vals.join(' | ');
-            c.appendChild(b);
-        });
-        if(so.length>3){
-            const more=document.createElement('div');
-            more.style.cssText='font-size:9px;color:#666;padding:2px 8px;';
-            more.textContent='... und '+(so.length-3)+' '+t('weitere','more');
-            c.appendChild(more);
-        }
-    }
-    // Footer help
-    const foot=document.createElement('div');
-    foot.style.cssText='margin-top:16px;padding-top:10px;border-top:1px solid rgba(0,255,204,.2);font-size:10px;color:#888;';
-    foot.innerHTML=t(
-        '<b>Tipp:</b> Erstelle eine <code>config.local.json</code> im gleichen Ordner um diese Werte zu überschreiben. Die lokale Datei wird nicht auf GitHub veröffentlicht.',
-        '<b>Tip:</b> Create a <code>config.local.json</code> in the same folder to override these values. The local file is not published to GitHub.'
-    );
-    c.appendChild(foot);
-}
+let currentConfig={};
+async function loadCfg(){try{const r=await fetch('config.json');currentConfig=await r.json();}catch(e){console.error('Config load error:',e);}}
+function renderCfg(){try{const c=document.getElementById('cfg-content');if(!c)return;c.innerHTML='';
+    for(const[sk,so]of Object.entries(currentConfig||{})){
+        const h=document.createElement('div');h.style.cssText='color:#38f;font-weight:bold;font-size:12px;margin-top:10px;border-bottom:1px dashed rgba(51,136,255,.3);padding-bottom:3px;';h.textContent='[ '+sk.toUpperCase()+' ]';c.appendChild(h);
+        for(const[pk,pd]of Object.entries(so)){
+            const b=document.createElement('div');b.style.cssText='background:rgba(0,255,204,.03);border:1px solid rgba(0,255,204,.15);padding:8px;border-radius:4px;';
+            b.innerHTML='<div style=\"display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;\"><span style=\"color:#0fc;font-weight:bold;\">'+pk+'</span><span style=\"color:#fa0;font-size:10px;background:rgba(255,170,0,.1);padding:1px 4px;border-radius:2px;\">'+pd.value+'</span></div><div style=\"font-size:11px;color:#ccc;margin-bottom:4px;\">🇩🇪 '+pd.desc_de+'</div><div style=\"font-size:10px;color:#888;font-style:italic;\">🇬🇧 '+pd.desc_en+'</div>';
+            c.appendChild(b);}}}catch(e){console.error('Config render error:',e);}}
 document.getElementById('cfg-btn').addEventListener('click',async()=>{await loadCfg();renderCfg();document.getElementById('cfg-modal').style.display='flex';});
 document.getElementById('cfg-close').addEventListener('click',()=>{document.getElementById('cfg-modal').style.display='none';});
 loadCfg();
