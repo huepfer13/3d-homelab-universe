@@ -9,6 +9,8 @@ trigger: Dashboard setup, 3D visualization, kiosk mode
 
 Config-driven Three.js dashboard — galaxies, solar systems, animated packets with trails. Drop your own `config.json`, no code changes needed.
 
+**New in v1.1:** OrbitControls, 3D Multi-Axis Halos (AdditiveBlending), Packet Fade-In/Out, Accordion, Pipeline Badge, Event Log, Hover Tooltips.
+
 ## Quick Start
 ```bash
 git clone https://github.com/huepfer13/3d-homelab-universe.git
@@ -33,7 +35,7 @@ chromium --kiosk --no-first-run --disable-infobars --disable-session-crashed-bub
 [Desktop Entry]
 Type=Application
 Name=3D Universe Kiosk
-Exec=chromium --kiosk --no-first-run --disable-infobars --disable-session-crashed-bubble --disable-translate --no-default-browser-check http://192.168.2.184:9120/
+Exec=chromium --kiosk --no-first-run --disable-infobars --disable-session-crashed-bubble --disable-translate --no-default-browser-check http://your-host:8000/universe.html
 X-GNOME-Autostart-enabled=true
 ```
 
@@ -68,14 +70,6 @@ chromium-browser --kiosk --no-first-run --disable-gpu --disable-software-rasteri
 firefox --kiosk http://your-host:8000/universe.html
 ```
 
-### Acemagic Display (unser Setup)
-```bash
-# Läuft auf xomni (192.168.2.191) via User-Systemd-Service
-# Dashboard hosted auf CT 105 (192.168.2.184:9120)
-chromium --kiosk --no-first-run --disable-infobars \
-  http://192.168.2.184:9120/
-```
-
 ### Troubleshooting Kiosk
 | Problem | Lösung |
 |---------|--------|
@@ -105,13 +99,23 @@ cd 3d-homelab-universe && python3 test_universe.py  # 11 unit tests
 ```
 
 ## Configuration (`config.json`)
-- `galaxies`: top-level nodes (clusters/servers) with x, y, z, radius, color
+- `galaxies`: top-level nodes (clusters/servers) with id, name, x, y, z, r, color
 - `systems`: child services inside galaxies, each referencing a parent galaxy ID
-- `connections`: [fromId, toId] pairs linking systems
+- `connections`: `[fromId, toId]` or `[fromId, toId, type]` pairs linking systems
+  - Types: `active` (solid cyan), `ping` (dim dashed), `tube` (curved arc)
 - `packets`: animated data with type (issue/deploy/error/ping/data), title, status, from, to, speed
 
+## Features
+- **OrbitControls**: drag to rotate, scroll to zoom, right-drag to pan
+- **3D Multi-Axis Halos**: XY/XZ/YZ rings with AdditiveBlending per node
+- **Packet Fade-In/Out**: opacity transition at halo boundaries
+- **Accordion Hierarchy**: expandable click-to-focus legend
+- **Pipeline Badge**: live CI/CD status in HUD
+- **Event Log**: streaming color-coded event stream
+- **Hover Tooltips**: metadata on mouse-over
+
 ## Known Issue
-[#1 Stale verification engine](https://github.com/huepfer13/3d-homelab-universe/issues/1).
+[#1 Stale Verification Engine](https://github.com/huepfer13/3d-homelab-universe/issues/1).
 
 ## License
 MIT — [Repository](https://github.com/huepfer13/3d-homelab-universe)

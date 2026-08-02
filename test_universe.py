@@ -35,12 +35,15 @@ class TestConfig(unittest.TestCase):
             self.assertIn(s["g"], galaxy_ids, f"System {s['id']} references unknown galaxy {s['g']}")
     
     def test_connections_reference_valid_systems(self):
-        """Every connection references existing systems."""
+        """Every connection references existing systems (supports [from,to] or [from,to,type])."""
         system_ids = {s["id"] for s in self.config["systems"]}
         for conn in self.config["connections"]:
-            self.assertEqual(len(conn), 2, f"Connection must have exactly 2 elements: {conn}")
+            self.assertIn(len(conn), [2, 3], f"Connection must have 2-3 elements: {conn}")
             self.assertIn(conn[0], system_ids, f"Unknown system: {conn[0]}")
             self.assertIn(conn[1], system_ids, f"Unknown system: {conn[1]}")
+            if len(conn) >= 3:
+                self.assertIn(conn[2], ["active", "ping", "tube"],
+                             f"Unknown connection type: {conn[2]}")
     
     def test_packets_reference_valid_systems(self):
         """Every packet references existing systems."""
