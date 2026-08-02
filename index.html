@@ -87,7 +87,6 @@ h1{font-size:16px;margin:0 0 10px;color:#fff;letter-spacing:1px;text-transform:u
 </div>
 </div>
 <div id="canvas-container"></div>
-<canvas id="sim-canvas" style="position:absolute;top:0;left:0;width:100vw;height:100vh;display:none;z-index:2;"></canvas>
 <div id="crosshair"></div>
 
 <div id="cfg-modal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:600px;max-height:80vh;background:rgba(8,8,20,.95);border:1px solid #0fc;box-shadow:0 0 25px rgba(0,255,204,.4);border-radius:8px;z-index:1000;padding:20px;font-family:monospace;color:#fff;flex-direction:column;">
@@ -126,74 +125,13 @@ PkG=new THREE.Group();U.add(PkG);
 // WebGL renderer — may fail in headless browsers
 try{
 R=new THREE.WebGLRenderer({antialias:true});R.setSize(innerWidth,innerHeight);R.setPixelRatio(devicePixelRatio);C.appendChild(R.domElement);
-}catch(e){console.warn('WebGL unavailable — starting 2D simulation');R=null;
-// Start Canvas2D fallback — big visible dots + connections
-(function(){
-var sc=document.getElementById('sim-canvas');
-sc.style.display='block';
-sc.width=innerWidth;sc.height=innerHeight;
-var ctx=sc.getContext('2d');
-var dots=[];
-// 5 galaxies in a row, each with 5 nested dots
-for(var g=0;g<5;g++){
-    var gx=sc.width/2+(g-2)*(sc.width/6);
-    var gy=sc.height/2;
-    for(var n=0;n<5;n++){
-        var angle=(n/5)*Math.PI*2;
-        var dist=30+n*15;
-        dots.push({gx:gx,gy:gy,dx:Math.cos(angle)*dist,dy:Math.sin(angle)*dist,
-                   r:8+n*2,phase:Math.random()*Math.PI*2,
-                   color:['#0cf','#08f','#0af','#38f','#0ff'][g]});
-    }
-}
-var labels=['Alpha','Beta','Gamma','Delta','Epsilon'];
-function draw2D(){
-    if(R){sc.style.display='none';return;}
-    ctx.clearRect(0,0,sc.width,sc.height);
-    ctx.fillStyle='#020208';ctx.fillRect(0,0,sc.width,sc.height);
-    var t=Date.now()*0.001;
-    // Galaxy centers
-    for(var g=0;g<5;g++){
-        var gx=sc.width/2+(g-2)*(sc.width/6);
-        var gy=sc.height/2;
-        // Outer glow
-        var grd=ctx.createRadialGradient(gx,gy,0,gx,gy,70);
-        grd.addColorStop(0,dots[g*5].color);grd.addColorStop(1,'transparent');
-        ctx.fillStyle=grd;ctx.globalAlpha=0.08+Math.sin(t+g)*0.03;
-        ctx.beginPath();ctx.arc(gx,gy,70,0,Math.PI*2);ctx.fill();
-        // Label
-        ctx.fillStyle='#fff';ctx.globalAlpha=0.5;ctx.font='11px monospace';
-        ctx.textAlign='center';ctx.fillText(labels[g],gx,gy-85);
-    }
-    // Connection lines between galaxies
-    ctx.strokeStyle='#0cf';ctx.globalAlpha=0.08;ctx.lineWidth=1;
-    for(var g=0;g<4;g++){
-        var x1=sc.width/2+(g-2)*(sc.width/6);
-        var x2=sc.width/2+(g-1)*(sc.width/6);
-        ctx.beginPath();ctx.moveTo(x1,sc.height/2);ctx.lineTo(x2,sc.height/2);ctx.stroke();
-    }
-    // Dots
-    dots.forEach(function(d,i){
-        var pulse=1+Math.sin(t*2+d.phase)*0.25;
-        var x=d.gx+d.dx*pulse,y=d.gy+d.dy*pulse;
-        var r=d.r*(1+Math.sin(t*3+d.phase)*0.15);
-        // Glow
-        var grd=ctx.createRadialGradient(x,y,0,x,y,r*3);
-        grd.addColorStop(0,d.color);grd.addColorStop(1,'transparent');
-        ctx.fillStyle=grd;ctx.globalAlpha=0.15;ctx.beginPath();
-        ctx.arc(x,y,r*3,0,Math.PI*2);ctx.fill();
-        // Core
-        ctx.fillStyle=d.color;ctx.globalAlpha=0.7;
-        ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
-        // Border
-        ctx.strokeStyle=d.color;ctx.globalAlpha=0.3;ctx.lineWidth=1;
-        ctx.beginPath();ctx.arc(x,y,r+1,0,Math.PI*2);ctx.stroke();
-    });
-    ctx.globalAlpha=1;
-    requestAnimationFrame(draw2D);
-}
-draw2D();
-})();
+}catch(e){console.warn('WebGL unavailable — simulation mode');R=null;
+// Show center status indicator
+var si=document.createElement('div');
+si.id='sim-indicator';
+si.innerHTML='<div style=\"text-align:center;color:#0fc;font-size:14px;margin-top:40vh;\">◈<br><span style=\"font-size:11px;opacity:.7;\">Simulation Active</span></div>';
+si.style.cssText='position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:3;';
+document.body.appendChild(si);
 }
 
 if(R){
