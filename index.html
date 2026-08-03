@@ -1029,9 +1029,10 @@ function downloadConfig(){
 }
 
 function importConfig(e){
+    if(!e.target.files||!e.target.files[0])return;
     const fr=new FileReader();
     fr.onload=function(ev){
-        try{activeConfigData=JSON.parse(ev.target.result);renderConfigEditor();logMsg('Config importiert','success');}
+        try{activeConfigData=JSON.parse(ev.target.result);renderConfigEditor();logMsg('Config importiert ('+(activeConfigData.systems?.length||0)+' Systeme)','success');}
         catch(err){logMsg('JSON-Fehler: '+err.message,'error');}
     };
     fr.readAsText(e.target.files[0]);
