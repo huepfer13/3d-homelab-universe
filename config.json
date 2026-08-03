@@ -1,32 +1,42 @@
 {
   "title": "3D Universe Demo",
   "galaxies": [
-    {"id":"alpha","name":"Alpha","x":-28,"y":0,"z":-10,"r":12,"color":34543},
-    {"id":"beta","name":"Beta","x":0,"y":0,"z":-16,"r":13,"color":34543},
-    {"id":"gamma","name":"Gamma","x":28,"y":0,"z":-10,"r":12,"color":34543}
+    {"id":"alpha","name":"Alpha","x":-40,"y":0,"z":-15,"r":11,"color":34543},
+    {"id":"beta","name":"Beta","x":-20,"y":0,"z":-10,"r":10,"color":34543},
+    {"id":"gamma","name":"Gamma","x":0,"y":0,"z":-16,"r":11,"color":43690},
+    {"id":"delta","name":"Delta","x":20,"y":0,"z":-10,"r":10,"color":34543},
+    {"id":"epsilon","name":"Epsilon","x":40,"y":0,"z":-15,"r":10,"color":34543}
   ],
   "systems": [
     {"id":"node-a1","name":"Node A1","g":"alpha","x":-8,"y":6,"z":-3,"r":5.5,"color":65535},
     {"id":"node-a2","name":"Node A2","g":"alpha","x":4,"y":-4,"z":-5,"r":5,"color":65535},
-    {"id":"node-a3","name":"Node A3","g":"alpha","x":-4,"y":-2,"z":5,"r":4.5,"color":65535},
-    {"id":"node-a4","name":"Node A4","g":"alpha","x":3,"y":3,"z":4,"r":4,"color":16755200},
-    {"id":"node-b1","name":"Node B1","g":"beta","x":-9,"y":-5,"z":-2,"r":5.5,"color":65535},
-    {"id":"node-b2","name":"Node B2","g":"beta","x":7,"y":-2,"z":-4,"r":5,"color":65535},
-    {"id":"node-b3","name":"Node B3","g":"beta","x":-6,"y":4,"z":-2,"r":4.5,"color":65535},
-    {"id":"node-b4","name":"Node B4","g":"beta","x":2,"y":-7,"z":-1,"r":4,"color":16755200},
-    {"id":"node-c1","name":"Node C1","g":"gamma","x":-7,"y":8,"z":-2,"r":5,"color":65535},
-    {"id":"node-c2","name":"Node C2","g":"gamma","x":8,"y":-5,"z":-3,"r":4.5,"color":65535},
-    {"id":"node-c3","name":"Node C3","g":"gamma","x":-3,"y":-6,"z":4,"r":4,"color":16755200}
+    {"id":"node-a3","name":"Node A3","g":"alpha","x":-5,"y":-8,"z":3,"r":3.5,"color":65535},
+    {"id":"node-a4","name":"Node A4","g":"alpha","x":8,"y":-8,"z":2,"r":4,"color":16755200},
+    {"id":"node-b1","name":"Node B1","g":"beta","x":-10,"y":6,"z":-2,"r":5.5,"color":65535},
+    {"id":"node-b2","name":"Node B2","g":"beta","x":4,"y":-2,"z":-5,"r":5.5,"color":65535},
+    {"id":"node-b3","name":"Node B3","g":"beta","x":10,"y":4,"z":-2,"r":3.5,"color":16755200},
+    {"id":"node-b4","name":"Node B4","g":"beta","x":-3,"y":-8,"z":3,"r":3.5,"color":16755200},
+    {"id":"node-c1","name":"Node C1","g":"gamma","x":-8,"y":6,"z":-2,"r":4.5,"color":65535},
+    {"id":"node-c2","name":"Node C2","g":"gamma","x":4,"y":-2,"z":-4,"r":4.5,"color":65535},
+    {"id":"node-c3","name":"Node C3","g":"gamma","x":8,"y":-6,"z":3,"r":4.5,"color":65535},
+    {"id":"node-d1","name":"Node D1","g":"delta","x":-8,"y":6,"z":-2,"r":5,"color":65535},
+    {"id":"node-d2","name":"Node D2","g":"delta","x":4,"y":-2,"z":-4,"r":4.5,"color":65535},
+    {"id":"node-d3","name":"Node D3","g":"delta","x":8,"y":-6,"z":3,"r":4,"color":16755200},
+    {"id":"node-d4","name":"Node D4","g":"delta","x":-3,"y":-8,"z":3,"r":3.5,"color":16755200},
+    {"id":"node-e1","name":"Node E1","g":"epsilon","x":-8,"y":6,"z":-2,"r":5,"color":65535},
+    {"id":"node-e2","name":"Node E2","g":"epsilon","x":4,"y":-2,"z":-4,"r":4.5,"color":65535},
+    {"id":"node-e3","name":"Node E3","g":"epsilon","x":8,"y":-6,"z":3,"r":4,"color":65535}
   ],
   "connections": [
     ["node-a1","node-a2","active"],["node-a1","node-c3","active"],
     ["node-b2","node-b1","active"],["node-c2","node-c1","active"],
+    ["node-d1","node-d2","active"],["node-e2","node-e1","active"],
     ["node-a1","node-b2","ping"],["node-b1","node-c1","ping"]
   ],
   "packets": [
-    {"type":"issue","title":"Demo: Deploy Pipeline","status":"Draft","from":"node-a1","to":"node-c3","speed":0.003},
-    {"type":"deploy","title":"Demo: CI Test Suite","status":"Testing","from":"node-b2","to":"node-b1","speed":0.002},
-    {"type":"data","title":"Sync Alpha→Gamma","status":"Active","from":"node-a1","to":"node-c3","speed":0.0025},
-    {"type":"ping","title":"Heartbeat B→C","status":"OK","from":"node-b1","to":"node-c1","speed":0.001}
+    {"type":"issue","title":"Demo: Plan","status":"Draft","from":"node-a1","to":"node-c2","speed":0.003},
+    {"type":"deploy","title":"Data Sync","status":"Active","from":"node-b2","to":"node-b1","speed":0.0025},
+    {"type":"issue","title":"Dashboard","status":"Building","from":"node-a1","to":"node-c3","speed":0.002},
+    {"type":"error","title":"API Timeout","status":"Alert","from":"node-b2","to":"node-a1","speed":0.004}
   ]
 }
