@@ -455,14 +455,25 @@ function mkPktOnPath(type,title,status,sid1,sid2,spd,style,parentId,payloadHisto
     return pk;
 }
 
-function seedPackets(packets){
+function seedPackets(packets, connections){
     if(!R)return;
-    packets.forEach(p=>{
+    const defs=window._universeCfg?.globalConfig?.defaults||{};
+    const defTrail=defs.defaultTrailLength||40;
+    const defSpeed=defs.defaultSpeed||0.003;
+    const defColor=defs.defaultColor||'#00ffcc';
+    // If no explicit packets, auto-generate from connections
+    const pktList=(packets&&packets.length)?packets:(connections||[]).map((c,i)=>({
+        type:'data',title:'Auto '+c.from+'→'+c.to,status:'OK',
+        from:c.from,to:c.to,speed:defSpeed,
+        style:{color:defColor,trailLength:defTrail}
+    }));
+    if(!connections&&!packets.length)return;
+    pktList.forEach(p=>{
         const type=p.type||'data';
         const title=p.title||'Packet';
         const status=p.status||'OK';
-        const style=p.style||{};
-        mkPktOnPath(type,title,status,p.from,p.to,p.speed||0.003,style,p.parentPacketId,p.payloadHistory);
+        const style=p.style||{color:defColor,trailLength:defTrail};
+        mkPktOnPath(type,title,status,p.from,p.to,p.speed||defSpeed,style,p.parentPacketId,p.payloadHistory);
     });
 }
 
@@ -572,7 +583,7 @@ async function switchDataset(datasetId){
         buildStages();
         initPhysics();
         buildLegend(cfg.galaxies,cfg.systems);
-        seedPackets(cfg.packets||[]);
+        seedPackets(cfg.packets,cfg.connections);
         populateSwitcher(ds.datasets,datasetId);
         document.getElementById('hud').querySelector('h1').textContent=cfg.title||'3D Universe';
         logMsg(datasetId+': '+cfg.galaxies.length+' galaxies, '+cfg.systems.length+' systems','success');
@@ -648,7 +659,7 @@ async function initUniverse(){
         buildStages();
         initPhysics();
         buildLegend(cfg.galaxies,cfg.systems);
-        seedPackets(cfg.packets||[]);
+        seedPackets(cfg.packets,cfg.connections);
         populateSwitcher(ds.datasets,activeId);
         document.getElementById('hud').querySelector('h1').textContent=cfg.title||'3D Universe';
 
@@ -959,12 +970,17 @@ function renderConfigEditor(){
     const nav=document.getElementById('config-nav'),ed=document.getElementById('config-editor');
     nav.innerHTML='';ed.innerHTML='';
     // Layout presets
+    const defs=activeConfigData.globalConfig?.defaults||{};
     ed.innerHTML='<div style="margin-bottom:20px;padding:15px;background:rgba(0,255,136,0.05);border:1px solid rgba(0,255,136,0.2);border-radius:6px;">'+
         '<h4 style="margin:0 0 10px;color:#00ff88;">📐 LAYOUT-VORLAGEN</h4>'+
         '<button onclick="applyPreset(\'compact\')" style="background:rgba(0,255,136,0.1);border:1px solid #00ff88;color:#0fc;padding:6px 12px;border-radius:4px;cursor:pointer;margin-right:6px;">🔘 Kompakter Cluster</button>'+
         '<button onclick="applyPreset(\'balanced\')" style="background:rgba(0,255,136,0.1);border:1px solid #00ff88;color:#0fc;padding:6px 12px;border-radius:4px;cursor:pointer;margin-right:6px;">⚖️ Ausgewogen</button>'+
         '<button onclick="applyPreset(\'spread\')" style="background:rgba(0,255,136,0.1);border:1px solid #00ff88;color:#0fc;padding:6px 12px;border-radius:4px;cursor:pointer;">🌌 Weit aufgespreizt</button>'+
-        '<div id="preset-msg" style="margin-top:8px;font-size:11px;color:#888;"></div></div><div id="section-editor"></div>';
+        '<div id="preset-msg" style="margin-top:8px;font-size:11px;color:#888;"></div>'+
+        '<div style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(0,255,136,0.15);display:grid;grid-template-columns:1fr 1fr;gap:8px;">'+
+        '<div><label style="font-size:10px;color:#aaa;">✨ Trail-Länge: <span style="color:#0fc;">'+(defs.defaultTrailLength||40)+'</span></label><input type="range" min="10" max="200" step="5" value="'+(defs.defaultTrailLength||40)+'" oninput="var v=parseInt(this.value);if(!activeConfigData.globalConfig)activeConfigData.globalConfig={};if(!activeConfigData.globalConfig.defaults)activeConfigData.globalConfig.defaults={};activeConfigData.globalConfig.defaults.defaultTrailLength=v;this.previousElementSibling.children[0].textContent=v;" style="width:100%;accent-color:#ffaa00;"></div>'+
+        '<div><label style="font-size:10px;color:#aaa;">⚡ Speed: <span style="color:#0fc;">'+(defs.defaultSpeed||0.003)+'</span></label><input type="range" min="0.001" max="0.01" step="0.0005" value="'+(defs.defaultSpeed||0.003)+'" oninput="var v=parseFloat(this.value);if(!activeConfigData.globalConfig)activeConfigData.globalConfig={};if(!activeConfigData.globalConfig.defaults)activeConfigData.globalConfig.defaults={};activeConfigData.globalConfig.defaults.defaultSpeed=v;this.previousElementSibling.children[0].textContent=v;" style="width:100%;accent-color:#00ff88;"></div>'+
+        '</div></div><div id="section-editor"></div>';
     // Build nav from sectionMeta
     const sections=Object.entries(sectionMeta).map(([k,v])=>({key:k,icon:v.icon,label:v.title}));
     sections.forEach((s,i)=>{
