@@ -96,20 +96,15 @@ h1{font-size:16px;margin:0 0 10px;color:#fff;letter-spacing:1px;text-transform:u
 </div>
 
 <script>
-// ═══ SIMULATION DATA (declared first — survives WebGL failures) ═══
+// ═══ SIMULATION DATA ═══
 let simCount=0;
-const NODES=['Alpha','Beta','Gamma','Delta','Epsilon'];
-const CT_PER_NODE=4;
 const SVCS=['API','DB','Cache','Queue','Worker'];
 const STAGES=['Init','Build','Test','Deploy','Done'];
 const MSG_TYPES=['deploy','data','ping','issue','error','sync','backup','health'];
 function rnd(arr){return arr[Math.floor(Math.random()*arr.length)];}
-function simNode(n){return NODES[n%NODES.length];}
-function simCT(){return String.fromCharCode(97+Math.floor(Math.random()*5))+Math.ceil(Math.random()*5);}
 
 // ═══ THREE.JS 3D SCENE ═══
 let R,scene,cam,controls,U,PkG;
-// Scene objects always created (independent of WebGL)
 const C=document.getElementById('canvas-container');
 scene=new THREE.Scene();
 cam=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,0.1,1200);cam.position.set(0,25,70);cam.lookAt(0,0,-12);
@@ -139,7 +134,6 @@ const labels=[];
 const PT={issue:{c:0xff00ff,e:0xff00ff,s:0.7,n:'Issue'},deploy:{c:0x00ffcc,e:0x00ffcc,s:0.6,n:'Deploy'},error:{c:0xff1111,e:0xff3333,s:0.9,n:'Error'},ping:{c:0x333355,e:0x111122,s:0.3,n:'Ping'},data:{c:0xffaa00,e:0xff8800,s:0.5,n:'Data'}};
 const TL=25;
 const pks=[];
-
 const pkLabels=[];
 
 function mkPkt(type,title,status,sx,sy,sz,ex,ey,ez,spd){
@@ -156,126 +150,106 @@ function mkPkt(type,title,status,sx,sy,sz,ex,ey,ez,spd){
     const lbl=document.createElement('div');lbl.className='packet-label';lbl.textContent=title;lbl.style.borderColor='#'+cfg.c.toString(16).padStart(6,'0');document.body.appendChild(lbl);pkLabels.push({e:lbl,p:pk});
 }
 
-// ═══ GALAXIES ═══
-const G={alpha:{x:-40,y:0,z:-15,color:0x0088ff,name:'🪐 Alpha',r:11},beta:{x:-20,y:0,z:-10,color:0x3388ff,name:'🪐 Beta',r:10},gamma:{x:0,y:0,z:-16,color:0x00aaff,name:'🪐 Gamma',r:11},delta:{x:20,y:0,z:-10,color:0x3388ff,name:'🪐 Delta',r:10},epsilon:{x:40,y:0,z:-15,color:0x0088ff,name:'🪐 Epsilon',r:10}};
-const Gg={};
-Object.entries(G).forEach(([id,g])=>{
-    const gr=new THREE.Group();gr.position.set(g.x,g.y,g.z);U.add(gr);Gg[id]=gr;
-    // Compact core (small, bright)
-    gr.add(new THREE.Mesh(new THREE.SphereGeometry(0.9,16,16),new THREE.MeshStandardMaterial({color:g.color,emissive:g.color,emissiveIntensity:1.0,roughness:0.05})));
-    // 3D Multi-Axis Halo: 3 orthogonal rings (XY, XZ, YZ)
-    const rR=g.r,wR=g.r*0.15,rM=new THREE.MeshBasicMaterial({color:g.color,transparent:true,opacity:0.8,side:2});
-    [0,Math.PI/2,Math.PI/2].forEach((rot,idx)=>{
-        const ring=new THREE.Mesh(new THREE.RingGeometry(rR-wR,rR,48),rM);
-        if(idx===0)ring.rotation.x=Math.PI/2;
-        else if(idx===2)ring.rotation.y=Math.PI/2;
-        gr.add(ring);
-    });
-    // Load ring for pulsing
-    const ring=new THREE.Mesh(new THREE.RingGeometry(g.r-0.5,g.r+0.2,64),new THREE.MeshBasicMaterial({color:0x00ff88,side:2,transparent:true,opacity:0.3}));ring.rotateX(Math.PI/2);gr.add(ring);g._ring=ring;
-    const lb=document.createElement('div');lb.className='node-label';lb.textContent=g.name;lb.title=g.name;document.body.appendChild(lb);labels.push({e:lb,m:gr.children[0]});
-});
+// ═══ DYNAMIC UNIVERSE BUILDER ═══
+let G={},Gg={},S=[],Sg={},loopTubes=[];
+let galaxyNames=[],systemIds=[];
 
-// Helper: clamp child position within parent halo (max 85% of radius)
 function clampToParent(pos,parentR){const max=parentR*0.85;if(pos.length()>max)pos.setLength(max);return pos;}
 
-// ═══ SOLAR SYSTEMS (inside galaxies) ═══
-const S=[
-    {id:'node-a1',g:'alpha',x:-8,y:6,z:-3,r:5.5,name:'🌐 Node A1',c:0x00ffcc},
-    {id:'node-a2',g:'alpha',x:4,y:-4,z:-5,r:5,name:'🌐 Node A2',c:0x00ffcc},
-    {id:'node-a3',g:'alpha',x:-5,y:-8,z:3,r:3.5,name:'🔒 Node A3',c:0x00ffcc},
-    {id:'node-a4',g:'alpha',x:8,y:-8,z:2,r:4,name:'🖥️ Node A4',c:0xffaa00},
-    {id:'node-a5',g:'alpha',x:0,y:5,z:-6,r:3.5,name:'📡 Node A5',c:0x00ffcc},
-    {id:'node-b1',g:'beta',x:-10,y:6,z:-2,r:5.5,name:'📁 Node B1',c:0x00ffcc},
-    {id:'node-b2',g:'beta',x:4,y:-2,z:-5,r:5.5,name:'📄 Node B2',c:0x00ffcc},
-    {id:'node-b3',g:'beta',x:10,y:4,z:-2,r:3.5,name:'🧪 Node B3',c:0xffaa00},
-    {id:'node-b4',g:'beta',x:-3,y:-8,z:3,r:3.5,name:'🏠 Node B4',c:0xffaa00},
-    {id:'node-b5',g:'beta',x:6,y:-5,z:5,r:3.5,name:'📡 Node B5',c:0x00ffcc},
-    {id:'node-c1',g:'gamma',x:-8,y:6,z:-2,r:4.5,name:'🔍 Node C1',c:0x00ffcc},
-    {id:'node-c2',g:'gamma',x:4,y:-2,z:-4,r:4.5,name:'🐙 Node C2',c:0x00ffcc},
-    {id:'node-c3',g:'gamma',x:8,y:-6,z:3,r:4.5,name:'📊 Node C3',c:0x00ffcc},
-    {id:'node-c4',g:'gamma',x:-4,y:-2,z:6,r:3.5,name:'⚙ Node C4',c:0xffaa00},
-    {id:'node-c5',g:'gamma',x:3,y:8,z:-1,r:3.5,name:'🔒 Node C5',c:0x00ffcc},
-    {id:'node-d1',g:'delta',x:-8,y:6,z:-2,r:5,name:'🌐 Node D1',c:0x00ffcc},
-    {id:'node-d2',g:'delta',x:4,y:-2,z:-4,r:4.5,name:'📄 Node D2',c:0x00ffcc},
-    {id:'node-d3',g:'delta',x:8,y:-6,z:3,r:4,name:'🧪 Node D3',c:0xffaa00},
-    {id:'node-d4',g:'delta',x:-3,y:-8,z:3,r:3.5,name:'🏠 Node D4',c:0xffaa00},
-    {id:'node-d5',g:'delta',x:-5,y:3,z:-5,r:3.5,name:'📊 Node D5',c:0x00ffcc},
-    {id:'node-e1',g:'epsilon',x:-8,y:6,z:-2,r:5,name:'🔍 Node E1',c:0x00ffcc},
-    {id:'node-e2',g:'epsilon',x:4,y:-2,z:-4,r:4.5,name:'🐙 Node E2',c:0x00ffcc},
-    {id:'node-e3',g:'epsilon',x:8,y:-6,z:3,r:4,name:'📊 Node E3',c:0x00ffcc},
-    {id:'node-e4',g:'epsilon',x:-3,y:-2,z:5,r:3.5,name:'🧪 Node E4',c:0xffaa00},
-    {id:'node-e5',g:'epsilon',x:5,y:3,z:-5,r:3.5,name:'🔒 Node E5',c:0x00ffcc},
-];
-const Sg={};
-S.forEach(s=>{
-    const p=Gg[s.g];const sg=new THREE.Group();
-    // Clamp position within galaxy halo
-    const pos=new THREE.Vector3(s.x,s.y,s.z);
-    clampToParent(pos,G[s.g].r);sg.position.copy(pos);p.add(sg);Sg[s.id]=sg;
-    // 3D Multi-Axis Ring-Bubble (XY/XZ/YZ)
-    const rR=s.r,wR=s.r*0.15,rM=new THREE.MeshBasicMaterial({color:s.c,transparent:true,opacity:0.6,side:2});
-    [0,Math.PI/2,Math.PI/2].forEach((rot,idx)=>{
-        const ring=new THREE.Mesh(new THREE.RingGeometry(rR-wR,rR,32),rM);
-        if(idx===0)ring.rotation.x=Math.PI/2;
-        else if(idx===2)ring.rotation.y=Math.PI/2;
-        sg.add(ring);
+function buildGalaxies(galaxies){
+    galaxies.forEach(g=>{
+        G[g.id]=g; const gr=new THREE.Group();gr.position.set(g.x,g.y,g.z);U.add(gr);Gg[g.id]=gr;
+        galaxyNames.push(g.id);
+        // Core
+        gr.add(new THREE.Mesh(new THREE.SphereGeometry(0.9,16,16),new THREE.MeshStandardMaterial({color:g.color,emissive:g.color,emissiveIntensity:1.0,roughness:0.05})));
+        // 3D Multi-Axis Halo
+        const rR=g.r,wR=g.r*0.15,rM=new THREE.MeshBasicMaterial({color:g.color,transparent:true,opacity:0.8,side:2});
+        [0,Math.PI/2,Math.PI/2].forEach((rot,idx)=>{
+            const ring=new THREE.Mesh(new THREE.RingGeometry(rR-wR,rR,48),rM);
+            if(idx===0)ring.rotation.x=Math.PI/2; else if(idx===2)ring.rotation.y=Math.PI/2;
+            gr.add(ring);
+        });
+        // Load ring for pulsing
+        const ring=new THREE.Mesh(new THREE.RingGeometry(g.r-0.5,g.r+0.2,64),new THREE.MeshBasicMaterial({color:0x00ff88,side:2,transparent:true,opacity:0.3}));ring.rotateX(Math.PI/2);gr.add(ring);g._ring=ring;
+        const lb=document.createElement('div');lb.className='node-label';lb.textContent='🪐 '+g.name;lb.title=g.name;document.body.appendChild(lb);labels.push({e:lb,m:gr.children[0]});
     });
-    // Core
-    const co=new THREE.Mesh(new THREE.SphereGeometry(1,24,24),new THREE.MeshStandardMaterial({color:s.c,emissive:s.c,emissiveIntensity:0.6,roughness:0.1}));sg.add(co);
-    const lb=document.createElement('div');lb.className='node-label';lb.textContent=s.name;lb.title=s.name+' · '+s.g;document.body.appendChild(lb);labels.push({e:lb,m:co});
-    // Local orbit line from galaxy center
-    p.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0),new THREE.Vector3(s.x,s.y,s.z)]),new THREE.LineBasicMaterial({color:s.c,transparent:true,opacity:0.1})));
-});
+}
 
-// ═══ PLANETS (services inside nodes) ═══
-const P=[
-    {s:'node-b2',x:-2,y:0,z:0,c:0xff6600},{s:'node-b2',x:2,y:0,z:0,c:0xff0000},
-    {s:'node-b1',x:-1.8,y:0,z:0,c:0x3366ff},{s:'node-b1',x:1.8,y:0,z:0,c:0x33ccff},
-    {s:'node-c2',x:-1.5,y:0,z:0,c:0xff8800},{s:'node-c2',x:1.5,y:0,z:0,c:0x88ff00},
-    {s:'node-c3',x:-1.6,y:0,z:0,c:0x6600ff},{s:'node-c3',x:1.6,y:0,z:0,c:0xff6600},
-    {s:'node-a1',x:-1.4,y:0,z:0,c:0x00ff88},{s:'node-a2',x:0,y:0,z:0,c:0xffaa00},
-    {s:'node-d1',x:-1.4,y:0,z:0,c:0x00ff88},{s:'node-d2',x:0,y:0,z:0,c:0xffaa00},
-    {s:'node-e2',x:-1.5,y:0,z:0,c:0xff8800},{s:'node-e2',x:1.5,y:0,z:0,c:0x88ff00},
-    {s:'node-e3',x:-1.6,y:0,z:0,c:0xff6600},{s:'node-e3',x:1.6,y:0,z:0,c:0x6600ff},
-];
-P.forEach(p=>{const m=new THREE.Mesh(new THREE.SphereGeometry(0.5,16,16),new THREE.MeshStandardMaterial({color:p.c,emissive:p.c,emissiveIntensity:0.7,roughness:0.05}));
-    const sys=S.find(s=>s.id===p.s);const pos=new THREE.Vector3(p.x,p.y,p.z);
-    if(sys)clampToParent(pos,sys.r);m.position.copy(pos);Sg[p.s].add(m)});
+function buildSystems(systems,thresholds){
+    S=systems;
+    const maxCap=Math.max(...systems.map(s=>s.capacityScore||100),100);
+    systems.forEach(s=>{
+        systemIds.push(s.id);
+        const baseR=s.halos&&s.halos[0]?s.halos[0].baseRadius:4;
+        const cap=s.capacityScore||100;
+        const c=s.color||65535;
+        const p=Gg[s.g];const sg=new THREE.Group();
+        const pos=new THREE.Vector3(s.x,s.y,s.z);
+        clampToParent(pos,G[s.g].r);sg.position.copy(pos);p.add(sg);Sg[s.id]=sg;
 
-// ═══ PIPELINE STAGES (inside node-a2 bubble) ═══
-const stages=[{a:0,n:'⚙️ Build'},{a:2.1,n:'🧪 Test'},{a:4.2,n:'🚀 Deploy'}];
-const stageList=[];
-stages.forEach(s=>{
-    const m=new THREE.Mesh(new THREE.SphereGeometry(0.7,20,20),new THREE.MeshStandardMaterial({color:0xff00ff,emissive:0xff00ff,emissiveIntensity:0.8,roughness:0.05}));
-    m.position.set(Math.cos(s.a)*4.5,Math.sin(s.a)*3-1,1);Sg['node-a2'].add(m);stageList.push({m,angle:s.a});
-    const lb=document.createElement('div');lb.className='node-label';lb.textContent=s.n;document.body.appendChild(lb);labels.push({e:lb,m});
-});
+        // ═══ OUTER RING: Capacity / Headroom (static, proportional to capacityScore) ═══
+        const outerR=baseR*(cap/maxCap)*1.3;
+        const outerMats=[],outerRings=[];
+        [0,Math.PI/2,Math.PI/2].forEach((rot,idx)=>{
+            const mat=new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:0.35,side:2});
+            const ring=new THREE.Mesh(new THREE.RingGeometry(outerR*0.85,outerR,48),mat);
+            if(idx===0)ring.rotation.x=Math.PI/2;else if(idx===2)ring.rotation.y=Math.PI/2;
+            sg.add(ring);outerRings.push(ring);outerMats.push(mat);
+        });
 
-// ═══ INTERSTELLAR ROUTES (galaxy-to-galaxy) ═══
-const irMat=new THREE.LineBasicMaterial({color:0x0088ff,transparent:true,opacity:0.12});
-[['alpha','beta'],['beta','gamma'],['gamma','delta'],['delta','epsilon']].forEach(([a,b])=>{
-    const ga=G[a],gb=G[b];
-    U.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(ga.x,ga.y,ga.z),new THREE.Vector3(gb.x,gb.y,gb.z)]),irMat));
-});
+        // ═══ INNER RING: Load / Usage (dynamic, 0..baseR, threshold-colored) ═══
+        const innerRings=[],innerMats=[];
+        [0,Math.PI/2,Math.PI/2].forEach((rot,idx)=>{
+            const mat=new THREE.MeshBasicMaterial({color:0x00ffcc,transparent:true,opacity:0.7,side:2});
+            const ring=new THREE.Mesh(new THREE.RingGeometry(0.01,baseR*0.1,48),mat);
+            if(idx===0)ring.rotation.x=Math.PI/2;else if(idx===2)ring.rotation.y=Math.PI/2;
+            sg.add(ring);innerRings.push(ring);innerMats.push(mat);
+        });
 
-// ═══ NOISE FILTER: Ping lines (dim dashed) vs Active (bright solid) ═══
-// Ping connections: very dim, dashed
-const pingMat=new THREE.LineDashedMaterial({color:0x334455,transparent:true,opacity:0.08,dashSize:1,gapSize:1});
-const activeMat=new THREE.LineBasicMaterial({color:0x00ffcc,transparent:true,opacity:0.2});
-// Active inter-CT connections (bright solid)
-[['node-a1','node-a2'],['node-a1','node-c3'],['node-b2','node-b1'],['node-c2','node-c1'],['node-d1','node-d2'],['node-e2','node-e1']].forEach(([a,b])=>{
-    const sa=S.find(s=>s.id===a),sb=S.find(s=>s.id===b);
-    if(sa&&sb){
+        // Store on system object for animation
+        s._outerRings=outerRings;s._outerMats=outerMats;
+        s._innerRings=innerRings;s._innerMats=innerMats;
+        s._baseR=baseR;s._load=0.15+Math.random()*0.25;s._loadDir=1;
+
+        // Core
+        const co=new THREE.Mesh(new THREE.SphereGeometry(1,24,24),new THREE.MeshStandardMaterial({color:c,emissive:c,emissiveIntensity:0.6,roughness:0.1}));sg.add(co);
+        const lb=document.createElement('div');lb.className='node-label';lb.textContent=s.name;lb.title=s.name+' · '+s.g;document.body.appendChild(lb);labels.push({e:lb,m:co});
+        // Local orbit line from galaxy center
+        p.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0),new THREE.Vector3(s.x,s.y,s.z)]),new THREE.LineBasicMaterial({color:c,transparent:true,opacity:0.1})));
+        // Planets (2 per system)
+        if(R){
+            const cols=[0xff6600,0xff0000,0x3366ff,0x33ccff,0xff8800,0x88ff00,0x00ff88,0xffaa00];
+            for(let pi=0;pi<2;pi++){
+                const pc=cols[(systemIds.length*2+pi)%cols.length];
+                const m=new THREE.Mesh(new THREE.SphereGeometry(0.5,16,16),new THREE.MeshStandardMaterial({color:pc,emissive:pc,emissiveIntensity:0.7,roughness:0.05}));
+                const pp=new THREE.Vector3((pi===0?-1:1)*1.5,0,0);clampToParent(pp,baseR);m.position.copy(pp);sg.add(m);
+            }
+        }
+    });
+}
+
+function buildRoutes(galaxies){
+    const irMat=new THREE.LineBasicMaterial({color:0x0088ff,transparent:true,opacity:0.12});
+    for(let i=0;i<galaxies.length-1;i++){
+        const ga=galaxies[i],gb=galaxies[i+1];
+        U.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(ga.x,ga.y,ga.z),new THREE.Vector3(gb.x,gb.y,gb.z)]),irMat));
+    }
+}
+
+function buildConnections(connections){
+    const pingMat=new THREE.LineDashedMaterial({color:0x334455,transparent:true,opacity:0.08,dashSize:1,gapSize:1});
+    const activeMat=new THREE.LineBasicMaterial({color:0x00ffcc,transparent:true,opacity:0.2});
+    connections.forEach(([a,b,type])=>{
+        const sa=S.find(s=>s.id===a),sb=S.find(s=>s.id===b);
+        if(!sa||!sb)return;
         const ga=G[sa.g],gb=G[sb.g];
         const p1=new THREE.Vector3(ga.x+sa.x,ga.y+sa.y,ga.z+sa.z);
         const p2=new THREE.Vector3(gb.x+sb.x,gb.y+sb.y,gb.z+sb.z);
-        U.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([p1,p2]),activeMat));
-    }
-});
+        const mat=type==='ping'?pingMat:activeMat;
+        U.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([p1,p2]),mat));
+    });
+}
 
-// ═══ TUBE: Error/loop connection (red thick tube) ═══
-// ═══ TUBE: Error/loop connections (thick, pulsing red arc) ═══
 function makeTube(sid1,sid2,color,thickness){
     color=color||0xff1111; thickness=thickness||0.6;
     const s1=S.find(s=>s.id===sid1),s2=S.find(s=>s.id===sid2);
@@ -291,19 +265,21 @@ function makeTube(sid1,sid2,color,thickness){
     const src=Sg[sid1]?.children[1],dst=Sg[sid2]?.children[1];
     return {mesh,src,dst};
 }
-const loopTubes=[
-    makeTube('node-b2','node-b1',0xff1111,0.8),   // Node B2↔B1 (thick red)
-    makeTube('node-a1','node-c2',0xff4400,0.5),   // Node A1↔C2 (orange)
-    makeTube('node-d2','node-d1',0xff6600,0.6),   // Node D2↔D1 (orange)
-    makeTube('node-e2','node-e1',0xff4444,0.6),   // Node E2↔E1 (red)
-];
 
-// ═══ STARFIELD ═══
-const sg=new THREE.BufferGeometry();const sp=new Float32Array(800*3);
-for(let i=0;i<800*3;i++)sp[i]=(Math.random()-0.5)*220;
-sg.setAttribute('position',new THREE.BufferAttribute(sp,3));scene.add(new THREE.Points(sg,new THREE.PointsMaterial({color:0x334466,size:0.5})));
+function buildTubes(connections){
+    const tubeColors={active:0xff4400,'default':0xff1111};
+    connections.filter(c=>!c[2]||c[2]==='active').forEach(([a,b],i)=>{
+        const tc=tubeColors.active||0xff1111;
+        const tb=makeTube(a,b,tc,0.6+(i*0.1));
+        if(tb)loopTubes.push(tb);
+    });
+    if(loopTubes.length===0&&connections.length>=2){
+        // Fallback: first connection as tube
+        const c=connections[0];
+        const tb=makeTube(c[0],c[1],0xff1111,0.8); if(tb)loopTubes.push(tb);
+    }
+}
 
-// ═══ TRAIL PACKETS — bound to real CT connections ═══
 function mkPktOnPath(type,title,status,sid1,sid2,spd){
     const ct1=S.find(s=>s.id===sid1), ct2=S.find(s=>s.id===sid2);
     if(!ct1||!ct2)return;
@@ -311,27 +287,94 @@ function mkPktOnPath(type,title,status,sid1,sid2,spd){
     const sx=g1.x+ct1.x, sy=g1.y+ct1.y, sz=g1.z+ct1.z;
     const ex=g2.x+ct2.x, ey=g2.y+ct2.y, ez=g2.z+ct2.z;
     mkPkt(type,title,status,sx,sy,sz,ex,ey,ez,spd);
-    // Store CT mesh references for live world-position lookup
     const pk=pks[pks.length-1];
-    pk.startCT=Sg[sid1].children[1]; // core mesh
-    pk.endCT=Sg[sid2].children[1];
+    pk.startCT=Sg[sid1]?.children[1]; pk.endCT=Sg[sid2]?.children[1];
 }
 
-// ═══ SEED PACKETS (demo data) ═══
-if(R){
-mkPktOnPath('issue','Demo: Plan','Draft','node-a1','node-c2',0.003);
-mkPktOnPath('issue','Demo: Review','Open','node-c2','node-a2',0.003);
-mkPktOnPath('deploy','Demo: Test','Testing','node-a2','node-c2',0.002);
-mkPktOnPath('deploy','Demo: Build','Building','node-c2','node-c3',0.0025);
-mkPktOnPath('data','Demo: Deploy','Done','node-c3','node-b2',0.003);
-mkPktOnPath('deploy','Data Sync','Active','node-b2','node-b1',0.0025);
-mkPktOnPath('issue','Dashboard','Building','node-a1','node-c3',0.002);
-mkPktOnPath('error','API Timeout','Alert','node-b2','node-a1',0.004);
-mkPktOnPath('ping','Heartbeat Alpha','OK','node-a1','node-a2',0.001);
-mkPktOnPath('ping','Heartbeat Beta','OK','node-b2','node-b1',0.0012);
-mkPktOnPath('ping','Heartbeat Gamma','OK','node-c2','node-c3',0.001);
-mkPktOnPath('data','Data Fetch','Syncing','node-b2','node-c3',0.0015);
+function seedPackets(packets){
+    if(!R)return;
+    packets.forEach(p=>{mkPktOnPath(p.type,p.title||'Packet',p.status||'OK',p.from,p.to,p.speed||0.003);});
 }
+
+// ═══ PIPELINE STAGES (inside first system with r>=4) ═══
+const stageList=[];
+function buildStages(){
+    const host=S.find(s=>{const r=s.halos&&s.halos[0]?s.halos[0].baseRadius:4;return r>=4;});
+    if(!host||!Sg[host.id])return;
+    const stages=[{a:0,n:'⚙️ Build'},{a:2.1,n:'🧪 Test'},{a:4.2,n:'🚀 Deploy'}];
+    stages.forEach(s=>{
+        const m=new THREE.Mesh(new THREE.SphereGeometry(0.7,20,20),new THREE.MeshStandardMaterial({color:0xff00ff,emissive:0xff00ff,emissiveIntensity:0.8,roughness:0.05}));
+        m.position.set(Math.cos(s.a)*4.5,Math.sin(s.a)*3-1,1);Sg[host.id].add(m);stageList.push({m,angle:s.a});
+        const lb=document.createElement('div');lb.className='node-label';lb.textContent=s.n;document.body.appendChild(lb);labels.push({e:lb,m});
+    });
+}
+
+// ═══ LEGEND BUILDER ═══
+function buildLegend(galaxies,systems){
+    const galDiv=document.getElementById('sub-gal'); galDiv.innerHTML='';
+    galaxies.forEach(g=>{
+        const el=document.createElement('div');el.className='legend-subitem';el.style.cssText='cursor:pointer;color:#fff;padding:2px 0;';
+        el.textContent='• '+g.name;el.onclick=()=>focusNode('galaxy-'+g.id);galDiv.appendChild(el);
+    });
+    const galToggle=document.querySelector('.legend-toggle');
+    if(galToggle)galToggle.textContent='▶ Galaxien ('+galaxies.length+')';
+
+    const ctDiv=document.getElementById('sub-ct'); ctDiv.innerHTML='';
+    systems.forEach(s=>{
+        const el=document.createElement('div');el.className='legend-subitem';el.style.cssText='cursor:pointer;color:#fff;padding:2px 0;';
+        el.textContent='• '+s.name;el.onclick=()=>focusNode(s.id);ctDiv.appendChild(el);
+    });
+    const ctToggle=document.querySelectorAll('.legend-toggle')[1];
+    if(ctToggle)ctToggle.textContent='▶ Container ('+systems.length+')';
+
+    document.getElementById('node-count').textContent=galaxies.length+' Galaxies';
+    document.getElementById('ct-count').textContent=systems.length+' CTs';
+}
+
+// ═══ STARFIELD ═══
+const sg=new THREE.BufferGeometry();const sp=new Float32Array(800*3);
+for(let i=0;i<800*3;i++)sp[i]=(Math.random()-0.5)*220;
+sg.setAttribute('position',new THREE.BufferAttribute(sp,3));scene.add(new THREE.Points(sg,new THREE.PointsMaterial({color:0x334466,size:0.5})));
+
+// ═══ ASYNC INIT ═══
+async function initUniverse(){
+    try{
+        // 1. Load dataset index
+        const dsRes=await fetch('configs/datasets.json');
+        const ds=await dsRes.json();
+        const activeId=ds.activeDefault||'homelab';
+        const activeDs=ds.datasets.find(d=>d.id===activeId);
+        if(!activeDs)throw new Error('Dataset '+activeId+' not found');
+
+        // 2. Load active config
+        const cfgRes=await fetch(activeDs.file);
+        const cfg=await cfgRes.json();
+        window._universeCfg=cfg; // store for sim/fl()
+        window._thresholds=cfg.globalConfig?.thresholds||[
+            {maxLoad:0.50,color:'#00ffcc',speedMultiplier:1.0,label:'NORMAL'},
+            {maxLoad:0.85,color:'#ffaa00',speedMultiplier:2.2,label:'WARNING'},
+            {maxLoad:1.00,color:'#ff3333',speedMultiplier:4.5,label:'CRITICAL'}
+        ];
+
+        // 3. Build universe
+        buildGalaxies(cfg.galaxies);
+        buildSystems(cfg.systems,window._thresholds);
+        buildRoutes(cfg.galaxies);
+        buildConnections(cfg.connections||[]);
+        buildTubes(cfg.connections||[]);
+        buildStages();
+        buildLegend(cfg.galaxies,cfg.systems);
+        seedPackets(cfg.packets||[]);
+
+        // 4. Start animation
+        if(R)animate();
+        logMsg('Universe: '+cfg.galaxies.length+' galaxies, '+cfg.systems.length+' systems','success');
+    }catch(e){
+        console.error('initUniverse failed:',e);
+        logMsg('Config load error: '+e.message,'error');
+    }
+}
+
 
 // ═══ ANIMATION ═══
 let cl=null;const tv=new THREE.Vector3();
@@ -349,6 +392,29 @@ function animate(){
     Object.entries(G).forEach(([id,g])=>{if(g._ring){g._ring.scale.setScalar(0.9+Math.sin(t*3)*0.15);g._ring.material.opacity=0.2+Math.sin(t*3)*0.1;}});
     Object.values(Gg).forEach(g=>g.rotation.y=Math.sin(t*0.12)*0.3);
     Object.values(Sg).forEach(s=>s.rotation.y=Math.sin(t*0.18)*0.4);
+
+    // ═══ THRESHOLD-DRIVEN DUAL HALOS ═══
+    const thresholds=window._thresholds||[{maxLoad:0.50,color:'#00ffcc',speedMultiplier:1.0},{maxLoad:0.85,color:'#ffaa00',speedMultiplier:2.2},{maxLoad:1.00,color:'#ff3333',speedMultiplier:4.5}];
+    S.forEach(s=>{
+        if(!s._innerRings)return;
+        // Simulate drifting load
+        s._load+=s._loadDir*0.002*(0.5+Math.random());
+        if(s._load>=0.95){s._load=0.95;s._loadDir=-1;}
+        if(s._load<=0.05){s._load=0.05;s._loadDir=1;}
+        // Find active threshold
+        let activeTh=thresholds[0];
+        for(let i=0;i<thresholds.length;i++){if(s._load<=thresholds[i].maxLoad){activeTh=thresholds[i];break;}}
+        // Parse hex color
+        const hex=parseInt(activeTh.color.replace('#',''),16);
+        const spd=activeTh.speedMultiplier||1.0;
+        // Update inner rings: scale = load × baseR, color = threshold, pulse = speedMultiplier
+        const scale=s._load*s._baseR;
+        s._innerRings.forEach((ring,i)=>{
+            ring.scale.setScalar(Math.max(0.05,scale/ring.geometry.parameters.outerRadius)*0.8+Math.sin(t*spd*4)*0.1);
+            s._innerMats[i].color.setHex(hex);
+            s._innerMats[i].opacity=0.4+s._load*0.4;
+        });
+    });
 
     // Orbit stages
     stageList.forEach(s=>{s.m.position.x=Math.cos(t*0.6+s.angle)*4.5;s.m.position.y=Math.sin(t*0.6+s.angle)*3-1;});
@@ -408,9 +474,10 @@ function animate(){
     R.render(scene,cam);
     }catch(e){console.error(e);}
 }
-if(R)animate();
+// Animation started by initUniverse() after config loads
 
 // ═══ LIVE API / SIMULATION ═══
+function simCT(){const ids=systemIds;return ids.length?ids[Math.floor(Math.random()*ids.length)]:'node-a1';}
 function simMsg(){
     const from=simCT(),to=simCT();if(from===to)return simMsg();
     const type=rnd(MSG_TYPES);
@@ -421,9 +488,12 @@ function simMsg(){
 // Start 1s message sim
 setInterval(simMsg,1000);
 async function fl(){
-    // Simulation first — always update immediately (API may take seconds)
     simCount++;
-    document.getElementById('node-count').textContent='5 Nodes';
+    const cfg=window._universeCfg;
+    const gc=cfg?cfg.galaxies.length:5;
+    const sc=cfg?cfg.systems.length:25;
+    document.getElementById('node-count').textContent=gc+' Galaxies';
+    document.getElementById('ct-count').textContent=sc+' CTs';
     document.getElementById('paperless-count').textContent='Demo Mode';
     document.getElementById('issue-count').textContent=(5+simCount%3)+' Open';
     const st=simCount%10===0?'warning':simCount%7===0?'error':'success';
@@ -487,7 +557,7 @@ function beep(freq,dur,vol,type){const o=AC.createOscillator(),g=AC.createGain()
 function sfx(status){if(status==='error')beep(200,0.3,0.06,'square');else if(status==='success')beep(800,0.1,0.03,'sine');else if(status==='warning')beep(400,0.15,0.04,'triangle');}
 // Config modal (DE/EN help)
 let currentConfig={};
-async function loadCfg(){try{const r=await fetch('config.json');currentConfig=await r.json();}catch(e){console.error('Config load error:',e);}}
+async function loadCfg(){try{const r=await fetch('configs/datasets.json');const ds=await r.json();const active=ds.datasets.find(d=>d.id===ds.activeDefault);if(active){const cr=await fetch(active.file);currentConfig=await cr.json();}}catch(e){console.error('Config load error:',e);}}
 function renderCfg(){try{const c=document.getElementById('cfg-content');if(!c)return;c.innerHTML='';
     for(const[sk,so]of Object.entries(currentConfig||{})){
         const h=document.createElement('div');h.style.cssText='color:#38f;font-weight:bold;font-size:12px;margin-top:10px;border-bottom:1px dashed rgba(51,136,255,.3);padding-bottom:3px;';h.textContent='[ '+sk.toUpperCase()+' ]';c.appendChild(h);
@@ -497,7 +567,7 @@ function renderCfg(){try{const c=document.getElementById('cfg-content');if(!c)re
             c.appendChild(b);}}}catch(e){console.error('Config render error:',e);}}
 document.getElementById('cfg-btn').addEventListener('click',async()=>{await loadCfg();renderCfg();document.getElementById('cfg-modal').style.display='flex';});
 document.getElementById('cfg-close').addEventListener('click',()=>{document.getElementById('cfg-modal').style.display='none';});
-loadCfg();
+initUniverse();
 // Periodic log cleanup every 60s
 setInterval(cleanupLog,60000);
 // Center universe button
