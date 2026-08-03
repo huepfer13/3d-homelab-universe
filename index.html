@@ -85,12 +85,21 @@ h1{font-size:16px;margin:0 0 10px;color:#fff;letter-spacing:1px;text-transform:u
 <div id="canvas-container"></div>
 <div id="crosshair"></div>
 
-<div id="cfg-modal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:600px;max-height:80vh;background:rgba(8,8,20,.95);border:1px solid #0fc;box-shadow:0 0 25px rgba(0,255,204,.4);border-radius:8px;z-index:1000;padding:20px;font-family:monospace;color:#fff;flex-direction:column;">
-<div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(0,255,204,.3);padding-bottom:10px;margin-bottom:15px;">
-<span style="color:#0fc;font-weight:bold;font-size:14px;">LIVE CONFIGURATION & HELP</span>
-<button id="cfg-close" style="background:transparent;border:1px solid #f33;color:#f33;padding:2px 8px;cursor:pointer;border-radius:3px;font-weight:bold;">✕</button></div>
-<div id="cfg-content" style="overflow-y:auto;flex-grow:1;padding-right:5px;display:flex;flex-direction:column;gap:12px;"></div>
-</div>
+<div id="cfg-modal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:80vw;max-width:900px;height:80vh;background:rgba(10,10,35,0.95);border:1px solid #00ff88;border-radius:12px;z-index:10000;box-shadow:0 0 30px rgba(0,255,136,0.3);flex-direction:column;font-family:monospace;color:#fff;">
+<div style="padding:15px 20px;border-bottom:1px solid rgba(0,255,136,0.3);display:flex;justify-content:space-between;align-items:center;background:rgba(0,255,136,0.05);">
+<h3 style="margin:0;color:#00ff88;font-size:16px;">⚙️ HOMELAB CONFIGURATION ASSISTANT</h3>
+<button id="cfg-close" style="background:none;border:none;color:#00ff88;font-size:18px;cursor:pointer;">✖</button></div>
+<div style="display:flex;flex:1;overflow:hidden;">
+<div id="config-nav" style="width:220px;border-right:1px solid rgba(0,255,136,0.2);padding:15px;overflow-y:auto;background:rgba(0,0,0,0.2);"></div>
+<div id="config-editor" style="flex:1;padding:20px;overflow-y:auto;"></div></div>
+<div style="padding:12px 20px;border-top:1px solid rgba(0,255,136,0.3);display:flex;justify-content:space-between;align-items:center;background:rgba(0,0,0,0.4);">
+<div>
+<input type="file" id="config-import-input" accept=".json" style="display:none" onchange="importConfig(event)">
+<button onclick="document.getElementById('config-import-input').click()" style="background:rgba(0,255,136,0.1);border:1px solid #00ff88;color:#00ff88;padding:6px 12px;border-radius:4px;cursor:pointer;margin-right:8px;">📥 Import</button>
+<button onclick="downloadConfig()" style="background:rgba(0,255,136,0.1);border:1px solid #00ff88;color:#00ff88;padding:6px 12px;border-radius:4px;cursor:pointer;">💾 Download</button></div>
+<div>
+<button onclick="closeConfigModal()" style="background:transparent;border:1px solid #666;color:#aaa;padding:6px 12px;border-radius:4px;cursor:pointer;margin-right:8px;">Abbrechen</button>
+<button onclick="saveConfigToLive()" style="background:#00ff88;border:none;color:#000;padding:6px 18px;border-radius:4px;font-weight:bold;cursor:pointer;">✔ Übernehmen</button></div></div></div>
 
 <div id="msg-log" style="position:absolute;top:400px;left:20px;width:20vw;max-width:320px;min-width:260px;max-height:35vh;background:rgba(5,5,15,.85);border:1px solid rgba(0,255,204,.3);border-radius:6px;padding:8px;font-family:monospace;font-size:10px;z-index:100;pointer-events:auto;display:flex;flex-direction:column;overflow:hidden;">
 <div style="font-weight:bold;margin-bottom:4px;color:#0fc;border-bottom:1px solid rgba(0,255,204,.2);padding-bottom:3px;flex-shrink:0;">HOMELAB EVENT STREAM</div>
@@ -885,18 +894,109 @@ function cleanupLog(){
 const AC=new(window.AudioContext||window.webkitAudioContext)();
 function beep(freq,dur,vol,type){const o=AC.createOscillator(),g=AC.createGain();o.type=type||'sine';o.frequency.value=freq;g.gain.setValueAtTime(vol||0.05,AC.currentTime);g.gain.exponentialRampToValueAtTime(0.001,AC.currentTime+dur);o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+dur);}
 function sfx(status){if(status==='error')beep(200,0.3,0.06,'square');else if(status==='success')beep(800,0.1,0.03,'sine');else if(status==='warning')beep(400,0.15,0.04,'triangle');}
-// Config modal (DE/EN help)
-let currentConfig={};
-async function loadCfg(){try{const r=await fetch('configs/datasets.json');const ds=await r.json();const active=ds.datasets.find(d=>d.id===ds.activeDefault);if(active){const cr=await fetch(active.file);currentConfig=await cr.json();}}catch(e){console.error('Config load error:',e);}}
-function renderCfg(){try{const c=document.getElementById('cfg-content');if(!c)return;c.innerHTML='';
-    for(const[sk,so]of Object.entries(currentConfig||{})){
-        const h=document.createElement('div');h.style.cssText='color:#38f;font-weight:bold;font-size:12px;margin-top:10px;border-bottom:1px dashed rgba(51,136,255,.3);padding-bottom:3px;';h.textContent='[ '+sk.toUpperCase()+' ]';c.appendChild(h);
-        for(const[pk,pd]of Object.entries(so)){
-            const b=document.createElement('div');b.style.cssText='background:rgba(0,255,204,.03);border:1px solid rgba(0,255,204,.15);padding:8px;border-radius:4px;';
-            b.innerHTML='<div style=\"display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;\"><span style=\"color:#0fc;font-weight:bold;\">'+pk+'</span><span style=\"color:#fa0;font-size:10px;background:rgba(255,170,0,.1);padding:1px 4px;border-radius:2px;\">'+pd.value+'</span></div><div style=\"font-size:11px;color:#ccc;margin-bottom:4px;\">🇩🇪 '+pd.desc_de+'</div><div style=\"font-size:10px;color:#888;font-style:italic;\">🇬🇧 '+pd.desc_en+'</div>';
-            c.appendChild(b);}}}catch(e){console.error('Config render error:',e);}}
-document.getElementById('cfg-btn').addEventListener('click',async()=>{await loadCfg();renderCfg();document.getElementById('cfg-modal').style.display='flex';});
-document.getElementById('cfg-close').addEventListener('click',()=>{document.getElementById('cfg-modal').style.display='none';});
+// ═══ CONFIG ASSISTANT (bilingual, cache, download, import) ═══
+let activeConfigData=null;
+const paramMeta={
+    galaxies:{de:"Liste aller Galaxien als physische Hubs im 3D-Raum.",en:"List of all galaxies acting as physical hubs in 3D space."},
+    systems:{de:"Geräte, VMs oder Container im Orbit der jeweiligen Galaxie.",en:"Physical devices, VMs, or containers orbiting the respective galaxy."},
+    capacityScore:{de:"Relative Rechenlast-Kapazität (0-150).",en:"Relative compute capacity score (0-150)."},
+    baseRadius:{de:"Basis-Radius des Halo-Rings.",en:"Base radius of the halo ring."},
+    color:{de:"Farbcode des Knotens (Hex/Integer).",en:"Color code of the node (hex/integer)."},
+    connections:{de:"Netzwerk-Verbindungen zwischen Systemen.",en:"Network connections between systems."},
+    packets:{de:"Datenpakete die zwischen Systemen fließen.",en:"Data packets flowing between systems."},
+    routingRules:{de:"Routing-Regeln (z.B. forceCoreTransit).",en:"Routing rules (e.g. forceCoreTransit)."},
+    globalConfig:{de:"Globale Schwellenwerte und Standards.",en:"Global thresholds and defaults."},
+    thresholds:{de:"Last-Schwellenwerte für Farbwechsel.",en:"Load thresholds for color changes."}
+};
+
+function openConfigModal(){
+    const cached=localStorage.getItem('homelab_custom_config');
+    if(cached){activeConfigData=JSON.parse(cached);}
+    else if(window._universeCfg){activeConfigData=JSON.parse(JSON.stringify(window._universeCfg));}
+    else{activeConfigData={galaxies:[],systems:[],connections:[],packets:[]};}
+    document.getElementById('cfg-modal').style.display='flex';
+    renderConfigEditor();
+}
+function closeConfigModal(){document.getElementById('cfg-modal').style.display='none';}
+
+function renderConfigEditor(){
+    const nav=document.getElementById('config-nav'),ed=document.getElementById('config-editor');
+    nav.innerHTML='';ed.innerHTML='';
+    Object.keys(activeConfigData).forEach((key,i)=>{
+        if(key.startsWith('_'))return;
+        const item=document.createElement('div');
+        item.style.cssText='padding:8px 10px;cursor:pointer;border-radius:5px;margin-bottom:3px;color:#00ff88;';
+        item.textContent='📂 '+key.toUpperCase();item.onclick=()=>loadConfigSection(key,ed);
+        nav.appendChild(item);if(i===0)loadConfigSection(key,ed);
+    });
+}
+
+function loadConfigSection(key,container){
+    container.innerHTML='<h4 style=\"color:#00ff88;margin-top:0;\">Sektion: '+key+'</h4>';
+    const meta=paramMeta[key];
+    if(meta)container.innerHTML+='<p style=\"font-size:11px;color:#aaa;margin-bottom:12px;\">🇩🇪 '+meta.de+'<br>🇬🇧 '+meta.en+'</p>';
+    const val=activeConfigData[key];
+    if(Array.isArray(val)){
+        val.forEach((item,idx)=>{
+            const card=document.createElement('div');
+            card.style.cssText='background:rgba(255,255,255,0.03);border:1px solid rgba(0,255,136,0.2);padding:12px;border-radius:5px;margin-bottom:10px;';
+            card.innerHTML='<strong style=\"color:#00ff88;\">[Eintrag '+(idx+1)+']</strong>';
+            if(typeof item==='object'&&item!==null){
+                Object.keys(item).forEach(subKey=>{
+                    const subVal=item[subKey];
+                    const fd=document.createElement('div');fd.style.cssText='margin-top:6px;';
+                    const sm=paramMeta[subKey];
+                    const desc=sm?'<div style=\"font-size:9px;color:#666;\">'+sm.de+'</div>':'';
+                    if(Array.isArray(subVal)){
+                        fd.innerHTML='<label style=\"font-size:10px;color:#ccc;\">'+subKey+':</label>'+desc+'<span style=\"color:#888;font-size:10px;\">['+subVal.length+' items]</span>';
+                    }else if(typeof subVal==='object'){
+                        fd.innerHTML='<label style=\"font-size:10px;color:#ccc;\">'+subKey+':</label>'+desc+'<span style=\"color:#888;font-size:10px;\">{object}</span>';
+                    }else{
+                        fd.innerHTML='<label style=\"font-size:10px;color:#ccc;\">'+subKey+':</label>'+desc+'<input value=\"'+subVal+'\" onchange=\"activeConfigData.'+key+'['+idx+'].'+subKey+'=this.value\" style=\"width:100%;background:#111;color:#00ff88;border:1px solid #444;padding:4px;border-radius:3px;box-sizing:border-box;\">';
+                    }
+                    card.appendChild(fd);
+                });
+            }
+            container.appendChild(card);
+        });
+    }else if(typeof val==='object'&&val!==null){
+        Object.keys(val).forEach(subKey=>{
+            const subVal=val[subKey];
+            const fd=document.createElement('div');fd.style.cssText='margin-top:8px;';
+            fd.innerHTML='<label style=\"font-size:11px;color:#ccc;\">'+subKey+':</label> <span style=\"color:#00ff88;\">'+JSON.stringify(subVal).substring(0,80)+'</span>';
+            container.appendChild(fd);
+        });
+    }else{
+        container.innerHTML+='<span style=\"color:#00ff88;\">'+JSON.stringify(val)+'</span>';
+    }
+}
+
+function saveConfigToLive(){
+    localStorage.setItem('homelab_custom_config',JSON.stringify(activeConfigData));
+    window._universeCfg=activeConfigData;
+    window._thresholds=activeConfigData.globalConfig?.thresholds||window._thresholds;
+    window._routingRules=activeConfigData.routingRules||{forceCoreTransit:false};
+    closeConfigModal();
+    switchDataset(activeConfigData.datasetId||'custom');
+}
+
+function downloadConfig(){
+    const blob=new Blob([JSON.stringify(activeConfigData,null,2)],{type:'application/json'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+    a.download='homelab_custom.json';a.click();
+}
+
+function importConfig(e){
+    const fr=new FileReader();
+    fr.onload=function(ev){
+        try{activeConfigData=JSON.parse(ev.target.result);renderConfigEditor();logMsg('Config importiert','success');}
+        catch(err){logMsg('JSON-Fehler: '+err.message,'error');}
+    };
+    fr.readAsText(e.target.files[0]);
+}
+
+document.getElementById('cfg-btn').addEventListener('click',openConfigModal);
+document.getElementById('cfg-close').addEventListener('click',closeConfigModal);
 initUniverse();
 // Periodic log cleanup every 60s
 setInterval(cleanupLog,60000);
