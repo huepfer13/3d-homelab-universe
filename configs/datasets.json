@@ -5,6 +5,11 @@
       "id": "homelab",
       "name": "Homelab Infrastructure",
       "file": "./configs/homelab.json"
+    },
+    {
+      "id": "finance",
+      "name": "Financial Flows & Assets",
+      "file": "./configs/finance.json"
     }
   ]
 }

@@ -44,6 +44,9 @@ h1{font-size:16px;margin:0 0 10px;color:#fff;letter-spacing:1px;text-transform:u
 <button id="center-btn" style="width:100%;background:rgba(0,255,204,.15);border:1px solid #0fc;color:#0fc;padding:5px;border-radius:4px;cursor:pointer;font-family:monospace;font-size:11px;font-weight:bold;">⌖ CENTER UNIVERSE</button>
 </div>
 <div style="margin-top:6px;"><button id="cfg-btn" style="width:100%;background:rgba(0,255,204,.1);border:1px solid rgba(0,255,204,.5);color:#0fc;padding:5px;border-radius:4px;cursor:pointer;font-family:monospace;font-size:11px;">⚙ KONFIG & HILFE</button>
+</div>
+<div style="margin-top:6px;display:flex;gap:4px;align-items:center;">
+<select id="dataset-switcher" style="flex:1;background:rgba(0,0,0,.6);border:1px solid rgba(0,255,204,.3);color:#0fc;padding:4px 6px;font-size:10px;border-radius:3px;cursor:pointer;font-family:monospace;"><option>Loading...</option></select>
 </div></div>
 <div id="legend-acc" style="margin-top:10px;border-top:1px solid rgba(0,255,204,.2);padding-top:8px;font-family:monospace;font-size:10px;pointer-events:auto;">
 <div style="font-weight:bold;color:#0fc;margin-bottom:6px;">HOMELAB HIERARCHIE</div>
@@ -397,20 +400,131 @@ const sg=new THREE.BufferGeometry();const sp=new Float32Array(800*3);
 for(let i=0;i<800*3;i++)sp[i]=(Math.random()-0.5)*220;
 sg.setAttribute('position',new THREE.BufferAttribute(sp,3));scene.add(new THREE.Points(sg,new THREE.PointsMaterial({color:0x334466,size:0.5})));
 
+// ═══ URL PARAMETER PARSER ═══
+function getUrlParams(){
+    const p={};
+    const q=window.location.search.substring(1);
+    if(!q)return p;
+    q.split('&').forEach(pair=>{
+        const[k,v]=pair.split('=');
+        p[decodeURIComponent(k)]=decodeURIComponent(v||'');
+    });
+    return p;
+}
+const urlParams=getUrlParams();
+const isKiosk=urlParams.kiosk==='true';
+let kioskTimer=null,kioskActive=false;
+
+// ═══ DATASET SWITCHER UI ═══
+async function populateSwitcher(datasets,activeId){
+    const sel=document.getElementById('dataset-switcher');
+    if(!sel)return;
+    sel.innerHTML='';
+    datasets.forEach(ds=>{
+        const opt=document.createElement('option');
+        opt.value=ds.id;opt.textContent='🌌 '+ds.name;
+        if(ds.id===activeId)opt.selected=true;
+        sel.appendChild(opt);
+    });
+    sel.onchange=async()=>{await switchDataset(sel.value);};
+}
+
+// ═══ HOT-RELOAD: SWITCH DATASET ═══
+async function switchDataset(datasetId){
+    logMsg('Switching to '+datasetId+'...','warning');
+    // 1. Dispose old 3D objects
+    pks.length=0;
+    pkLabels.forEach(l=>l.e.remove());pkLabels.length=0;
+    labels.forEach(l=>l.e.remove());labels.length=0;
+    loopTubes.length=0;stageList.length=0;
+    // Clear universe group
+    while(U.children.length>0){
+        const child=U.children[0];
+        disposeRecursive(child);
+        U.remove(child);
+    }
+    PkG=new THREE.Group();U.add(PkG);
+    // Reset state
+    G={};Gg={};S=[];Sg={};galaxyNames=[];systemIds=[];
+    // 2. Load new dataset
+    try{
+        const dsRes=await fetch('configs/datasets.json');
+        const ds=await dsRes.json();
+        const activeDs=ds.datasets.find(d=>d.id===datasetId);
+        if(!activeDs)throw new Error('Dataset '+datasetId+' not found');
+        const cfgRes=await fetch(activeDs.file);
+        const cfg=await cfgRes.json();
+        window._universeCfg=cfg;
+        window._thresholds=cfg.globalConfig?.thresholds||window._thresholds;
+        window._routingRules=cfg.routingRules||{forceCoreTransit:false};
+        // 3. Rebuild
+        buildGalaxies(cfg.galaxies);
+        buildSystems(cfg.systems,window._thresholds);
+        buildRoutes(cfg.galaxies);
+        buildConnections(cfg.connections||[]);
+        buildTubes(cfg.connections||[]);
+        buildStages();
+        buildLegend(cfg.galaxies,cfg.systems);
+        seedPackets(cfg.packets||[]);
+        populateSwitcher(ds.datasets,datasetId);
+        document.getElementById('hud').querySelector('h1').textContent=cfg.title||'3D Universe';
+        logMsg(datasetId+': '+cfg.galaxies.length+' galaxies, '+cfg.systems.length+' systems','success');
+    }catch(e){
+        console.error('switchDataset failed:',e);
+        logMsg('Switch error: '+e.message,'error');
+    }
+}
+
+function disposeRecursive(obj){
+    if(obj.geometry){obj.geometry.dispose();}
+    if(obj.material){
+        if(Array.isArray(obj.material))obj.material.forEach(m=>m.dispose());
+        else obj.material.dispose();
+    }
+    if(obj.children)obj.children.forEach(c=>disposeRecursive(c));
+}
+
+// ═══ KIOSK MODE ═══
+function initKioskMode(){
+    if(!isKiosk)return;
+    // Hide HUD + legend + log after 8s of inactivity
+    const hud=document.getElementById('hud');
+    const legend=document.getElementById('legend-acc');
+    const log=document.getElementById('msg-log');
+    const hideUI=()=>{
+        if(kioskActive)return;
+        kioskActive=true;
+        hud.style.opacity='0';hud.style.transition='opacity 2s';
+        legend.style.opacity='0';legend.style.transition='opacity 2s';
+        log.style.opacity='0';log.style.transition='opacity 2s';
+    };
+    const showUI=()=>{
+        kioskActive=false;
+        hud.style.opacity='1';legend.style.opacity='1';log.style.opacity='1';
+        clearTimeout(kioskTimer);
+        kioskTimer=setTimeout(hideUI,8000);
+    };
+    // Mouse/keyboard activity resets timer
+    ['mousemove','keydown','click'].forEach(ev=>window.addEventListener(ev,showUI));
+    kioskTimer=setTimeout(hideUI,8000);
+}
+
 // ═══ ASYNC INIT ═══
 async function initUniverse(){
     try{
+        // 0. URL param override
+        const cfgParam=urlParams.config||null;
         // 1. Load dataset index
         const dsRes=await fetch('configs/datasets.json');
         const ds=await dsRes.json();
-        const activeId=ds.activeDefault||'homelab';
+        const activeId=cfgParam||ds.activeDefault||'homelab';
         const activeDs=ds.datasets.find(d=>d.id===activeId);
         if(!activeDs)throw new Error('Dataset '+activeId+' not found');
 
         // 2. Load active config
         const cfgRes=await fetch(activeDs.file);
         const cfg=await cfgRes.json();
-        window._universeCfg=cfg; // store for sim/fl()
+        window._universeCfg=cfg;
         window._thresholds=cfg.globalConfig?.thresholds||[
             {maxLoad:0.50,color:'#00ffcc',speedMultiplier:1.0,label:'NORMAL'},
             {maxLoad:0.85,color:'#ffaa00',speedMultiplier:2.2,label:'WARNING'},
@@ -427,8 +541,13 @@ async function initUniverse(){
         buildStages();
         buildLegend(cfg.galaxies,cfg.systems);
         seedPackets(cfg.packets||[]);
+        populateSwitcher(ds.datasets,activeId);
+        document.getElementById('hud').querySelector('h1').textContent=cfg.title||'3D Universe';
 
-        // 4. Start animation
+        // 4. Kiosk mode
+        initKioskMode();
+
+        // 5. Start animation
         if(R)animate();
         logMsg('Universe: '+cfg.galaxies.length+' galaxies, '+cfg.systems.length+' systems','success');
     }catch(e){
@@ -448,6 +567,14 @@ function animate(){
     // Oscillating rotation: bounce at ±30° instead of continuous spin
     const rotY = Math.sin(t * 0.08) * 0.5; // ±0.5 rad ≈ ±30°
     U.rotation.y = rotY;
+    // Kiosk auto-tour: slow cinematic camera orbit when UI hidden
+    if(kioskActive){
+        const orbitAngle=t*0.15;const orbitR=80;const orbitH=25;
+        cam.position.x=Math.sin(orbitAngle)*orbitR;
+        cam.position.z=Math.cos(orbitAngle)*orbitR-20;
+        cam.position.y=orbitH+Math.sin(t*0.2)*10;
+        cam.lookAt(0,-4,0);
+    }
     // Apply universe offset from click-to-center
     U.position.lerp(uniOffset, 0.08);
     // Galaxy load rings: pulse color green→orange→red
@@ -556,7 +683,7 @@ function animate(){
     pkLabels.forEach(l=>{l.p.mesh.getWorldPosition(tv);tv.project(cam);if(tv.z>=-1&&tv.z<=1){l.e.style.display='block';l.e.style.left=((tv.x*0.5+0.5)*innerWidth)+'px';l.e.style.top=((-tv.y*0.5+0.5)*innerHeight)+'px';}else l.e.style.display='none';});
 
     // OrbitControls damping update
-    controls.update();
+    if(!kioskActive)controls.update();
     // Smooth camera pan when dirty (click-to-center via orbit target)
     if(camDirty){
         controls.target.lerp(camTarget,0.08);

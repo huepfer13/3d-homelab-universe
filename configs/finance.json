@@ -1,0 +1,44 @@
+{
+  "title": "Financial Flows & Assets",
+  "version": "3.0-generic",
+  "globalConfig": {
+    "defaults": { "nodeCapacityScore": 100, "nodeColor": 16755200 },
+    "thresholds": [
+      { "maxLoad": 0.50, "color": "#00ffcc", "speedMultiplier": 1.0, "label": "NORMAL" },
+      { "maxLoad": 0.85, "color": "#ffaa00", "speedMultiplier": 2.2, "label": "WARNING" },
+      { "maxLoad": 1.00, "color": "#ff3333", "speedMultiplier": 4.5, "label": "CRITICAL" }
+    ]
+  },
+  "galaxies": [
+    { "id": "assets",   "name": "Assets",   "x": -25, "y": 0, "z": -12, "r": 10, "color": 16755200 },
+    { "id": "flows",    "name": "Flows",    "x":   0, "y": 0, "z": -16, "r": 11, "color": 43690 },
+    { "id": "reserves", "name": "Reserves", "x":  25, "y": 0, "z": -12, "r": 10, "color": 34543 }
+  ],
+  "systems": [
+    {"id":"fin-a1","name":"Cash Account","g":"assets","x":-6,"y":5,"z":-2,"capacityScore":130,"halos":[{"metricKey":"balance","baseRadius":5}],"color":16755200},
+    {"id":"fin-a2","name":"Investment Portfolio","g":"assets","x":5,"y":-3,"z":-4,"capacityScore":110,"halos":[{"metricKey":"balance","baseRadius":4.5}],"color":16755200},
+    {"id":"fin-a3","name":"Real Estate","g":"assets","x":-4,"y":-6,"z":3,"capacityScore":90,"halos":[{"metricKey":"balance","baseRadius":4}],"color":16755200},
+    {"id":"fin-a4","name":"Crypto Wallet","g":"assets","x":7,"y":-7,"z":1,"capacityScore":75,"halos":[{"metricKey":"balance","baseRadius":3.5}],"color":16755200},
+    {"id":"fin-f1","name":"Income Stream","g":"flows","x":-8,"y":5,"z":-2,"capacityScore":120,"halos":[{"metricKey":"rate","baseRadius":4.5}],"color":65535},
+    {"id":"fin-f2","name":"Expense Pipeline","g":"flows","x":5,"y":-3,"z":-4,"capacityScore":100,"halos":[{"metricKey":"rate","baseRadius":4}],"color":65535},
+    {"id":"fin-f3","name":"Tax Processing","g":"flows","x":-3,"y":-7,"z":3,"capacityScore":80,"halos":[{"metricKey":"rate","baseRadius":3.5}],"color":65535},
+    {"id":"fin-f4","name":"Dividend Router","g":"flows","x":8,"y":-6,"z":1,"capacityScore":70,"halos":[{"metricKey":"rate","baseRadius":3.5}],"color":16755200},
+    {"id":"fin-r1","name":"Emergency Fund","g":"reserves","x":-6,"y":5,"z":-2,"capacityScore":140,"halos":[{"metricKey":"buffer","baseRadius":5}],"color":34543},
+    {"id":"fin-r2","name":"Retirement","g":"reserves","x":5,"y":-3,"z":-4,"capacityScore":100,"halos":[{"metricKey":"buffer","baseRadius":4}],"color":34543},
+    {"id":"fin-r3","name":"Gold Reserve","g":"reserves","x":-4,"y":-6,"z":3,"capacityScore":85,"halos":[{"metricKey":"buffer","baseRadius":3.5}],"color":34543}
+  ],
+  "connections": [
+    {"from":"fin-f1","to":"fin-a1","protocol":"https","status":"active","style":{"lineType":"solid","glowColor":"#ffcc00"}},
+    {"from":"fin-f2","to":"fin-r1","protocol":"https","status":"active","style":{"lineType":"solid","glowColor":"#ffcc00"}},
+    {"from":"fin-a1","to":"fin-r1","protocol":"mqtt","status":"active","style":{"lineType":"solid","glowColor":"#00ffcc"}},
+    {"from":"fin-f3","to":"fin-f1","protocol":"ping","status":"ping","style":{"lineType":"dashed","glowColor":"#334455"}},
+    {"from":"fin-a2","to":"fin-r2","protocol":"ssh","tunnel":"vpn","status":"active","style":{"lineType":"solid","glowColor":"#3388ff","tubeOpacity":0.12}}
+  ],
+  "routingRules": { "forceCoreTransit": true },
+  "packets": [
+    {"id":"fin-req-1","type":"request","title":"Balance Check","from":"fin-f1","to":"fin-a1","speed":0.003,"style":{"color":"#00ffcc","trailLength":50}},
+    {"id":"fin-res-1","type":"response","title":"Balance OK","from":"fin-a1","to":"fin-f1","parentPacketId":"fin-req-1","payloadHistory":[{"id":"fin-req-1","status":"done"}],"speed":0.0035,"style":{"color":"#ffaa00","trailLength":70,"fadeEffect":"glow-to-core"}},
+    {"id":"fin-req-2","type":"request","title":"Flow Report","from":"fin-a1","to":"fin-r1","speed":0.0025,"style":{"color":"#00ffcc","trailLength":45}},
+    {"id":"fin-res-2","type":"response","title":"Report Generated","from":"fin-r1","to":"fin-a1","parentPacketId":"fin-req-2","payloadHistory":[{"id":"fin-req-2","status":"generated"}],"speed":0.003,"style":{"color":"#ffaa00","trailLength":65,"fadeEffect":"glow-to-core"}}
+  ]
+}
