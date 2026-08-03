@@ -53,23 +53,23 @@ h1{font-size:16px;margin:0 0 10px;color:#fff;letter-spacing:1px;text-transform:u
 <div class="legend-subitem" onclick="focusNode('galaxy-beta')" style="cursor:pointer;color:#fff;padding:2px 0;">• Galaxy Beta</div>
 <div class="legend-subitem" onclick="focusNode('galaxy-gamma')" style="cursor:pointer;color:#fff;padding:2px 0;">• Galaxy Gamma</div>
 </div></div>
-<div style="margin-top:4px;"><div class="legend-toggle" onclick="tgl('sub-ct')" style="cursor:pointer;color:#0f8;padding:3px 0;">▶ Container (10)</div>
+<div style="margin-top:4px;"><div class="legend-toggle" onclick="tgl('sub-ct')" style="cursor:pointer;color:#0f8;padding:3px 0;">▶ Container (25)</div>
 <div id="sub-ct" style="display:none;padding-left:12px;border-left:1px solid rgba(0,255,136,.3);margin-left:4px;">
-<div class="legend-subitem" onclick="focusNode('node-a1')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node A1</div>
-<div class="legend-subitem" onclick="focusNode('node-a2')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node A2</div>
-<div class="legend-subitem" onclick="focusNode('node-b2')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node B2</div>
-<div class="legend-subitem" onclick="focusNode('node-b3')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node B3</div>
-<div class="legend-subitem" onclick="focusNode('node-b1')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node B1</div>
-<div class="legend-subitem" onclick="focusNode('node-c2')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node C2</div>
-<div class="legend-subitem" onclick="focusNode('node-c3')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node C3</div>
-<div class="legend-subitem" onclick="focusNode('node-c1')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node C1</div>
-<div class="legend-subitem" onclick="focusNode('node-a3')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node A3</div>
-<div class="legend-subitem" onclick="focusNode('node-b4')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node B4</div>
+<div class="legend-subitem" onclick="focusNode('a1')" style="cursor:pointer;color:#fff;padding:2px 0;">• A1</div>
+<div class="legend-subitem" onclick="focusNode('a2')" style="cursor:pointer;color:#fff;padding:2px 0;">• A2</div>
+<div class="legend-subitem" onclick="focusNode('b1')" style="cursor:pointer;color:#fff;padding:2px 0;">• B1</div>
+<div class="legend-subitem" onclick="focusNode('b2')" style="cursor:pointer;color:#fff;padding:2px 0;">• B2</div>
+<div class="legend-subitem" onclick="focusNode('b3')" style="cursor:pointer;color:#fff;padding:2px 0;">• B3</div>
+<div class="legend-subitem" onclick="focusNode('c1')" style="cursor:pointer;color:#fff;padding:2px 0;">• C1</div>
+<div class="legend-subitem" onclick="focusNode('c2')" style="cursor:pointer;color:#fff;padding:2px 0;">• C2</div>
+<div class="legend-subitem" onclick="focusNode('c3')" style="cursor:pointer;color:#fff;padding:2px 0;">• C3</div>
+<div class="legend-subitem" onclick="focusNode('a3')" style="cursor:pointer;color:#fff;padding:2px 0;">• A3</div>
+<div class="legend-subitem" onclick="focusNode('a4')" style="cursor:pointer;color:#fff;padding:2px 0;">• A4</div>
 </div></div>
 <div style="margin-top:4px;"><div class="legend-toggle" onclick="tgl('sub-pipe')" style="cursor:pointer;color:#fa0;padding:3px 0;">▶ Pipelines (2)</div>
 <div id="sub-pipe" style="display:none;padding-left:12px;border-left:1px solid rgba(255,170,0,.3);margin-left:4px;">
-<div class="legend-subitem" onclick="focusNode('node-b2')" style="cursor:pointer;color:#fff;padding:2px 0;">• Data Sync A→B</div>
-<div class="legend-subitem" onclick="focusNode('node-c2')" style="cursor:pointer;color:#fff;padding:2px 0;">• CI/CD Pipeline</div>
+<div class="legend-subitem" onclick="focusNode('b1')" style="cursor:pointer;color:#fff;padding:2px 0;">• Data Sync A→B</div>
+<div class="legend-subitem" onclick="focusNode('c2')" style="cursor:pointer;color:#fff;padding:2px 0;">• CI/CD Pipeline</div>
 </div></div>
 </div>
 </div>
@@ -99,7 +99,7 @@ const STAGES=['Init','Build','Test','Deploy','Done'];
 const MSG_TYPES=['deploy','data','ping','issue','error','sync','backup','health'];
 function rnd(arr){return arr[Math.floor(Math.random()*arr.length)];}
 function simNode(n){return NODES[n%NODES.length];}
-function simCT(){return 'Node-'+String.fromCharCode(65+Math.floor(Math.random()*NODES.length))+String(1+Math.floor(Math.random()*CT_PER_NODE));}
+function simCT(){return String.fromCharCode(97+Math.floor(Math.random()*5))+Math.ceil(Math.random()*5);}
 
 // ═══ THREE.JS 3D SCENE ═══
 let R,scene,cam,controls,U,PkG;
@@ -149,7 +149,7 @@ function mkPkt(type,title,status,sx,sy,sz,ex,ey,ez,spd){
 }
 
 // ═══ GALAXIES ═══
-const G={alpha:{x:-28,y:0,z:-10,color:0x0088ff,name:'🪐 Galaxy Alpha',r:12},beta:{x:0,y:0,z:-16,color:0x0088ff,name:'🪐 Galaxy Beta',r:13},gamma:{x:28,y:0,z:-10,color:0x0088ff,name:'🪐 Galaxy Gamma',r:12}};
+const G={alpha:{x:-28,y:0,z:-10,color:0x0088ff,name:'🪐 Alpha',r:12},beta:{x:0,y:0,z:-16,color:0x0088ff,name:'🪐 Beta',r:13},gamma:{x:28,y:0,z:-10,color:0x0088ff,name:'🪐 Gamma',r:12}};
 const Gg={};
 Object.entries(G).forEach(([id,g])=>{
     const gr=new THREE.Group();gr.position.set(g.x,g.y,g.z);U.add(gr);Gg[id]=gr;
@@ -173,17 +173,31 @@ function clampToParent(pos,parentR){const max=parentR*0.85;if(pos.length()>max)p
 
 // ═══ SOLAR SYSTEMS (inside galaxies) ═══
 const S=[
-    {id:'node-a1',g:'alpha',x:-8,y:6,z:-3,r:5.5,name:'🌐 Node A1',c:0x00ffcc},
-    {id:'node-a2',g:'alpha',x:4,y:-4,z:-5,r:5,name:'🌐 Node A2',c:0x00ffcc},
-    {id:'node-a3',g:'alpha',x:-5,y:-8,z:3,r:3.5,name:'🔒 Node A3',c:0x00ffcc},
-    {id:'node-a4',g:'alpha',x:8,y:-8,z:2,r:4,name:'🖥️ Node A4',c:0xffaa00},
-    {id:'node-b1',g:'beta',x:-10,y:6,z:-2,r:5.5,name:'📁 Node B1',c:0x00ffcc},
-    {id:'node-b2',g:'beta',x:4,y:-2,z:-5,r:5.5,name:'📄 Node B2',c:0x00ffcc},
-    {id:'node-b3',g:'beta',x:10,y:4,z:-2,r:3.5,name:'🧪 Node B3',c:0xffaa00},
-    {id:'node-b4',g:'beta',x:-3,y:-8,z:3,r:3.5,name:'🏠 Node B4',c:0xffaa00},
-    {id:'node-c1',g:'gamma',x:-8,y:6,z:-2,r:4.5,name:'🔍 Node C1',c:0x00ffcc},
-    {id:'node-c2',g:'gamma',x:4,y:-2,z:-4,r:4.5,name:'🐙 Node C2',c:0x00ffcc},
-    {id:'node-c3',g:'gamma',x:8,y:-6,z:3,r:4.5,name:'📊 Node C3',c:0x00ffcc},
+    {id:'a1',g:'alpha',x:-5,y:5,z:-3,r:4,name:'ἱ0 A1',c:0x00ffcc},
+    {id:'a2',g:'alpha',x:5,y:-4,z:-3,r:4,name:'὎6 A2',c:0x00ffcc},
+    {id:'a3',g:'alpha',x:-3,y:-6,z:2,r:3,name:'ὑ2 A3',c:0x00ffcc},
+    {id:'a4',g:'alpha',x:6,y:4,z:2,r:3,name:'⚙ A4',c:0xffaa00},
+    {id:'a5',g:'alpha',x:0,y:7,z:-1,r:3,name:'Ὄa A5',c:0xffaa00},
+    {id:'b1',g:'beta',x:-5,y:5,z:-3,r:4,name:'ἱ0 B1',c:0x00ffcc},
+    {id:'b2',g:'beta',x:5,y:-4,z:-3,r:4,name:'὎6 B2',c:0x00ffcc},
+    {id:'b3',g:'beta',x:-3,y:-6,z:2,r:3,name:'ὑ2 B3',c:0x00ffcc},
+    {id:'b4',g:'beta',x:6,y:4,z:2,r:3,name:'⚙ B4',c:0xffaa00},
+    {id:'b5',g:'beta',x:0,y:7,z:-1,r:3,name:'Ὄa B5',c:0xffaa00},
+    {id:'c1',g:'gamma',x:-5,y:5,z:-3,r:4,name:'ἱ0 C1',c:0x00ffcc},
+    {id:'c2',g:'gamma',x:5,y:-4,z:-3,r:4,name:'὎6 C2',c:0x00ffcc},
+    {id:'c3',g:'gamma',x:-3,y:-6,z:2,r:3,name:'ὑ2 C3',c:0x00ffcc},
+    {id:'c4',g:'gamma',x:6,y:4,z:2,r:3,name:'⚙ C4',c:0xffaa00},
+    {id:'c5',g:'gamma',x:0,y:7,z:-1,r:3,name:'Ὄa C5',c:0xffaa00},
+    {id:'d1',g:'delta',x:-5,y:5,z:-3,r:4,name:'ἱ0 D1',c:0x00ffcc},
+    {id:'d2',g:'delta',x:5,y:-4,z:-3,r:4,name:'὎6 D2',c:0x00ffcc},
+    {id:'d3',g:'delta',x:-3,y:-6,z:2,r:3,name:'ὑ2 D3',c:0x00ffcc},
+    {id:'d4',g:'delta',x:6,y:4,z:2,r:3,name:'⚙ D4',c:0xffaa00},
+    {id:'d5',g:'delta',x:0,y:7,z:-1,r:3,name:'Ὄa D5',c:0xffaa00},
+    {id:'e1',g:'epsilon',x:-5,y:5,z:-3,r:4,name:'ἱ0 E1',c:0x00ffcc},
+    {id:'e2',g:'epsilon',x:5,y:-4,z:-3,r:4,name:'὎6 E2',c:0x00ffcc},
+    {id:'e3',g:'epsilon',x:-3,y:-6,z:2,r:3,name:'ὑ2 E3',c:0x00ffcc},
+    {id:'e4',g:'epsilon',x:6,y:4,z:2,r:3,name:'⚙ E4',c:0xffaa00},
+    {id:'e5',g:'epsilon',x:0,y:7,z:-1,r:3,name:'Ὄa E5',c:0xffaa00}
 ];
 const Sg={};
 S.forEach(s=>{
@@ -208,11 +222,11 @@ S.forEach(s=>{
 
 // ═══ PLANETS (services inside nodes) ═══
 const P=[
-    {s:'node-b2',x:-2,y:0,z:0,c:0xff6600},{s:'node-b2',x:2,y:0,z:0,c:0xff0000},
-    {s:'node-b1',x:-1.8,y:0,z:0,c:0x3366ff},{s:'node-b1',x:1.8,y:0,z:0,c:0x33ccff},
-    {s:'node-c2',x:-1.5,y:0,z:0,c:0xff8800},{s:'node-c2',x:1.5,y:0,z:0,c:0x88ff00},
-    {s:'node-c3',x:-1.6,y:0,z:0,c:0xff6600},{s:'node-c3',x:1.6,y:0,z:0,c:0x6600ff},
-    {s:'node-a1',x:-1.4,y:0,z:0,c:0x00ff88},{s:'node-a2',x:0,y:0,z:0,c:0xffaa00},
+    {s:'b2',x:-2,y:0,z:0,c:0xff6600},{s:'b2',x:2,y:0,z:0,c:0xff0000},
+    {s:'b1',x:-1.8,y:0,z:0,c:0x3366ff},{s:'b1',x:1.8,y:0,z:0,c:0x33ccff},
+    {s:'c2',x:-1.5,y:0,z:0,c:0xff8800},{s:'c2',x:1.5,y:0,z:0,c:0x88ff00},
+    {s:'c3',x:-1.6,y:0,z:0,c:0xff6600},{s:'c3',x:1.6,y:0,z:0,c:0x6600ff},
+    {s:'a1',x:-1.4,y:0,z:0,c:0x00ff88},{s:'a2',x:0,y:0,z:0,c:0xffaa00},
 ];
 P.forEach(p=>{const m=new THREE.Mesh(new THREE.SphereGeometry(0.5,16,16),new THREE.MeshStandardMaterial({color:p.c,emissive:p.c,emissiveIntensity:0.7,roughness:0.05}));
     const sys=S.find(s=>s.id===p.s);const pos=new THREE.Vector3(p.x,p.y,p.z);
@@ -223,13 +237,13 @@ const stages=[{a:0,n:'⚙️ Build'},{a:2.1,n:'🧪 Test'},{a:4.2,n:'🚀 Deploy
 const stageList=[];
 stages.forEach(s=>{
     const m=new THREE.Mesh(new THREE.SphereGeometry(0.7,20,20),new THREE.MeshStandardMaterial({color:0xff00ff,emissive:0xff00ff,emissiveIntensity:0.8,roughness:0.05}));
-    m.position.set(Math.cos(s.a)*4.5,Math.sin(s.a)*3-1,1);Sg['node-a2'].add(m);stageList.push({m,angle:s.a});
+    m.position.set(Math.cos(s.a)*4.5,Math.sin(s.a)*3-1,1);Sg['a2'].add(m);stageList.push({m,angle:s.a});
     const lb=document.createElement('div');lb.className='node-label';lb.textContent=s.n;document.body.appendChild(lb);labels.push({e:lb,m});
 });
 
 // ═══ INTERSTELLAR ROUTES (galaxy-to-galaxy) ═══
 const irMat=new THREE.LineBasicMaterial({color:0x0088ff,transparent:true,opacity:0.12});
-[['alpha','beta'],['beta','gamma']].forEach(([a,b])=>{
+[['alpha','beta'],['beta','gamma'],['gamma','delta'],['delta','epsilon']].forEach(([a,b])=>{
     const ga=G[a],gb=G[b];
     U.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(ga.x,ga.y,ga.z),new THREE.Vector3(gb.x,gb.y,gb.z)]),irMat));
 });
@@ -239,7 +253,7 @@ const irMat=new THREE.LineBasicMaterial({color:0x0088ff,transparent:true,opacity
 const pingMat=new THREE.LineDashedMaterial({color:0x334455,transparent:true,opacity:0.08,dashSize:1,gapSize:1});
 const activeMat=new THREE.LineBasicMaterial({color:0x00ffcc,transparent:true,opacity:0.2});
 // Active inter-CT connections (bright solid)
-[['node-a1','node-a2'],['node-a1','node-c3'],['node-b2','node-b1'],['node-c2','node-c1']].forEach(([a,b])=>{
+[['a1','a2'],['b1','b2'],['c1','c2'],['d1','d2'],['e1','e2']].forEach(([a,b])=>{
     const sa=S.find(s=>s.id===a),sb=S.find(s=>s.id===b);
     if(sa&&sb){
         const ga=G[sa.g],gb=G[sb.g];
@@ -267,8 +281,8 @@ function makeTube(sid1,sid2,color,thickness){
     return {mesh,src,dst};
 }
 const loopTubes=[
-    makeTube('node-b2','node-b1',0xff1111,0.8),   // Node B2↔B1 (thick red)
-    makeTube('node-a1','node-c2',0xff4400,0.5),   // Node A1↔C2 (orange)
+    makeTube('b2','b1',0xff1111,0.8),   // Node B2↔B1 (thick red)
+    makeTube('a1','c2',0xff4400,0.5),   // Node A1↔C2 (orange)
 ];
 
 // ═══ STARFIELD ═══
@@ -292,18 +306,18 @@ function mkPktOnPath(type,title,status,sid1,sid2,spd){
 
 // ═══ SEED PACKETS (demo data) ═══
 if(R){
-mkPktOnPath('issue','Demo: Plan','Draft','node-a1','node-c2',0.003);
-mkPktOnPath('issue','Demo: Review','Open','node-c2','node-a2',0.003);
-mkPktOnPath('deploy','Demo: Test','Testing','node-a2','node-c2',0.002);
-mkPktOnPath('deploy','Demo: Build','Building','node-c2','node-c3',0.0025);
-mkPktOnPath('data','Demo: Deploy','Done','node-c3','node-b2',0.003);
-mkPktOnPath('deploy','Data Sync','Active','node-b2','node-b1',0.0025);
-mkPktOnPath('issue','Dashboard','Building','node-a1','node-c3',0.002);
-mkPktOnPath('error','API Timeout','Alert','node-b2','node-a1',0.004);
-mkPktOnPath('ping','Heartbeat Alpha','OK','node-a1','node-a2',0.001);
-mkPktOnPath('ping','Heartbeat Beta','OK','node-b2','node-b1',0.0012);
-mkPktOnPath('ping','Heartbeat Gamma','OK','node-c2','node-c3',0.001);
-mkPktOnPath('data','Data Fetch','Syncing','node-b2','node-c3',0.0015);
+mkPktOnPath('issue','Demo: Plan','Draft','a1','c2',0.003);
+mkPktOnPath('issue','Demo: Review','Open','c2','a2',0.003);
+mkPktOnPath('deploy','Demo: Test','Testing','a2','c2',0.002);
+mkPktOnPath('deploy','Demo: Build','Building','c2','c3',0.0025);
+mkPktOnPath('data','Demo: Deploy','Done','c3','b2',0.003);
+mkPktOnPath('deploy','Data Sync','Active','b2','b1',0.0025);
+mkPktOnPath('issue','Dashboard','Building','a1','c3',0.002);
+mkPktOnPath('error','API Timeout','Alert','b2','a1',0.004);
+mkPktOnPath('ping','Heartbeat Alpha','OK','a1','a2',0.001);
+mkPktOnPath('ping','Heartbeat Beta','OK','b2','b1',0.0012);
+mkPktOnPath('ping','Heartbeat Gamma','OK','c2','c3',0.001);
+mkPktOnPath('data','Data Fetch','Syncing','b2','c3',0.0015);
 }
 
 // ═══ ANIMATION ═══
