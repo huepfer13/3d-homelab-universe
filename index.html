@@ -107,7 +107,7 @@ const MSG_TYPES=['deploy','data','ping','issue','error','sync','backup','health'
 function rnd(arr){return arr[Math.floor(Math.random()*arr.length)];}
 
 // ═══ THREE.JS 3D SCENE ═══
-let R,scene,cam,controls,U,PkG;
+let R,scene,cam,controls,U,PkG,cl;
 const C=document.getElementById('canvas-container');
 scene=new THREE.Scene();
 cam=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,0.1,1200);cam.position.set(0,25,70);cam.lookAt(0,0,-12);
@@ -558,7 +558,7 @@ async function initUniverse(){
 
 
 // ═══ ANIMATION ═══
-let cl=null;const tv=new THREE.Vector3();
+const tv=new THREE.Vector3();
 function animate(){
     requestAnimationFrame(animate);
     if(!R)return;
