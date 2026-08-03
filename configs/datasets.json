@@ -1,0 +1,10 @@
+{
+  "activeDefault": "homelab",
+  "datasets": [
+    {
+      "id": "homelab",
+      "name": "Homelab Infrastructure",
+      "file": "./configs/homelab.json"
+    }
+  ]
+}
