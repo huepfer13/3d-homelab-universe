@@ -623,15 +623,37 @@ function animate(){
         tb.mesh.geometry=new THREE.TubeGeometry(lc,32,0.7,8,false);
     }});
 
-    // Trail packets: dynamic coords + ping-pong + via-center routing + halo fade-in/out
+    // Trail packets: source→target one-way, respawn on arrival
     const viaCenter=window._routingRules&&window._routingRules.forceCoreTransit;
     pks.forEach(p=>{
-        if(!p.startCT||!p.endCT)return;
+        // Guard: hide packet if start/end nodes are missing (no 0,0,0 fallback)
+        if(!p.startCT||!p.endCT){p.mesh.visible=false;return;}
+        p.mesh.visible=true;
         const sp=new THREE.Vector3();p.startCT.getWorldPosition(sp);
         const ep=new THREE.Vector3();p.endCT.getWorldPosition(ep);
-        p.progress+=p.speed;
-        if(p.progress>=1.0){p.progress=1.0;p.speed*=-1;}
-        else if(p.progress<=0.0){p.progress=0.0;p.speed*=-1;}
+        // Linear one-way: 0→1, then respawn at random new path
+        p.progress+=Math.abs(p.speed);
+        if(p.progress>=1.0){
+            // Respawn: pick random CT pair from S
+            if(S.length>=2){
+                const a=S[Math.floor(Math.random()*S.length)];
+                let b=S[Math.floor(Math.random()*S.length)];
+                while(b.id===a.id&&S.length>1)b=S[Math.floor(Math.random()*S.length)];
+                p.startCT=Sg[a.id]?.children[1];p.endCT=Sg[b.id]?.children[1];
+                p.progress=0.0;
+                // Update galaxy center for via-center routing
+                if(viaCenter){
+                    const gCenter=Gg[a.g]?.children[0];
+                    if(gCenter){const wc=new THREE.Vector3();gCenter.getWorldPosition(wc);p._galaxyCenter=wc.clone();}
+                }
+                // Update label
+                const lbl=pkLabels.find(l=>l.p===p);
+                if(lbl)lbl.e.textContent=a.name.substring(0,2)+'→'+b.name.substring(0,2);
+            }else{
+                p.progress=0.0; // restart same path
+            }
+            p.history=[]; // clear trail
+        }
         // Via-center routing: source → galaxy center → target
         let curPos;
         if(viaCenter){
