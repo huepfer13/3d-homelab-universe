@@ -893,18 +893,12 @@ function beep(freq,dur,vol,type){const o=AC.createOscillator(),g=AC.createGain()
 function sfx(status){if(status==='error')beep(200,0.3,0.06,'square');else if(status==='success')beep(800,0.1,0.03,'sine');else if(status==='warning')beep(400,0.15,0.04,'triangle');}
 // ═══ CONFIG ASSISTANT (bilingual, cache, download, import) ═══
 let activeConfigData=null;
-const paramMeta={
-    galaxies:{de:"Liste aller Galaxien als physische Hubs im 3D-Raum.",en:"List of all galaxies acting as physical hubs in 3D space."},
-    systems:{de:"Geräte, VMs oder Container im Orbit der jeweiligen Galaxie.",en:"Physical devices, VMs, or containers orbiting the respective galaxy."},
-    capacityScore:{de:"Relative Rechenlast-Kapazität (0-150).",en:"Relative compute capacity score (0-150)."},
-    baseRadius:{de:"Basis-Radius des Halo-Rings.",en:"Base radius of the halo ring."},
-    color:{de:"Farbcode des Knotens (Hex/Integer).",en:"Color code of the node (hex/integer)."},
-    connections:{de:"Netzwerk-Verbindungen zwischen Systemen.",en:"Network connections between systems."},
-    packets:{de:"Datenpakete die zwischen Systemen fließen.",en:"Data packets flowing between systems."},
-    routingRules:{de:"Routing-Regeln (z.B. forceCoreTransit).",en:"Routing rules (e.g. forceCoreTransit)."},
-    globalConfig:{de:"Globale Schwellenwerte und Standards.",en:"Global thresholds and defaults."},
-    thresholds:{de:"Last-Schwellenwerte für Farbwechsel.",en:"Load thresholds for color changes."}
-};
+let paramMeta={}; // loaded from configs/param-meta.json
+
+async function loadParamMeta(){
+    try{const r=await fetch('configs/param-meta.json');paramMeta=await r.json();}
+    catch(e){console.warn('param-meta.json not loaded, using empty');}
+}
 
 function openConfigModal(){
     const cached=localStorage.getItem('homelab_custom_config');
@@ -994,6 +988,7 @@ function importConfig(e){
 
 document.getElementById('cfg-btn').addEventListener('click',openConfigModal);
 document.getElementById('cfg-close').addEventListener('click',closeConfigModal);
+loadParamMeta();
 initUniverse();
 // Periodic log cleanup every 60s
 setInterval(cleanupLog,60000);

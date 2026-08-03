@@ -1,0 +1,158 @@
+{
+  "galaxies": {
+    "de": "Liste aller Galaxien als physische Hubs im 3D-Raum.",
+    "en": "List of all galaxies acting as physical hubs in 3D space."
+  },
+  "systems": {
+    "de": "Geräte, VMs oder Container im Orbit der jeweiligen Galaxie.",
+    "en": "Physical devices, VMs, or containers orbiting the respective galaxy."
+  },
+  "capacityScore": {
+    "de": "Relative Rechenlast-Kapazität (0-150). Höhere Werte = größerer äußerer Kapazitätsring.",
+    "en": "Relative compute capacity score (0-150). Higher values = larger outer capacity ring."
+  },
+  "baseRadius": {
+    "de": "Basis-Radius des Halo-Rings in Einheiten.",
+    "en": "Base radius of the halo ring in units."
+  },
+  "color": {
+    "de": "Farbcode des Knotens als Integer (z.B. 65535 = Cyan, 16755200 = Orange).",
+    "en": "Color code of the node as integer (e.g. 65535 = Cyan, 16755200 = Orange)."
+  },
+  "x": {
+    "de": "X-Position im 3D-Raum relativ zum Galaxie-Zentrum.",
+    "en": "X-position in 3D space relative to galaxy center."
+  },
+  "y": {
+    "de": "Y-Position im 3D-Raum relativ zum Galaxie-Zentrum.",
+    "en": "Y-position in 3D space relative to galaxy center."
+  },
+  "z": {
+    "de": "Z-Position im 3D-Raum relativ zum Galaxie-Zentrum.",
+    "en": "Z-position in 3D space relative to galaxy center."
+  },
+  "r": {
+    "de": "Radius der Galaxie — bestimmt die Größe des Halos und die maximale Entfernung der Systeme.",
+    "en": "Galaxy radius — determines halo size and maximum system distance."
+  },
+  "name": {
+    "de": "Anzeigename im 3D-Raum und in der Legende.",
+    "en": "Display name in 3D space and legend."
+  },
+  "id": {
+    "de": "Eindeutige Kennung (wird für Verbindungen und Pakete referenziert).",
+    "en": "Unique identifier (referenced by connections and packets)."
+  },
+  "g": {
+    "de": "Galaxie-ID, zu der dieses System gehört.",
+    "en": "Galaxy ID this system belongs to."
+  },
+  "from": {
+    "de": "Quell-System-ID der Verbindung.",
+    "en": "Source system ID of the connection."
+  },
+  "to": {
+    "de": "Ziel-System-ID der Verbindung.",
+    "en": "Target system ID of the connection."
+  },
+  "protocol": {
+    "de": "Netzwerkprotokoll (https, mqtt, ssh, ping, dns, rdp). Bestimmt Farbe und Stil der Linie.",
+    "en": "Network protocol (https, mqtt, ssh, ping, dns, rdp). Determines line color and style."
+  },
+  "tunnel": {
+    "de": "Optionaler VPN-Tunnel-Name — zeichnet einen halbtransparenten 3D-Schlauch um die Verbindung.",
+    "en": "Optional VPN tunnel name — draws a semi-transparent 3D tube around the connection."
+  },
+  "status": {
+    "de": "Verbindungsstatus (active, ping). Active = durchgezogene Linie, Ping = gestrichelt.",
+    "en": "Connection status (active, ping). Active = solid line, Ping = dashed."
+  },
+  "style": {
+    "de": "Visuelle Stil-Definition (Linienart, Leuchtfarbe, Tunnel-Opazität).",
+    "en": "Visual style definition (line type, glow color, tube opacity)."
+  },
+  "speed": {
+    "de": "Geschwindigkeit des Datenpakets (0.001 = langsam, 0.005 = schnell).",
+    "en": "Packet speed (0.001 = slow, 0.005 = fast)."
+  },
+  "type": {
+    "de": "Paket-Typ (request/response/error). Request = Cyan, Response = Orange, Error = Rot.",
+    "en": "Packet type (request/response/error). Request = Cyan, Response = Orange, Error = Red."
+  },
+  "parentPacketId": {
+    "de": "ID des Anfrage-Pakets — verknüpft Antwort mit Request (Huckepack).",
+    "en": "Parent request packet ID — links response to request (piggyback)."
+  },
+  "payloadHistory": {
+    "de": "Verlauf der verarbeiteten Huckepack-Daten (Status pro Schritt).",
+    "en": "History of processed piggyback data (status per step)."
+  },
+  "trailLength": {
+    "de": "Länge der Nachrichtenspur in Frames (40 = kurz, 120 = lang).",
+    "en": "Trail length in frames (40 = short, 120 = long)."
+  },
+  "fadeEffect": {
+    "de": "Visueller Effekt beim Ziel (glow-to-core = Verglimmen zum Zentrum).",
+    "en": "Visual effect at target (glow-to-core = fade toward center)."
+  },
+  "forceCoreTransit": {
+    "de": "Erzwingt Routing der Pakete über das Galaxie-Zentrum statt direkter Linie.",
+    "en": "Forces packet routing via galaxy center instead of direct line."
+  },
+  "connections": {
+    "de": "Netzwerk-Verbindungen zwischen Systemen mit Protokoll- und Stil-Definition.",
+    "en": "Network connections between systems with protocol and style definition."
+  },
+  "packets": {
+    "de": "Datenpakete die zwischen Systemen fließen — Request/Response-Paare mit Huckepack.",
+    "en": "Data packets flowing between systems — request/response pairs with piggyback."
+  },
+  "routingRules": {
+    "de": "Globale Routing-Regeln (z.B. forceCoreTransit für Via-Center-Routing).",
+    "en": "Global routing rules (e.g. forceCoreTransit for via-center routing)."
+  },
+  "globalConfig": {
+    "de": "Globale Konfiguration: Standards für Nodes und Last-Schwellenwerte.",
+    "en": "Global configuration: node defaults and load thresholds."
+  },
+  "defaults": {
+    "de": "Standardwerte für alle Systeme (nodeCapacityScore, nodeColor).",
+    "en": "Default values for all systems (nodeCapacityScore, nodeColor)."
+  },
+  "thresholds": {
+    "de": "Last-Schwellenwerte für Farbwechsel der inneren Ringe (NORMAL/WARNING/CRITICAL).",
+    "en": "Load thresholds for inner ring color changes (NORMAL/WARNING/CRITICAL)."
+  },
+  "halos": {
+    "de": "Halo-Ring-Definitionen pro System (metricKey + baseRadius).",
+    "en": "Halo ring definitions per system (metricKey + baseRadius)."
+  },
+  "metricKey": {
+    "de": "Metrik-Schlüssel für den Halo (cpu, ram, storage, gpu, dns, etc.).",
+    "en": "Metric key for the halo (cpu, ram, storage, gpu, dns, etc.)."
+  },
+  "lineType": {
+    "de": "Linienart: solid (durchgezogen) oder dashed (gestrichelt).",
+    "en": "Line type: solid or dashed."
+  },
+  "glowColor": {
+    "de": "Leuchtfarbe der Linie als Hex-Code (z.B. #ffcc00 = Gold).",
+    "en": "Glow color of the line as hex code (e.g. #ffcc00 = Gold)."
+  },
+  "tubeOpacity": {
+    "de": "Opazität des VPN-Tunnel-Schlauchs (0.0 = unsichtbar, 1.0 = deckend).",
+    "en": "Opacity of the VPN tunnel tube (0.0 = invisible, 1.0 = opaque)."
+  },
+  "maxLoad": {
+    "de": "Schwellenwert für Last-Wechsel (z.B. 0.50 = bis 50% normal).",
+    "en": "Threshold for load change (e.g. 0.50 = up to 50% normal)."
+  },
+  "speedMultiplier": {
+    "de": "Puls-Geschwindigkeit bei dieser Laststufe (1.0 = normal, 4.5 = kritisch-schnell).",
+    "en": "Pulse speed at this load level (1.0 = normal, 4.5 = critical-fast)."
+  },
+  "label": {
+    "de": "Label der Laststufe (NORMAL, WARNING, CRITICAL).",
+    "en": "Label of the load level (NORMAL, WARNING, CRITICAL)."
+  }
+}
