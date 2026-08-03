@@ -996,7 +996,15 @@ function saveConfigToLive(){
     window._routingRules=activeConfigData.routingRules||{forceCoreTransit:false};
     closeConfigModal();
     // Direct rebuild with custom config
-    disposeAll();
+    // Cleanup scene
+    Object.values(Gg).forEach(g=>{U.remove(g);g.traverse(c=>{if(c.geometry)c.geometry.dispose();if(c.material)c.material.dispose();});});
+    Gg={}; G={}; S.forEach(s=>{s._innerRings=null;s._innerMats=null;}); S=[]; Sg={};
+    galaxyNames=[]; systemIds=[];
+    // Clear packets & tubes
+    pks.forEach(p=>{PkG.remove(p.mesh);if(p.tl)U.remove(p.tl);}); pks=[];
+    loopTubes.forEach(tb=>{U.remove(tb.mesh);}); loopTubes=[];
+    pkLabels.forEach(l=>l.e.remove()); pkLabels=[];
+    // Rebuild
     buildGalaxies(activeConfigData.galaxies||[]);
     buildSystems(activeConfigData.systems||[],activeConfigData.globalConfig?.thresholds||window._thresholds);
     buildRoutes(activeConfigData.galaxies||[]);
