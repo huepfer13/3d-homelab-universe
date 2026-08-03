@@ -586,10 +586,12 @@ function animate(){
     const thresholds=window._thresholds||[{maxLoad:0.50,color:'#00ffcc',speedMultiplier:1.0},{maxLoad:0.85,color:'#ffaa00',speedMultiplier:2.2},{maxLoad:1.00,color:'#ff3333',speedMultiplier:4.5}];
     S.forEach(s=>{
         if(!s._innerRings)return;
-        // Simulate drifting load
-        s._load+=s._loadDir*0.002*(0.5+Math.random());
-        if(s._load>=0.95){s._load=0.95;s._loadDir=-1;}
-        if(s._load<=0.05){s._load=0.05;s._loadDir=1;}
+        // Simulate drifting load (overridden by live API metrics)
+        if(!s._liveMetrics){
+            s._load+=s._loadDir*0.002*(0.5+Math.random());
+            if(s._load>=0.95){s._load=0.95;s._loadDir=-1;}
+            if(s._load<=0.05){s._load=0.05;s._loadDir=1;}
+        }
         // Find active threshold
         let activeTh=thresholds[0];
         for(let i=0;i<thresholds.length;i++){if(s._load<=thresholds[i].maxLoad){activeTh=thresholds[i];break;}}
@@ -729,6 +731,14 @@ async function fl(){
         if(d.pipeline&&d.pipeline.length>0){
             document.getElementById('node-count').textContent=((d.nodes||[]).filter(n=>n.online).length||3)+' Galaxies';
             document.getElementById('paperless-count').textContent=(d.paperless_docs||0)+' Documents';
+            // Inject live Prometheus metrics into system halos
+            if(d.nodes) d.nodes.forEach(n=>{
+                const sys=S.find(s=>s.id===n.id);
+                if(sys&&n.online){
+                    sys._load=n.cpu/100||0.15; // CPU drives inner ring
+                    sys._liveMetrics=n;
+                }
+            });
             document.getElementById('issue-count').textContent=(d.issues_open||5)+' Open';
             const lr=d.pipeline[0];const el2=document.getElementById('pl-badge');
             if(lr&&lr.conclusion){el2.textContent=(lr.conclusion==='success'?'●':'●')+' '+(lr.title||'Pipeline');el2.style.color=lr.conclusion==='success'?'#00ff88':'#ff4444';}
