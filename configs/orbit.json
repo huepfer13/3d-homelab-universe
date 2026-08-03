@@ -1,0 +1,60 @@
+{
+  "title": "ProxCluster — Equal Orbit Topology",
+  "version": "3.0-equal-orbit",
+  "globalConfig": {
+    "defaults": { "nodeCapacityScore": 100, "nodeColor": 65535 },
+    "thresholds": [
+      { "maxLoad": 0.50, "color": "#00ffcc", "speedMultiplier": 1.0, "label": "NORMAL" },
+      { "maxLoad": 0.85, "color": "#ffaa00", "speedMultiplier": 2.2, "label": "WARNING" },
+      { "maxLoad": 1.00, "color": "#ff3333", "speedMultiplier": 4.5, "label": "CRITICAL" }
+    ],
+    "orbitMode": true
+  },
+  "galaxies": [
+    { "id": "cluster",  "name": "Proxmox Compute Cluster", "x": -35, "y": 0, "z": -18, "r": 14, "color": 34543 },
+    { "id": "network",  "name": "Core Router & Switch",    "x":   0, "y": 0, "z": -20, "r": 11, "color": 43690 },
+    { "id": "ai",       "name": "AI & Agent Hub",          "x":  35, "y": 0, "z": -18, "r": 11, "color": 65535 },
+    { "id": "security", "name": "Network Security & VPN",   "x": -20, "y": 0, "z":  25, "r":  9, "color": 16755200 },
+    { "id": "iot",      "name": "Smart Home & IoT Edge",    "x":  20, "y": 0, "z":  25, "r":  9, "color": 16711935 }
+  ],
+  "systems": [
+    {"id":"proxmox","name":"Proxmox Master","g":"cluster","x":-12,"y":4,"z":-5,"capacityScore":140,"halos":[{"metricKey":"compute","baseRadius":6}],"color":65535},
+    {"id":"acemagic","name":"Acemagic Node","g":"cluster","x":6,"y":-6,"z":-7,"capacityScore":120,"halos":[{"metricKey":"compute","baseRadius":5.5}],"color":16755200},
+    {"id":"xshaka","name":"Xshaka Node","g":"cluster","x":4,"y":8,"z":-3,"capacityScore":90,"halos":[{"metricKey":"compute","baseRadius":4.5}],"color":65535},
+    {"id":"ct100","name":"paperless-ngx","g":"cluster","x":-8,"y":-3,"z":6,"capacityScore":110,"halos":[{"metricKey":"storage","baseRadius":5}],"color":65535},
+    {"id":"ct103","name":"paperless-ai","g":"cluster","x":9,"y":-1,"z":4,"capacityScore":80,"halos":[{"metricKey":"gpu","baseRadius":3.5}],"color":16755200},
+    {"id":"ct241","name":"gitea","g":"cluster","x":-5,"y":-8,"z":2,"capacityScore":90,"halos":[{"metricKey":"repo","baseRadius":4}],"color":65535},
+    {"id":"ct242","name":"nextcloud","g":"cluster","x":3,"y":3,"z":-8,"capacityScore":130,"halos":[{"metricKey":"storage","baseRadius":5.5}],"color":65535},
+    {"id":"ct101","name":"pihole","g":"network","x":-8,"y":5,"z":-3,"capacityScore":75,"halos":[{"metricKey":"dns","baseRadius":3.5}],"color":65535},
+    {"id":"ct251","name":"caddy-proxy","g":"network","x":6,"y":-4,"z":-5,"capacityScore":70,"halos":[{"metricKey":"proxy","baseRadius":3}],"color":16755200},
+    {"id":"ct250","name":"wireguard-vpn","g":"network","x":-4,"y":-7,"z":3,"capacityScore":65,"halos":[{"metricKey":"vpn","baseRadius":3}],"color":65535},
+    {"id":"ct108","name":"SearXNG","g":"network","x":3,"y":3,"z":-7,"capacityScore":60,"halos":[{"metricKey":"search","baseRadius":2.5}],"color":65535},
+    {"id":"ct102","name":"hermesagent","g":"ai","x":-7,"y":5,"z":-3,"capacityScore":110,"halos":[{"metricKey":"agent","baseRadius":5}],"color":65535},
+    {"id":"ct104","name":"ollama","g":"ai","x":6,"y":-4,"z":-5,"capacityScore":150,"halos":[{"metricKey":"gpu","baseRadius":5.5}],"color":16755200},
+    {"id":"ct105","name":"dashboard","g":"ai","x":-3,"y":-7,"z":3,"capacityScore":85,"halos":[{"metricKey":"web","baseRadius":4}],"color":65535},
+    {"id":"vm120","name":"Windows ETS6","g":"iot","x":-7,"y":5,"z":-2,"capacityScore":100,"halos":[{"metricKey":"cpu","baseRadius":4}],"color":16755200},
+    {"id":"vm106","name":"Home Assistant","g":"iot","x":5,"y":-4,"z":-4,"capacityScore":95,"halos":[{"metricKey":"automation","baseRadius":4}],"color":16711935},
+    {"id":"shelly","name":"Shelly IoT","g":"iot","x":-3,"y":-7,"z":3,"capacityScore":55,"halos":[{"metricKey":"energy","baseRadius":2.5}],"color":65535}
+  ],
+  "connections": [
+    {"from":"proxmox","to":"acemagic","protocol":"https","status":"active","style":{"lineType":"solid","glowColor":"#3388ff"}},
+    {"from":"proxmox","to":"xshaka","protocol":"https","status":"active","style":{"lineType":"solid","glowColor":"#3388ff"}},
+    {"from":"ct100","to":"ct104","protocol":"https","status":"active","style":{"lineType":"solid","glowColor":"#ffcc00"}},
+    {"from":"ct102","to":"ct104","protocol":"https","status":"active","style":{"lineType":"solid","glowColor":"#ffcc00"}},
+    {"from":"ct241","to":"ct251","protocol":"https","tunnel":"caddy-tls","status":"active","style":{"lineType":"dashed","glowColor":"#ffcc00","tubeOpacity":0.15}},
+    {"from":"ct101","to":"ct250","protocol":"dns","status":"active","style":{"lineType":"solid","glowColor":"#3388ff"}},
+    {"from":"vm106","to":"shelly","protocol":"mqtt","status":"active","style":{"lineType":"solid","glowColor":"#00ffcc"}},
+    {"from":"ct105","to":"ct102","protocol":"ping","status":"ping","style":{"lineType":"dashed","glowColor":"#334455"}},
+    {"from":"acemagic","to":"ct104","protocol":"https","status":"active","style":{"lineType":"solid","glowColor":"#ffcc00"}},
+    {"from":"xshaka","to":"ct105","protocol":"https","status":"active","style":{"lineType":"solid","glowColor":"#00ffcc"}}
+  ],
+  "routingRules": { "forceCoreTransit": true },
+  "packets": [
+    {"id":"pkg-ocr-1","type":"request","title":"OCR Classify","from":"ct100","to":"ct104","speed":0.003,"style":{"color":"#00ffcc","trailLength":60}},
+    {"id":"pkg-ocr-2","type":"response","title":"Classification OK","from":"ct104","to":"ct100","parentPacketId":"pkg-ocr-1","payloadHistory":[{"id":"pkg-ocr-1","status":"classified"}],"speed":0.0035,"style":{"color":"#ffaa00","trailLength":80,"fadeEffect":"glow-to-core"}},
+    {"id":"pkg-llm-1","type":"request","title":"LLM Inference","from":"ct102","to":"ct104","speed":0.003,"style":{"color":"#00ffcc","trailLength":55}},
+    {"id":"pkg-llm-2","type":"response","title":"Inference Done","from":"ct104","to":"ct102","parentPacketId":"pkg-llm-1","payloadHistory":[{"id":"pkg-llm-1","status":"completed"}],"speed":0.0035,"style":{"color":"#ffaa00","trailLength":75,"fadeEffect":"glow-to-core"}},
+    {"id":"pkg-iot-1","type":"request","title":"Energy Query","from":"vm106","to":"shelly","speed":0.002,"style":{"color":"#00ffcc","trailLength":40}},
+    {"id":"pkg-iot-2","type":"response","title":"Power: 342W","from":"shelly","to":"vm106","parentPacketId":"pkg-iot-1","payloadHistory":[{"id":"pkg-iot-1","status":"ok"}],"speed":0.0025,"style":{"color":"#ffaa00","trailLength":65,"fadeEffect":"glow-to-core"}}
+  ]
+}

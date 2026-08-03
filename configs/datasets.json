@@ -7,6 +7,11 @@
       "file": "./configs/homelab.json"
     },
     {
+      "id": "orbit",
+      "name": "ProxCluster Equal Orbit",
+      "file": "./configs/orbit.json"
+    },
+    {
       "id": "finance",
       "name": "Financial Flows & Assets",
       "file": "./configs/finance.json"

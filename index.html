@@ -586,7 +586,10 @@ function animate(){
     // Galaxy load rings: pulse color green→orange→red
     Object.entries(G).forEach(([id,g])=>{if(g._ring){g._ring.scale.setScalar(0.9+Math.sin(t*3)*0.15);g._ring.material.opacity=0.2+Math.sin(t*3)*0.1;}});
     Object.values(Gg).forEach(g=>g.rotation.y=Math.sin(t*0.12)*0.3);
-    Object.values(Sg).forEach(s=>s.rotation.y=Math.sin(t*0.18)*0.4);
+    // Orbit systems around galaxy centers (equal-orbit topology)
+    Object.values(Sg).forEach(s=>{
+        s.rotation.y+=0.003; // continuous slow orbit
+    });
 
     // ═══ THRESHOLD-DRIVEN DUAL HALOS ═══
     const thresholds=window._thresholds||[{maxLoad:0.50,color:'#00ffcc',speedMultiplier:1.0},{maxLoad:0.85,color:'#ffaa00',speedMultiplier:2.2},{maxLoad:1.00,color:'#ff3333',speedMultiplier:4.5}];
