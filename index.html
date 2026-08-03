@@ -123,13 +123,28 @@ scene=new THREE.Scene();
 cam=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,0.1,1200);cam.position.set(0,25,70);cam.lookAt(0,0,-12);
 U=new THREE.Group();scene.add(U);
 PkG=new THREE.Group();U.add(PkG);
-// WebGL renderer — may fail in headless browsers or if CDN is slow
-try{
-if(typeof THREE==='undefined')throw new Error('THREE not loaded');
-R=new THREE.WebGLRenderer({antialias:true});R.setSize(innerWidth,innerHeight);R.setPixelRatio(devicePixelRatio);R.setClearColor(0x0a0a2e);C.appendChild(R.domElement);
-}catch(e){console.warn('WebGL unavailable — simulation mode',e.message);R=null;
-document.body.insertAdjacentHTML('beforeend','<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);color:#0fc;font-size:18px;text-align:center;z-index:5;pointer-events:none"><div style="font-size:48px;margin-bottom:10px">◈</div>Simulation Active<br><span style="font-size:11px;opacity:.6">3D rendering unavailable<br>Events &amp; metrics are live</span></div>');
+// WebGL renderer with auto-retry + context loss recovery
+function initWebGL(){
+    try{
+        if(typeof THREE==='undefined')throw new Error('THREE not loaded');
+        R=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
+        R.setSize(innerWidth,innerHeight);R.setPixelRatio(devicePixelRatio);R.setClearColor(0x0a0a2e);C.appendChild(R.domElement);
+        R.domElement.addEventListener('webglcontextlost',function(e){e.preventDefault();});
+        R.domElement.addEventListener('webglcontextrestored',function(){});
+        return true;
+    }catch(e){console.warn('WebGL unavailable',e.message);R=null;
+        document.body.insertAdjacentHTML('beforeend','<div id="webgl-fallback" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);color:#0fc;font-size:18px;text-align:center;z-index:5;"><div style="font-size:48px;margin-bottom:10px">◈</div>3D nicht verfügbar<br><span style="font-size:11px;opacity:.6">Events & Metriken sind live</span><br><button onclick="retryWebGL()" style="margin-top:12px;background:rgba(0,255,136,0.15);border:1px solid #0fc;color:#0fc;padding:6px 16px;border-radius:4px;cursor:pointer;font-family:monospace;">3D neu starten</button></div>');
+        setTimeout(retryWebGL,3000);return false;
+    }
 }
+function retryWebGL(){
+    const fb=document.getElementById('webgl-fallback');if(fb)fb.remove();
+    if(initWebGL()){
+        controls=new THREE.OrbitControls(cam,R.domElement);controls.enableDamping=true;controls.dampingFactor=0.08;
+        if(!G||!Object.keys(G).length)initUniverse();
+    }
+}
+if(!initWebGL()){/* fallback active */}
 
 if(R){
 controls=new THREE.OrbitControls(cam,R.domElement);
