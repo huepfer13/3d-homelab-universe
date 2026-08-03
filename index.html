@@ -728,7 +728,7 @@ function animate(){
                 }
                 // Update label
                 const lbl=pkLabels.find(l=>l.p===p);
-                if(lbl)lbl.e.textContent=a.name.substring(0,2)+'→'+b.name.substring(0,2);
+                if(lbl)lbl.e.textContent=a.name;
             }else{
                 p.progress=0.0; // restart same path
             }
