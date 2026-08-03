@@ -141,7 +141,7 @@ function mkPkt(type,title,status,sx,sy,sz,ex,ey,ez,spd){
     mesh.userData={title,status,type:cfg.n,color:'#'+cfg.c.toString(16).padStart(6,'0')};
     PkG.add(mesh);
     const tp=new Float32Array(TL*3);const tg=new THREE.BufferGeometry();tg.setAttribute('position',new THREE.BufferAttribute(tp,3));
-    const tl=new THREE.Line(tg,new THREE.LineBasicMaterial({color:cfg.c,transparent:true,opacity:0.55,blending:THREE.AdditiveBlending}));
+    const tl=new THREE.Line(tg,new THREE.LineBasicMaterial({color:cfg.c,transparent:true,opacity:0.7}));
     PkG.add(tl);
     const pk={mesh,startCT:null,endCT:null,tl,tg,progress:Math.random(),speed:spd||0.003,logged:false,history:[]};
     pks.push(pk);
@@ -156,7 +156,7 @@ Object.entries(G).forEach(([id,g])=>{
     // Compact core (small, bright)
     gr.add(new THREE.Mesh(new THREE.SphereGeometry(0.9,16,16),new THREE.MeshStandardMaterial({color:g.color,emissive:g.color,emissiveIntensity:1.0,roughness:0.05})));
     // 3D Multi-Axis Halo: 3 orthogonal rings (XY, XZ, YZ)
-    const rR=g.r,wR=g.r*0.15,rM=new THREE.MeshBasicMaterial({color:g.color,transparent:true,opacity:0.25,side:2,blending:THREE.AdditiveBlending});
+    const rR=g.r,wR=g.r*0.15,rM=new THREE.MeshBasicMaterial({color:g.color,transparent:true,opacity:0.8,side:2});
     [0,Math.PI/2,Math.PI/2].forEach((rot,idx)=>{
         const ring=new THREE.Mesh(new THREE.RingGeometry(rR-wR,rR,48),rM);
         if(idx===0)ring.rotation.x=Math.PI/2;
@@ -192,7 +192,7 @@ S.forEach(s=>{
     const pos=new THREE.Vector3(s.x,s.y,s.z);
     clampToParent(pos,G[s.g].r);sg.position.copy(pos);p.add(sg);Sg[s.id]=sg;
     // 3D Multi-Axis Ring-Bubble (XY/XZ/YZ)
-    const rR=s.r,wR=s.r*0.15,rM=new THREE.MeshBasicMaterial({color:s.c,transparent:true,opacity:0.15,side:2,blending:THREE.AdditiveBlending});
+    const rR=s.r,wR=s.r*0.15,rM=new THREE.MeshBasicMaterial({color:s.c,transparent:true,opacity:0.6,side:2});
     [0,Math.PI/2,Math.PI/2].forEach((rot,idx)=>{
         const ring=new THREE.Mesh(new THREE.RingGeometry(rR-wR,rR,32),rM);
         if(idx===0)ring.rotation.x=Math.PI/2;
