@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <title>3D Universe Demo</title>
 <style>
-body{margin:0;padding:0;overflow:hidden;width:100vw;height:100vh;background:#0a0a2e;font-family:'Segoe UI',Tahoma,sans-serif;color:#00ffcc;}
+body{margin:0;padding:0;overflow:hidden;width:100vw;height:100vh;background:#020208;font-family:'Segoe UI',Tahoma,sans-serif;color:#00ffcc;}
 #canvas-container{position:absolute;top:0;left:0;width:100vw;height:100vh;display:block;}
 #hud{position:absolute;top:20px;left:20px;background:rgba(5,10,25,0.9);border:1px solid #00ffcc44;padding:15px 20px;border-radius:8px;pointer-events:none;z-index:10;max-width:340px;}
 h1{font-size:16px;margin:0 0 10px;color:#fff;letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid #00ffcc33;padding-bottom:5px;}
@@ -101,25 +101,18 @@ function rnd(arr){return arr[Math.floor(Math.random()*arr.length)];}
 function simNode(n){return NODES[n%NODES.length];}
 function simCT(){return 'Node-'+String.fromCharCode(65+Math.floor(Math.random()*NODES.length))+String(1+Math.floor(Math.random()*CT_PER_NODE));}
 
-// Check if Three.js loaded
-if(typeof THREE==='undefined'){
-    document.body.innerHTML='<div style="text-align:center;color:#faa;padding-top:40vh;font-family:monospace">⚠ Three.js CDN not loaded<br><a href="./" style="color:#fa0">Open text simulation</a></div>';
-}else{
-
 // ═══ THREE.JS 3D SCENE ═══
 let R,scene,cam,controls,U,PkG;
 // Scene objects always created (independent of WebGL)
 const C=document.getElementById('canvas-container');
-scene=new THREE.Scene();
-cam=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,0.1,1200);cam.position.set(0,25,70);cam.lookAt(0,0,-12);
+scene=new THREE.Scene();scene.fog=new THREE.FogExp2(0x020208,0.01);
+cam=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,0.1,1200);cam.position.set(0,20,65);cam.lookAt(0,-6,0);
 U=new THREE.Group();scene.add(U);
 PkG=new THREE.Group();U.add(PkG);
 // WebGL renderer — may fail in headless browsers
 try{
-R=new THREE.WebGLRenderer({antialias:true});R.setSize(innerWidth,innerHeight);R.setPixelRatio(devicePixelRatio);R.setClearColor(0x0a0a2e);C.appendChild(R.domElement);
-}catch(e){console.warn('WebGL unavailable — simulation mode');R=null;
-document.body.insertAdjacentHTML('beforeend','<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);color:#0fc;font-size:18px;text-align:center;z-index:5;pointer-events:none"><div style="font-size:48px;margin-bottom:10px">◈</div>Simulation Active<br><span style="font-size:11px;opacity:.6">3D rendering unavailable<br>Events &amp; metrics are live</span></div>');
-}
+R=new THREE.WebGLRenderer({antialias:true});R.setSize(innerWidth,innerHeight);R.setPixelRatio(devicePixelRatio);C.appendChild(R.domElement);
+}catch(e){console.warn('WebGL unavailable — simulation mode');R=null;}
 
 if(R){
 controls=new THREE.OrbitControls(cam,R.domElement);
@@ -148,7 +141,7 @@ function mkPkt(type,title,status,sx,sy,sz,ex,ey,ez,spd){
     mesh.userData={title,status,type:cfg.n,color:'#'+cfg.c.toString(16).padStart(6,'0')};
     PkG.add(mesh);
     const tp=new Float32Array(TL*3);const tg=new THREE.BufferGeometry();tg.setAttribute('position',new THREE.BufferAttribute(tp,3));
-    const tl=new THREE.Line(tg,new THREE.LineBasicMaterial({color:cfg.c,transparent:true,opacity:0.7}));
+    const tl=new THREE.Line(tg,new THREE.LineBasicMaterial({color:cfg.c,transparent:true,opacity:0.55,blending:THREE.AdditiveBlending}));
     PkG.add(tl);
     const pk={mesh,startCT:null,endCT:null,tl,tg,progress:Math.random(),speed:spd||0.003,logged:false,history:[]};
     pks.push(pk);
@@ -163,7 +156,7 @@ Object.entries(G).forEach(([id,g])=>{
     // Compact core (small, bright)
     gr.add(new THREE.Mesh(new THREE.SphereGeometry(0.9,16,16),new THREE.MeshStandardMaterial({color:g.color,emissive:g.color,emissiveIntensity:1.0,roughness:0.05})));
     // 3D Multi-Axis Halo: 3 orthogonal rings (XY, XZ, YZ)
-    const rR=g.r,wR=g.r*0.15,rM=new THREE.MeshBasicMaterial({color:g.color,transparent:true,opacity:0.8,side:2});
+    const rR=g.r,wR=g.r*0.15,rM=new THREE.MeshBasicMaterial({color:g.color,transparent:true,opacity:0.25,side:2,blending:THREE.AdditiveBlending});
     [0,Math.PI/2,Math.PI/2].forEach((rot,idx)=>{
         const ring=new THREE.Mesh(new THREE.RingGeometry(rR-wR,rR,48),rM);
         if(idx===0)ring.rotation.x=Math.PI/2;
@@ -199,7 +192,7 @@ S.forEach(s=>{
     const pos=new THREE.Vector3(s.x,s.y,s.z);
     clampToParent(pos,G[s.g].r);sg.position.copy(pos);p.add(sg);Sg[s.id]=sg;
     // 3D Multi-Axis Ring-Bubble (XY/XZ/YZ)
-    const rR=s.r,wR=s.r*0.15,rM=new THREE.MeshBasicMaterial({color:s.c,transparent:true,opacity:0.6,side:2});
+    const rR=s.r,wR=s.r*0.15,rM=new THREE.MeshBasicMaterial({color:s.c,transparent:true,opacity:0.15,side:2,blending:THREE.AdditiveBlending});
     [0,Math.PI/2,Math.PI/2].forEach((rot,idx)=>{
         const ring=new THREE.Mesh(new THREE.RingGeometry(rR-wR,rR,32),rM);
         if(idx===0)ring.rotation.x=Math.PI/2;
@@ -401,7 +394,18 @@ function simMsg(){
 // Start 1s message sim
 setInterval(simMsg,1000);
 async function fl(){
-    // Simulation first — always update immediately (API may take seconds)
+    // Try real API first
+    try{const r=await fetch('./api/universe-state');const d=await r.json();
+        if(d.pipeline&&d.pipeline.length>0){
+            document.getElementById('node-count').textContent=((d.nodes||[]).filter(n=>n.online).length||3)+' Galaxies';
+            document.getElementById('paperless-count').textContent=(d.paperless_docs||0)+' Documents';
+            document.getElementById('issue-count').textContent=(d.issues_open||5)+' Open';
+            const lr=d.pipeline[0];const el=document.getElementById('pl-badge');
+            if(lr&&lr.conclusion){el.textContent=(lr.conclusion==='success'?'●':'●')+' '+(lr.title||'Pipeline');el.style.color=lr.conclusion==='success'?'#00ff88':'#ff4444';}
+            return; // Real data — skip simulation
+        }
+    }catch(e){}
+    // Simulation fallback for demo (metrics only — events are via simMsg)
     simCount++;
     document.getElementById('node-count').textContent='5 Nodes';
     document.getElementById('paperless-count').textContent='Demo Mode';
@@ -410,16 +414,6 @@ async function fl(){
     const el=document.getElementById('pl-badge');
     el.textContent='● '+(st==='success'?'Monitoring':st==='error'?'Fehler':'Warning');
     el.style.color=st==='success'?'#00ff88':st==='error'?'#ff4444':'#ffaa00';
-    // Try real API (async, non-blocking)
-    try{const r=await fetch('./api/universe-state');const d=await r.json();
-        if(d.pipeline&&d.pipeline.length>0){
-            document.getElementById('node-count').textContent=((d.nodes||[]).filter(n=>n.online).length||3)+' Galaxies';
-            document.getElementById('paperless-count').textContent=(d.paperless_docs||0)+' Documents';
-            document.getElementById('issue-count').textContent=(d.issues_open||5)+' Open';
-            const lr=d.pipeline[0];const el2=document.getElementById('pl-badge');
-            if(lr&&lr.conclusion){el2.textContent=(lr.conclusion==='success'?'●':'●')+' '+(lr.title||'Pipeline');el2.style.color=lr.conclusion==='success'?'#00ff88':'#ff4444';}
-        }
-    }catch(e){}
 }
 function logMsg(txt,level,targetId){
     addEventTask({text:txt,status:level==='error'?'error':level==='warning'?'warning':level==='success'?'success':'pending',startTime:new Date().toLocaleTimeString(),sourceUrl:targetId?targetId:null});
@@ -510,7 +504,7 @@ fl();setInterval(fl,30000);
 setTimeout(()=>{
     addEventTask({text:'Universe initialisiert',status:'success',startTime:new Date().toLocaleTimeString(),endTime:new Date().toLocaleTimeString(),ghost:false,sourceUrl:null});
 },1500);
-window.addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();if(R)R.setSize(innerWidth,innerHeight);});
+window.addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();R.setSize(innerWidth,innerHeight);});
 
 // ═══ CLICK-TO-CENTER: Universe verschiebt sich zum angeklickten Objekt ═══
 let camTarget=new THREE.Vector3(0,0,0),camDirty=false,uniOffset=new THREE.Vector3(0,0,0);
@@ -529,7 +523,6 @@ window.addEventListener('click',e=>{
     }
 });
 window.addEventListener('dblclick',e=>{uniOffset.set(0,0,0);camTarget.set(0,0,0);camDirty=true;});
-} // end if(typeof THREE!=='undefined')
 </script>
 </body>
 </html>
