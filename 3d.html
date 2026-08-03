@@ -149,7 +149,7 @@ function mkPkt(type,title,status,sx,sy,sz,ex,ey,ez,spd){
 }
 
 // ═══ GALAXIES ═══
-const G={alpha:{x:-28,y:0,z:-10,color:0x0088ff,name:'🪐 Alpha',r:12},beta:{x:0,y:0,z:-16,color:0x0088ff,name:'🪐 Beta',r:13},gamma:{x:28,y:0,z:-10,color:0x0088ff,name:'🪐 Gamma',r:12}};
+const G={alpha:{x:-40,y:0,z:-15,color:0x0088ff,name:'🪐 Alpha',r:10},beta:{x:-20,y:0,z:-10,color:0x3388ff,name:'🪐 Beta',r:10},gamma:{x:0,y:0,z:-16,color:0x00aaff,name:'🪐 Gamma',r:11},delta:{x:20,y:0,z:-10,color:0x3388ff,name:'🪐 Delta',r:10},epsilon:{x:40,y:0,z:-15,color:0x0088ff,name:'🪐 Epsilon',r:10}};
 const Gg={};
 Object.entries(G).forEach(([id,g])=>{
     const gr=new THREE.Group();gr.position.set(g.x,g.y,g.z);U.add(gr);Gg[id]=gr;
@@ -173,31 +173,31 @@ function clampToParent(pos,parentR){const max=parentR*0.85;if(pos.length()>max)p
 
 // ═══ SOLAR SYSTEMS (inside galaxies) ═══
 const S=[
-    {id:'a1',g:'alpha',x:-5,y:5,z:-3,r:4,name:'ἱ0 A1',c:0x00ffcc},
-    {id:'a2',g:'alpha',x:5,y:-4,z:-3,r:4,name:'὎6 A2',c:0x00ffcc},
-    {id:'a3',g:'alpha',x:-3,y:-6,z:2,r:3,name:'ὑ2 A3',c:0x00ffcc},
+    {id:'a1',g:'alpha',x:-5,y:5,z:-3,r:4,name:'🌐 A1',c:0x00ffcc},
+    {id:'a2',g:'alpha',x:5,y:-4,z:-3,r:4,name:'📦 A2',c:0x00ffcc},
+    {id:'a3',g:'alpha',x:-3,y:-6,z:2,r:3,name:'🔒 A3',c:0x00ffcc},
     {id:'a4',g:'alpha',x:6,y:4,z:2,r:3,name:'⚙ A4',c:0xffaa00},
-    {id:'a5',g:'alpha',x:0,y:7,z:-1,r:3,name:'Ὄa A5',c:0xffaa00},
-    {id:'b1',g:'beta',x:-5,y:5,z:-3,r:4,name:'ἱ0 B1',c:0x00ffcc},
-    {id:'b2',g:'beta',x:5,y:-4,z:-3,r:4,name:'὎6 B2',c:0x00ffcc},
-    {id:'b3',g:'beta',x:-3,y:-6,z:2,r:3,name:'ὑ2 B3',c:0x00ffcc},
+    {id:'a5',g:'alpha',x:0,y:7,z:-1,r:3,name:'📊 A5',c:0xffaa00},
+    {id:'b1',g:'beta',x:-5,y:5,z:-3,r:4,name:'🌐 B1',c:0x00ffcc},
+    {id:'b2',g:'beta',x:5,y:-4,z:-3,r:4,name:'📦 B2',c:0x00ffcc},
+    {id:'b3',g:'beta',x:-3,y:-6,z:2,r:3,name:'🔒 B3',c:0x00ffcc},
     {id:'b4',g:'beta',x:6,y:4,z:2,r:3,name:'⚙ B4',c:0xffaa00},
-    {id:'b5',g:'beta',x:0,y:7,z:-1,r:3,name:'Ὄa B5',c:0xffaa00},
-    {id:'c1',g:'gamma',x:-5,y:5,z:-3,r:4,name:'ἱ0 C1',c:0x00ffcc},
-    {id:'c2',g:'gamma',x:5,y:-4,z:-3,r:4,name:'὎6 C2',c:0x00ffcc},
-    {id:'c3',g:'gamma',x:-3,y:-6,z:2,r:3,name:'ὑ2 C3',c:0x00ffcc},
+    {id:'b5',g:'beta',x:0,y:7,z:-1,r:3,name:'📊 B5',c:0xffaa00},
+    {id:'c1',g:'gamma',x:-5,y:5,z:-3,r:4,name:'🌐 C1',c:0x00ffcc},
+    {id:'c2',g:'gamma',x:5,y:-4,z:-3,r:4,name:'📦 C2',c:0x00ffcc},
+    {id:'c3',g:'gamma',x:-3,y:-6,z:2,r:3,name:'🔒 C3',c:0x00ffcc},
     {id:'c4',g:'gamma',x:6,y:4,z:2,r:3,name:'⚙ C4',c:0xffaa00},
-    {id:'c5',g:'gamma',x:0,y:7,z:-1,r:3,name:'Ὄa C5',c:0xffaa00},
-    {id:'d1',g:'delta',x:-5,y:5,z:-3,r:4,name:'ἱ0 D1',c:0x00ffcc},
-    {id:'d2',g:'delta',x:5,y:-4,z:-3,r:4,name:'὎6 D2',c:0x00ffcc},
-    {id:'d3',g:'delta',x:-3,y:-6,z:2,r:3,name:'ὑ2 D3',c:0x00ffcc},
+    {id:'c5',g:'gamma',x:0,y:7,z:-1,r:3,name:'📊 C5',c:0xffaa00},
+    {id:'d1',g:'delta',x:-5,y:5,z:-3,r:4,name:'🌐 D1',c:0x00ffcc},
+    {id:'d2',g:'delta',x:5,y:-4,z:-3,r:4,name:'📦 D2',c:0x00ffcc},
+    {id:'d3',g:'delta',x:-3,y:-6,z:2,r:3,name:'🔒 D3',c:0x00ffcc},
     {id:'d4',g:'delta',x:6,y:4,z:2,r:3,name:'⚙ D4',c:0xffaa00},
-    {id:'d5',g:'delta',x:0,y:7,z:-1,r:3,name:'Ὄa D5',c:0xffaa00},
-    {id:'e1',g:'epsilon',x:-5,y:5,z:-3,r:4,name:'ἱ0 E1',c:0x00ffcc},
-    {id:'e2',g:'epsilon',x:5,y:-4,z:-3,r:4,name:'὎6 E2',c:0x00ffcc},
-    {id:'e3',g:'epsilon',x:-3,y:-6,z:2,r:3,name:'ὑ2 E3',c:0x00ffcc},
+    {id:'d5',g:'delta',x:0,y:7,z:-1,r:3,name:'📊 D5',c:0xffaa00},
+    {id:'e1',g:'epsilon',x:-5,y:5,z:-3,r:4,name:'🌐 E1',c:0x00ffcc},
+    {id:'e2',g:'epsilon',x:5,y:-4,z:-3,r:4,name:'📦 E2',c:0x00ffcc},
+    {id:'e3',g:'epsilon',x:-3,y:-6,z:2,r:3,name:'🔒 E3',c:0x00ffcc},
     {id:'e4',g:'epsilon',x:6,y:4,z:2,r:3,name:'⚙ E4',c:0xffaa00},
-    {id:'e5',g:'epsilon',x:0,y:7,z:-1,r:3,name:'Ὄa E5',c:0xffaa00}
+    {id:'e5',g:'epsilon',x:0,y:7,z:-1,r:3,name:'📊 E5',c:0xffaa00}
 ];
 const Sg={};
 S.forEach(s=>{
