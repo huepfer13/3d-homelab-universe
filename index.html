@@ -1,529 +1,75 @@
-<!DOCTYPE html>
-<html lang="de">
-<head>
-<meta charset="UTF-8">
-<title>3D Universe Demo</title>
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Homelab Universe</title>
 <style>
-body{margin:0;padding:0;overflow:hidden;width:100vw;height:100vh;background:#0a0a2e;font-family:'Segoe UI',Tahoma,sans-serif;color:#00ffcc;}
-#canvas-container{position:absolute;top:0;left:0;width:100vw;height:100vh;display:block;}
-#hud{position:absolute;top:20px;left:20px;background:rgba(5,10,25,0.9);border:1px solid #00ffcc44;padding:15px 20px;border-radius:8px;pointer-events:none;z-index:10;max-width:340px;}
-h1{font-size:16px;margin:0 0 10px;color:#fff;letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid #00ffcc33;padding-bottom:5px;}
-.metric{font-size:13px;margin-bottom:6px;display:flex;justify-content:space-between;}
-.metric span{color:#fff;font-weight:bold;}
-#crosshair{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:30px;height:30px;border:1px solid rgba(0,255,204,0.3);border-radius:50%;pointer-events:none;z-index:25;}
-#crosshair::before,#crosshair::after{content:'';position:absolute;background:rgba(0,255,204,0.15);}
-#crosshair::before{top:50%;left:0;right:0;height:1px;transform:translateY(-50%);}
-#crosshair::after{left:50%;top:0;bottom:0;width:1px;transform:translateX(-50%);}
-.node-label{position:absolute;left:0;top:0;background:rgba(5,10,20,0.85);border:1px solid #00ffcc44;color:#00ffcc;padding:3px 10px;font-size:10px;border-radius:4px;pointer-events:none;white-space:nowrap;z-index:5;transform:translate(-50%,-100%);text-shadow:0 0 6px rgba(0,255,204,0.5);}
-#tooltip{position:absolute;display:none;background:rgba(10,5,25,0.95);border:1px solid #ff00ff;color:#fff;padding:10px 14px;font-size:12px;border-radius:6px;pointer-events:none;z-index:20;box-shadow:0 0 20px rgba(255,0,255,0.5);max-width:280px;}
-#tooltip .title{color:#ff00ff;font-weight:bold;margin-bottom:4px;font-size:13px;}
-#tooltip .meta{color:#aaa;font-size:11px;}
-.packet-label{position:absolute;left:0;top:0;background:rgba(10,5,15,0.9);border:1px solid rgba(255,0,255,0.4);color:#ffccff;padding:1px 4px;font-size:9px;border-radius:3px;pointer-events:none;white-space:nowrap;transform:translate(8px,-8px);z-index:10;}
-.legend-toggle:hover{color:#fff!important}.legend-subitem:hover{color:#0fc!important;text-shadow:0 0 5px rgba(0,255,204,.6);padding-left:3px!important;transition:all .15s ease;}
-.task-item{margin:3px 0;padding:4px 6px;border-radius:3px;font-size:10px;cursor:pointer;transition:all .2s;}
-.task-success{border:1px solid #0f8;background:rgba(0,255,136,.08);box-shadow:0 0 6px rgba(0,255,136,.25);color:#0f8;}
-.task-error{border:1px solid #f33;background:rgba(255,51,51,.12);box-shadow:0 0 10px rgba(255,51,51,.5);color:#f33;animation:pulse-red 1.5s infinite;}
-.task-warning{border:1px solid #fa0;background:rgba(255,170,0,.08);box-shadow:0 0 6px rgba(255,170,0,.25);color:#fa0;}
-.task-pending{border:1px solid #666;background:rgba(100,100,100,.08);color:#aaa;}
-@keyframes pulse-red{0%,100%{box-shadow:0 0 5px rgba(255,51,51,.3)}50%{box-shadow:0 0 15px rgba(255,51,51,.8)}}
-.task-children{padding-left:12px;margin-top:2px;border-left:1px dashed rgba(0,255,204,.25);display:none;}
-.task-item:hover{filter:brightness(1.2);}
-</style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js"></script>
-</head>
-<body>
-<div id="hud"><h1>3D Universe</h1>
-<div style="font-size:10px;color:#00ffcc;margin:-5px 0 8px;opacity:.7;">Interactive Demo</div>
-<div class="metric">Nodes: <span id="node-count" style="color:#0088ff;">5 Nodes</span></div>
-<div class="metric">CTs/VMs: <span id="ct-count" style="color:#00ffcc;">Demo</span></div>
-<div class="metric">Pipeline: <span id="pl-badge" style="color:#00ff88;">● Simulation</span></div>
-<div class="metric">Documents: <span id="paperless-count" style="color:#ffaa00;">—</span></div>
-<div class="metric">Issues: <span id="issue-count" style="color:#ff00ff;">—</span></div>
-<div style="margin-top:10px;border-top:1px solid rgba(0,255,204,.2);padding-top:8px;">
-<button id="center-btn" style="width:100%;background:rgba(0,255,204,.15);border:1px solid #0fc;color:#0fc;padding:5px;border-radius:4px;cursor:pointer;font-family:monospace;font-size:11px;font-weight:bold;">⌖ CENTER UNIVERSE</button>
-</div>
-<div style="margin-top:6px;"><button id="cfg-btn" style="width:100%;background:rgba(0,255,204,.1);border:1px solid rgba(0,255,204,.5);color:#0fc;padding:5px;border-radius:4px;cursor:pointer;font-family:monospace;font-size:11px;">⚙ KONFIG & HILFE</button>
-</div></div>
-<div id="legend-acc" style="margin-top:10px;border-top:1px solid rgba(0,255,204,.2);padding-top:8px;font-family:monospace;font-size:10px;pointer-events:auto;">
-<div style="font-weight:bold;color:#0fc;margin-bottom:6px;">HOMELAB HIERARCHIE</div>
-<div><div class="legend-toggle" onclick="tgl('sub-gal')" style="cursor:pointer;color:#08f;padding:3px 0;">▶ Galaxien (3)</div>
-<div id="sub-gal" style="display:none;padding-left:12px;border-left:1px solid rgba(0,136,255,.3);margin-left:4px;">
-<div class="legend-subitem" onclick="focusNode('galaxy-alpha')" style="cursor:pointer;color:#fff;padding:2px 0;">• Galaxy Alpha</div>
-<div class="legend-subitem" onclick="focusNode('galaxy-beta')" style="cursor:pointer;color:#fff;padding:2px 0;">• Galaxy Beta</div>
-<div class="legend-subitem" onclick="focusNode('galaxy-gamma')" style="cursor:pointer;color:#fff;padding:2px 0;">• Galaxy Gamma</div>
-</div></div>
-<div style="margin-top:4px;"><div class="legend-toggle" onclick="tgl('sub-ct')" style="cursor:pointer;color:#0f8;padding:3px 0;">▶ Container (10)</div>
-<div id="sub-ct" style="display:none;padding-left:12px;border-left:1px solid rgba(0,255,136,.3);margin-left:4px;">
-<div class="legend-subitem" onclick="focusNode('node-a1')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node A1</div>
-<div class="legend-subitem" onclick="focusNode('node-a2')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node A2</div>
-<div class="legend-subitem" onclick="focusNode('node-b2')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node B2</div>
-<div class="legend-subitem" onclick="focusNode('node-b3')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node B3</div>
-<div class="legend-subitem" onclick="focusNode('node-b1')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node B1</div>
-<div class="legend-subitem" onclick="focusNode('node-c2')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node C2</div>
-<div class="legend-subitem" onclick="focusNode('node-c3')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node C3</div>
-<div class="legend-subitem" onclick="focusNode('node-c1')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node C1</div>
-<div class="legend-subitem" onclick="focusNode('node-a3')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node A3</div>
-<div class="legend-subitem" onclick="focusNode('node-b4')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node B4</div>
-</div></div>
-<div style="margin-top:4px;"><div class="legend-toggle" onclick="tgl('sub-pipe')" style="cursor:pointer;color:#fa0;padding:3px 0;">▶ Pipelines (2)</div>
-<div id="sub-pipe" style="display:none;padding-left:12px;border-left:1px solid rgba(255,170,0,.3);margin-left:4px;">
-<div class="legend-subitem" onclick="focusNode('node-b2')" style="cursor:pointer;color:#fff;padding:2px 0;">• Data Sync A→B</div>
-<div class="legend-subitem" onclick="focusNode('node-c2')" style="cursor:pointer;color:#fff;padding:2px 0;">• CI/CD Pipeline</div>
-</div></div>
-</div>
-</div>
-<div id="canvas-container"></div>
-<div id="crosshair"></div>
-
-<div id="cfg-modal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:600px;max-height:80vh;background:rgba(8,8,20,.95);border:1px solid #0fc;box-shadow:0 0 25px rgba(0,255,204,.4);border-radius:8px;z-index:1000;padding:20px;font-family:monospace;color:#fff;flex-direction:column;">
-<div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(0,255,204,.3);padding-bottom:10px;margin-bottom:15px;">
-<span style="color:#0fc;font-weight:bold;font-size:14px;">LIVE CONFIGURATION & HELP</span>
-<button id="cfg-close" style="background:transparent;border:1px solid #f33;color:#f33;padding:2px 8px;cursor:pointer;border-radius:3px;font-weight:bold;">✕</button></div>
-<div id="cfg-content" style="overflow-y:auto;flex-grow:1;padding-right:5px;display:flex;flex-direction:column;gap:12px;"></div>
-</div>
-
-<div id="msg-log" style="position:absolute;top:260px;left:20px;width:20vw;max-width:320px;min-width:260px;bottom:10px;background:rgba(5,5,15,.85);border:1px solid rgba(0,255,204,.3);border-radius:6px;padding:8px;font-family:monospace;font-size:10px;z-index:100;pointer-events:auto;display:flex;flex-direction:column;overflow:hidden;">
-<div style="font-weight:bold;margin-bottom:4px;color:#0fc;border-bottom:1px solid rgba(0,255,204,.2);padding-bottom:3px;flex-shrink:0;">HOMELAB EVENT STREAM</div>
-<input id="log-filter" placeholder="Filter..." style="width:100%;background:rgba(0,0,0,.5);border:1px solid rgba(0,255,204,.3);color:#0fc;padding:3px 6px;font-size:9px;border-radius:3px;margin-bottom:4px;font-family:monospace;flex-shrink:0;" oninput="filterLog()">
-<div id="log-entries" style="overflow-y:auto;flex:1;min-height:0;display:flex;flex-direction:column;gap:3px;scroll-behavior:smooth;" onmouseenter="logHovered=true" onmouseleave="logHovered=false"></div>
-</div>
-
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#020208;color:#0fc;font-family:monospace;padding:16px}
+h1{color:#fff;font-size:18px;border-bottom:1px solid rgba(0,255,204,.3);padding-bottom:8px;margin-bottom:12px}
+.grid{display:flex;gap:8px;flex-wrap:wrap}
+.gx{border:1px solid rgba(0,255,204,.2);border-radius:8px;padding:8px;min-width:170px;background:rgba(0,10,20,.8)}
+.gx h3{font-size:12px;color:#08f;margin-bottom:4px;border-bottom:1px solid rgba(0,136,255,.2);padding-bottom:3px}
+.ct{font-size:9px;margin:4px 0;padding:3px;background:rgba(0,255,204,.02);border-radius:4px}
+.ct b{color:#fff}
+.svc{display:flex;gap:4px;margin-top:2px;font-size:8px}
+.st{display:inline-block;padding:1px 3px;border-radius:2px;margin:0 1px}
+.ok{color:#0f8;background:rgba(0,255,136,.08)}
+.busy{color:#fa0;background:rgba(255,170,0,.08)}
+.error{color:#f33;background:rgba(255,51,51,.08)}
+.log{margin-top:12px;border:1px solid rgba(0,255,204,.2);border-radius:6px;padding:8px;max-height:300px;overflow-y:auto}
+.log h4{font-size:10px;color:#0fc;margin-bottom:4px;border-bottom:1px solid rgba(0,255,204,.15);padding-bottom:2px}
+.ev{font-size:9px;padding:1px 4px;margin:2px 0;border-left:2px solid #0f8;color:#888}
+.stats{font-size:9px;color:#666;margin:8px 0}
+</style></head><body>
+<h1>◈ HOMELAB UNIVERSE — 5 Galaxies · 25 Container · 75 Services · 225 Stages</h1>
+<div class="stats" id="st"></div>
+<div style="font-size:9px;color:#888;margin-bottom:6px">Text simulation — <a href="3d.html" style="color:#fa0">Open 3D Universe</a></div>
+<div class="grid" id="g"></div>
+<div class="log"><h4>EVENT STREAM</h4><div id="el"></div></div>
 <script>
-// ═══ SIMULATION DATA (declared first — survives WebGL failures) ═══
-let simCount=0;
-const NODES=['Alpha','Beta','Gamma','Delta','Epsilon'];
-const CT_PER_NODE=4;
-const SVCS=['API','DB','Cache','Queue','Worker'];
-const STAGES=['Init','Build','Test','Deploy','Done'];
-const MSG_TYPES=['deploy','data','ping','issue','error','sync','backup','health'];
-function rnd(arr){return arr[Math.floor(Math.random()*arr.length)];}
-function simNode(n){return NODES[n%NODES.length];}
-function simCT(){return 'Node-'+String.fromCharCode(65+Math.floor(Math.random()*NODES.length))+String(1+Math.floor(Math.random()*CT_PER_NODE));}
+var GN=['Alpha','Beta','Gamma','Delta','Epsilon'];
+var SN=['API','DB','Queue'];
+var TN=['boot','health','watchdog'];
+var SS=['ok','ok','ok','ok','busy','error'];
+var gd=document.getElementById('g'),ed=document.getElementById('el'),sd=document.getElementById('st');
+var n=0,ev=0;
+var state={}; // persistent state per entity
 
-// ═══ THREE.JS 3D SCENE ═══
-let R,scene,cam,controls,U,PkG;
-// Scene objects always created (independent of WebGL)
-const C=document.getElementById('canvas-container');
-scene=new THREE.Scene();
-cam=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,0.1,1200);cam.position.set(0,25,70);cam.lookAt(0,0,-12);
-U=new THREE.Group();scene.add(U);
-PkG=new THREE.Group();U.add(PkG);
-// WebGL renderer — may fail in headless browsers
-try{
-R=new THREE.WebGLRenderer({antialias:true});R.setSize(innerWidth,innerHeight);R.setPixelRatio(devicePixelRatio);R.setClearColor(0x0a0a2e);C.appendChild(R.domElement);
-}catch(e){console.warn('WebGL unavailable — simulation mode');R=null;
-document.body.insertAdjacentHTML('beforeend','<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);color:#0fc;font-size:18px;text-align:center;z-index:5;pointer-events:none"><div style="font-size:48px;margin-bottom:10px">◈</div>Simulation Active<br><span style="font-size:11px;opacity:.6">3D rendering unavailable<br>Events &amp; metrics are live</span></div>');
-}
-
-if(R){
-controls=new THREE.OrbitControls(cam,R.domElement);
-controls.enableDamping=true;controls.dampingFactor=0.08;
-controls.minDistance=15;controls.maxDistance=250;
-controls.minPolarAngle=0.2;controls.maxPolarAngle=Math.PI*0.65;
-controls.target.set(0,0,0);controls.update();
-scene.add(new THREE.AmbientLight(0xffffff,0.7));
-const pl=new THREE.PointLight(0x00ffcc,3,200);pl.position.set(0,5,0);scene.add(pl);
-const pl2=new THREE.PointLight(0x3388ff,2,150);pl2.position.set(0,-5,20);scene.add(pl2);
-cl=new THREE.Clock();
-}
-const labels=[];
-
-// ═══ PACKET TYPES ═══
-const PT={issue:{c:0xff00ff,e:0xff00ff,s:0.7,n:'Issue'},deploy:{c:0x00ffcc,e:0x00ffcc,s:0.6,n:'Deploy'},error:{c:0xff1111,e:0xff3333,s:0.9,n:'Error'},ping:{c:0x333355,e:0x111122,s:0.3,n:'Ping'},data:{c:0xffaa00,e:0xff8800,s:0.5,n:'Data'}};
-const TL=25;
-const pks=[];
-
-const pkLabels=[];
-
-function mkPkt(type,title,status,sx,sy,sz,ex,ey,ez,spd){
-    const cfg=PT[type]||PT.issue;
-    const m=new THREE.MeshStandardMaterial({color:cfg.c,emissive:cfg.e,emissiveIntensity:0.9,roughness:0.1});
-    const mesh=new THREE.Mesh(new THREE.SphereGeometry(1,16,16),m);mesh.scale.setScalar(cfg.s);
-    mesh.userData={title,status,type:cfg.n,color:'#'+cfg.c.toString(16).padStart(6,'0')};
-    PkG.add(mesh);
-    const tp=new Float32Array(TL*3);const tg=new THREE.BufferGeometry();tg.setAttribute('position',new THREE.BufferAttribute(tp,3));
-    const tl=new THREE.Line(tg,new THREE.LineBasicMaterial({color:cfg.c,transparent:true,opacity:0.7}));
-    PkG.add(tl);
-    const pk={mesh,startCT:null,endCT:null,tl,tg,progress:Math.random(),speed:spd||0.003,logged:false,history:[]};
-    pks.push(pk);
-    const lbl=document.createElement('div');lbl.className='packet-label';lbl.textContent=title;lbl.style.borderColor='#'+cfg.c.toString(16).padStart(6,'0');document.body.appendChild(lbl);pkLabels.push({e:lbl,p:pk});
-}
-
-// ═══ GALAXIES ═══
-const G={alpha:{x:-28,y:0,z:-10,color:0x0088ff,name:'🪐 Galaxy Alpha',r:12},beta:{x:0,y:0,z:-16,color:0x0088ff,name:'🪐 Galaxy Beta',r:13},gamma:{x:28,y:0,z:-10,color:0x0088ff,name:'🪐 Galaxy Gamma',r:12}};
-const Gg={};
-Object.entries(G).forEach(([id,g])=>{
-    const gr=new THREE.Group();gr.position.set(g.x,g.y,g.z);U.add(gr);Gg[id]=gr;
-    // Compact core (small, bright)
-    gr.add(new THREE.Mesh(new THREE.SphereGeometry(0.9,16,16),new THREE.MeshStandardMaterial({color:g.color,emissive:g.color,emissiveIntensity:1.0,roughness:0.05})));
-    // 3D Multi-Axis Halo: 3 orthogonal rings (XY, XZ, YZ)
-    const rR=g.r,wR=g.r*0.15,rM=new THREE.MeshBasicMaterial({color:g.color,transparent:true,opacity:0.8,side:2});
-    [0,Math.PI/2,Math.PI/2].forEach((rot,idx)=>{
-        const ring=new THREE.Mesh(new THREE.RingGeometry(rR-wR,rR,48),rM);
-        if(idx===0)ring.rotation.x=Math.PI/2;
-        else if(idx===2)ring.rotation.y=Math.PI/2;
-        gr.add(ring);
-    });
-    // Load ring for pulsing
-    const ring=new THREE.Mesh(new THREE.RingGeometry(g.r-0.5,g.r+0.2,64),new THREE.MeshBasicMaterial({color:0x00ff88,side:2,transparent:true,opacity:0.3}));ring.rotateX(Math.PI/2);gr.add(ring);g._ring=ring;
-    const lb=document.createElement('div');lb.className='node-label';lb.textContent=g.name;lb.title=g.name;document.body.appendChild(lb);labels.push({e:lb,m:gr.children[0]});
-});
-
-// Helper: clamp child position within parent halo (max 85% of radius)
-function clampToParent(pos,parentR){const max=parentR*0.85;if(pos.length()>max)pos.setLength(max);return pos;}
-
-// ═══ SOLAR SYSTEMS (inside galaxies) ═══
-const S=[
-    {id:'node-a1',g:'alpha',x:-8,y:6,z:-3,r:5.5,name:'🌐 Node A1',c:0x00ffcc},
-    {id:'node-a2',g:'alpha',x:4,y:-4,z:-5,r:5,name:'🌐 Node A2',c:0x00ffcc},
-    {id:'node-a3',g:'alpha',x:-5,y:-8,z:3,r:3.5,name:'🔒 Node A3',c:0x00ffcc},
-    {id:'node-a4',g:'alpha',x:8,y:-8,z:2,r:4,name:'🖥️ Node A4',c:0xffaa00},
-    {id:'node-b1',g:'beta',x:-10,y:6,z:-2,r:5.5,name:'📁 Node B1',c:0x00ffcc},
-    {id:'node-b2',g:'beta',x:4,y:-2,z:-5,r:5.5,name:'📄 Node B2',c:0x00ffcc},
-    {id:'node-b3',g:'beta',x:10,y:4,z:-2,r:3.5,name:'🧪 Node B3',c:0xffaa00},
-    {id:'node-b4',g:'beta',x:-3,y:-8,z:3,r:3.5,name:'🏠 Node B4',c:0xffaa00},
-    {id:'node-c1',g:'gamma',x:-8,y:6,z:-2,r:4.5,name:'🔍 Node C1',c:0x00ffcc},
-    {id:'node-c2',g:'gamma',x:4,y:-2,z:-4,r:4.5,name:'🐙 Node C2',c:0x00ffcc},
-    {id:'node-c3',g:'gamma',x:8,y:-6,z:3,r:4.5,name:'📊 Node C3',c:0x00ffcc},
-];
-const Sg={};
-S.forEach(s=>{
-    const p=Gg[s.g];const sg=new THREE.Group();
-    // Clamp position within galaxy halo
-    const pos=new THREE.Vector3(s.x,s.y,s.z);
-    clampToParent(pos,G[s.g].r);sg.position.copy(pos);p.add(sg);Sg[s.id]=sg;
-    // 3D Multi-Axis Ring-Bubble (XY/XZ/YZ)
-    const rR=s.r,wR=s.r*0.15,rM=new THREE.MeshBasicMaterial({color:s.c,transparent:true,opacity:0.6,side:2});
-    [0,Math.PI/2,Math.PI/2].forEach((rot,idx)=>{
-        const ring=new THREE.Mesh(new THREE.RingGeometry(rR-wR,rR,32),rM);
-        if(idx===0)ring.rotation.x=Math.PI/2;
-        else if(idx===2)ring.rotation.y=Math.PI/2;
-        sg.add(ring);
-    });
-    // Core
-    const co=new THREE.Mesh(new THREE.SphereGeometry(1,24,24),new THREE.MeshStandardMaterial({color:s.c,emissive:s.c,emissiveIntensity:0.6,roughness:0.1}));sg.add(co);
-    const lb=document.createElement('div');lb.className='node-label';lb.textContent=s.name;lb.title=s.name+' · '+s.g;document.body.appendChild(lb);labels.push({e:lb,m:co});
-    // Local orbit line from galaxy center
-    p.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0),new THREE.Vector3(s.x,s.y,s.z)]),new THREE.LineBasicMaterial({color:s.c,transparent:true,opacity:0.1})));
-});
-
-// ═══ PLANETS (services inside nodes) ═══
-const P=[
-    {s:'node-b2',x:-2,y:0,z:0,c:0xff6600},{s:'node-b2',x:2,y:0,z:0,c:0xff0000},
-    {s:'node-b1',x:-1.8,y:0,z:0,c:0x3366ff},{s:'node-b1',x:1.8,y:0,z:0,c:0x33ccff},
-    {s:'node-c2',x:-1.5,y:0,z:0,c:0xff8800},{s:'node-c2',x:1.5,y:0,z:0,c:0x88ff00},
-    {s:'node-c3',x:-1.6,y:0,z:0,c:0xff6600},{s:'node-c3',x:1.6,y:0,z:0,c:0x6600ff},
-    {s:'node-a1',x:-1.4,y:0,z:0,c:0x00ff88},{s:'node-a2',x:0,y:0,z:0,c:0xffaa00},
-];
-P.forEach(p=>{const m=new THREE.Mesh(new THREE.SphereGeometry(0.5,16,16),new THREE.MeshStandardMaterial({color:p.c,emissive:p.c,emissiveIntensity:0.7,roughness:0.05}));
-    const sys=S.find(s=>s.id===p.s);const pos=new THREE.Vector3(p.x,p.y,p.z);
-    if(sys)clampToParent(pos,sys.r);m.position.copy(pos);Sg[p.s].add(m)});
-
-// ═══ PIPELINE STAGES (inside node-a2 bubble) ═══
-const stages=[{a:0,n:'⚙️ Build'},{a:2.1,n:'🧪 Test'},{a:4.2,n:'🚀 Deploy'}];
-const stageList=[];
-stages.forEach(s=>{
-    const m=new THREE.Mesh(new THREE.SphereGeometry(0.7,20,20),new THREE.MeshStandardMaterial({color:0xff00ff,emissive:0xff00ff,emissiveIntensity:0.8,roughness:0.05}));
-    m.position.set(Math.cos(s.a)*4.5,Math.sin(s.a)*3-1,1);Sg['node-a2'].add(m);stageList.push({m,angle:s.a});
-    const lb=document.createElement('div');lb.className='node-label';lb.textContent=s.n;document.body.appendChild(lb);labels.push({e:lb,m});
-});
-
-// ═══ INTERSTELLAR ROUTES (galaxy-to-galaxy) ═══
-const irMat=new THREE.LineBasicMaterial({color:0x0088ff,transparent:true,opacity:0.12});
-[['alpha','beta'],['beta','gamma']].forEach(([a,b])=>{
-    const ga=G[a],gb=G[b];
-    U.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(ga.x,ga.y,ga.z),new THREE.Vector3(gb.x,gb.y,gb.z)]),irMat));
-});
-
-// ═══ NOISE FILTER: Ping lines (dim dashed) vs Active (bright solid) ═══
-// Ping connections: very dim, dashed
-const pingMat=new THREE.LineDashedMaterial({color:0x334455,transparent:true,opacity:0.08,dashSize:1,gapSize:1});
-const activeMat=new THREE.LineBasicMaterial({color:0x00ffcc,transparent:true,opacity:0.2});
-// Active inter-CT connections (bright solid)
-[['node-a1','node-a2'],['node-a1','node-c3'],['node-b2','node-b1'],['node-c2','node-c1']].forEach(([a,b])=>{
-    const sa=S.find(s=>s.id===a),sb=S.find(s=>s.id===b);
-    if(sa&&sb){
-        const ga=G[sa.g],gb=G[sb.g];
-        const p1=new THREE.Vector3(ga.x+sa.x,ga.y+sa.y,ga.z+sa.z);
-        const p2=new THREE.Vector3(gb.x+sb.x,gb.y+sb.y,gb.z+sb.z);
-        U.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([p1,p2]),activeMat));
-    }
-});
-
-// ═══ TUBE: Error/loop connection (red thick tube) ═══
-// ═══ TUBE: Error/loop connections (thick, pulsing red arc) ═══
-function makeTube(sid1,sid2,color,thickness){
-    color=color||0xff1111; thickness=thickness||0.6;
-    const s1=S.find(s=>s.id===sid1),s2=S.find(s=>s.id===sid2);
-    if(!s1||!s2)return;
-    const g1=G[s1.g],g2=G[s2.g];
-    const p1=new THREE.Vector3(g1.x+s1.x,g1.y+s1.y,g1.z+s1.z);
-    const p2=new THREE.Vector3(g2.x+s2.x,g2.y+s2.y,g2.z+s2.z);
-    const mid=new THREE.Vector3().addVectors(p1,p2).multiplyScalar(0.5);mid.y+=5;
-    const curve=new THREE.QuadraticBezierCurve3(p1,mid,p2);
-    const mesh=new THREE.Mesh(new THREE.TubeGeometry(curve,32,thickness,8,false),
-        new THREE.MeshStandardMaterial({color,emissive:color,emissiveIntensity:1.0,roughness:0.2}));
-    U.add(mesh);
-    const src=Sg[sid1]?.children[1],dst=Sg[sid2]?.children[1];
-    return {mesh,src,dst};
-}
-const loopTubes=[
-    makeTube('node-b2','node-b1',0xff1111,0.8),   // Node B2↔B1 (thick red)
-    makeTube('node-a1','node-c2',0xff4400,0.5),   // Node A1↔C2 (orange)
-];
-
-// ═══ STARFIELD ═══
-const sg=new THREE.BufferGeometry();const sp=new Float32Array(800*3);
-for(let i=0;i<800*3;i++)sp[i]=(Math.random()-0.5)*220;
-sg.setAttribute('position',new THREE.BufferAttribute(sp,3));scene.add(new THREE.Points(sg,new THREE.PointsMaterial({color:0x334466,size:0.5})));
-
-// ═══ TRAIL PACKETS — bound to real CT connections ═══
-function mkPktOnPath(type,title,status,sid1,sid2,spd){
-    const ct1=S.find(s=>s.id===sid1), ct2=S.find(s=>s.id===sid2);
-    if(!ct1||!ct2)return;
-    const g1=G[ct1.g], g2=G[ct2.g];
-    const sx=g1.x+ct1.x, sy=g1.y+ct1.y, sz=g1.z+ct1.z;
-    const ex=g2.x+ct2.x, ey=g2.y+ct2.y, ez=g2.z+ct2.z;
-    mkPkt(type,title,status,sx,sy,sz,ex,ey,ez,spd);
-    // Store CT mesh references for live world-position lookup
-    const pk=pks[pks.length-1];
-    pk.startCT=Sg[sid1].children[1]; // core mesh
-    pk.endCT=Sg[sid2].children[1];
-}
-
-// ═══ SEED PACKETS (demo data) ═══
-if(R){
-mkPktOnPath('issue','Demo: Plan','Draft','node-a1','node-c2',0.003);
-mkPktOnPath('issue','Demo: Review','Open','node-c2','node-a2',0.003);
-mkPktOnPath('deploy','Demo: Test','Testing','node-a2','node-c2',0.002);
-mkPktOnPath('deploy','Demo: Build','Building','node-c2','node-c3',0.0025);
-mkPktOnPath('data','Demo: Deploy','Done','node-c3','node-b2',0.003);
-mkPktOnPath('deploy','Data Sync','Active','node-b2','node-b1',0.0025);
-mkPktOnPath('issue','Dashboard','Building','node-a1','node-c3',0.002);
-mkPktOnPath('error','API Timeout','Alert','node-b2','node-a1',0.004);
-mkPktOnPath('ping','Heartbeat Alpha','OK','node-a1','node-a2',0.001);
-mkPktOnPath('ping','Heartbeat Beta','OK','node-b2','node-b1',0.0012);
-mkPktOnPath('ping','Heartbeat Gamma','OK','node-c2','node-c3',0.001);
-mkPktOnPath('data','Data Fetch','Syncing','node-b2','node-c3',0.0015);
-}
-
-// ═══ ANIMATION ═══
-let cl=null;const tv=new THREE.Vector3();
-function animate(){
-    requestAnimationFrame(animate);
-    if(!R)return;
-    try{
-    const t=cl.getElapsedTime();
-    // Oscillating rotation: bounce at ±30° instead of continuous spin
-    const rotY = Math.sin(t * 0.08) * 0.5; // ±0.5 rad ≈ ±30°
-    U.rotation.y = rotY;
-    // Apply universe offset from click-to-center
-    U.position.lerp(uniOffset, 0.08);
-    // Galaxy load rings: pulse color green→orange→red
-    Object.entries(G).forEach(([id,g])=>{if(g._ring){g._ring.scale.setScalar(0.9+Math.sin(t*3)*0.15);g._ring.material.opacity=0.2+Math.sin(t*3)*0.1;}});
-    Object.values(Gg).forEach(g=>g.rotation.y=Math.sin(t*0.12)*0.3);
-    Object.values(Sg).forEach(s=>s.rotation.y=Math.sin(t*0.18)*0.4);
-
-    // Orbit stages
-    stageList.forEach(s=>{s.m.position.x=Math.cos(t*0.6+s.angle)*4.5;s.m.position.y=Math.sin(t*0.6+s.angle)*3-1;});
-
-    // Pulse loop tubes + live position update (relative to universeGroup U)
-    loopTubes.forEach(tb=>{if(tb&&tb.src&&tb.dst){
-        // Pulse emissive
-        const s=0.8+Math.sin(t*3)*0.3;tb.mesh.material.emissiveIntensity=s;
-        // Get world positions, convert to U-local for geometry
-        const sp=new THREE.Vector3();tb.src.getWorldPosition(sp);U.worldToLocal(sp);
-        const ep=new THREE.Vector3();tb.dst.getWorldPosition(ep);U.worldToLocal(ep);
-        const mid=new THREE.Vector3().addVectors(sp,ep).multiplyScalar(0.5);mid.y+=5;
-        const lc=new THREE.QuadraticBezierCurve3(sp,mid,ep);
-        tb.mesh.geometry.dispose();
-        tb.mesh.geometry=new THREE.TubeGeometry(lc,32,0.7,8,false);
-    }});
-
-    // Trail packets: dynamic coords + ping-pong + halo fade-in/out
-    pks.forEach(p=>{
-        if(!p.startCT||!p.endCT)return;
-        const sp=new THREE.Vector3();p.startCT.getWorldPosition(sp);
-        const ep=new THREE.Vector3();p.endCT.getWorldPosition(ep);
-        p.progress+=p.speed;
-        if(p.progress>=1.0){p.progress=1.0;p.speed*=-1;}
-        else if(p.progress<=0.0){p.progress=0.0;p.speed*=-1;}
-        // Fade-in/out at halos: first/last 15% of path
-        const FZ=0.15;let op=1.0;
-        if(p.progress<FZ)op=p.progress/FZ;
-        else if(p.progress>(1.0-FZ))op=(1.0-p.progress)/FZ;
-        p.mesh.material.opacity=Math.max(0.1,op);
-        p.tl.material.opacity=Math.max(0.05,op*0.5);
-        // Trail: history-based (follows actual movement path)
-        p.history.unshift(new THREE.Vector3().lerpVectors(sp,ep,p.progress));
-        if(p.history.length>TL)p.history.pop();
-        const pa=p.tg.attributes.position;
-        for(let i=0;i<TL;i++){if(p.history[i])pa.setXYZ(i,p.history[i].x,p.history[i].y,p.history[i].z);else pa.setXYZ(i,0,0,0);}
-        pa.needsUpdate=true;
-        p.mesh.position.copy(new THREE.Vector3().lerpVectors(sp,ep,p.progress));
-    });
-
-    // Packet labels: project 3D→2D, update every frame
-    pkLabels.forEach(l=>{l.p.mesh.getWorldPosition(tv);tv.project(cam);if(tv.z>=-1&&tv.z<=1){l.e.style.display='block';l.e.style.left=((tv.x*0.5+0.5)*innerWidth)+'px';l.e.style.top=((-tv.y*0.5+0.5)*innerHeight)+'px';}else l.e.style.display='none';});
-
-    // OrbitControls damping update
-    controls.update();
-    // Smooth camera pan when dirty (click-to-center via orbit target)
-    if(camDirty){
-        controls.target.lerp(camTarget,0.08);
-        if(controls.target.distanceTo(camTarget)<0.5){controls.target.copy(camTarget);camDirty=false;}
-    }
-    // Labels (nodes): LOD — hide when camera is far
-    U.updateMatrixWorld();
-    const camDist=cam.position.length();
-    labels.forEach(l=>{l.m.getWorldPosition(tv);tv.project(cam);
-        if(tv.z>=-1&&tv.z<=1&&camDist<200){l.e.style.display='block';l.e.style.left=((tv.x*0.5+0.5)*innerWidth)+'px';l.e.style.top=((-tv.y*0.5+0.5)*innerHeight)+'px';l.e.style.opacity=Math.max(0.2,1-(camDist/150));}
-        else l.e.style.display='none';});
-    R.render(scene,cam);
-    }catch(e){console.error(e);}
-}
-if(R)animate();
-
-// ═══ LIVE API / SIMULATION ═══
-function simMsg(){
-    const from=simCT(),to=simCT();if(from===to)return simMsg();
-    const type=rnd(MSG_TYPES);
-    const titles={deploy:'Deploy '+rnd(SVCS)+' '+rnd(STAGES),data:'Sync '+rnd(SVCS)+' Data',ping:'Heartbeat '+from+'→'+to,issue:'Issue #'+(200+simCount%100),error:'Timeout '+rnd(SVCS),sync:'Tag-Sync '+rnd(SVCS),backup:'Backup '+rnd(STAGES),health:'Health Check '+from};
-    const status=type==='error'?'error':type==='ping'?'success':Math.random()<0.15?'warning':'success';
-    addEventTask({text:titles[type],status,startTime:new Date().toLocaleTimeString(),endTime:new Date(Date.now()+2000).toLocaleTimeString()});
-}
-// Start 1s message sim
-setInterval(simMsg,1000);
-async function fl(){
-    // Simulation first — always update immediately (API may take seconds)
-    simCount++;
-    document.getElementById('node-count').textContent='5 Nodes';
-    document.getElementById('paperless-count').textContent='Demo Mode';
-    document.getElementById('issue-count').textContent=(5+simCount%3)+' Open';
-    const st=simCount%10===0?'warning':simCount%7===0?'error':'success';
-    const el=document.getElementById('pl-badge');
-    el.textContent='● '+(st==='success'?'Monitoring':st==='error'?'Fehler':'Warning');
-    el.style.color=st==='success'?'#00ff88':st==='error'?'#ff4444':'#ffaa00';
-    // Try real API (async, non-blocking)
-    try{const r=await fetch('./api/universe-state');const d=await r.json();
-        if(d.pipeline&&d.pipeline.length>0){
-            document.getElementById('node-count').textContent=((d.nodes||[]).filter(n=>n.online).length||3)+' Galaxies';
-            document.getElementById('paperless-count').textContent=(d.paperless_docs||0)+' Documents';
-            document.getElementById('issue-count').textContent=(d.issues_open||5)+' Open';
-            const lr=d.pipeline[0];const el2=document.getElementById('pl-badge');
-            if(lr&&lr.conclusion){el2.textContent=(lr.conclusion==='success'?'●':'●')+' '+(lr.title||'Pipeline');el2.style.color=lr.conclusion==='success'?'#00ff88':'#ff4444';}
+function init(){
+    GN.forEach(function(g,gi){
+        var h='<div class="gx"><h3>💠 '+g+'</h3>';
+        for(var ci=1;ci<=5;ci++){
+            var id=g+'-'+ci;h+='<div class="ct" id="ct-'+id+'"><b>● '+id+'</b>';
+            SN.forEach(function(sv){
+                var s=h+='<div class="svc"><span style="color:#888;width:30px;display:inline-block">'+sv+'</span>';
+                TN.forEach(function(tn){
+                    var stid=id+'-'+sv+'-'+tn;
+                    var initial=SS[Math.floor(Math.random()*SS.length)];
+                    state[stid]=initial;
+                    s+='<span class="st '+initial+'" id="s-'+stid+'">'+tn+'</span> ';
+                });
+                h=s+'</div>';
+            });
+            h+='</div>';
         }
-    }catch(e){}
-}
-function logMsg(txt,level,targetId){
-    addEventTask({text:txt,status:level==='error'?'error':level==='warning'?'warning':level==='success'?'success':'pending',startTime:new Date().toLocaleTimeString(),sourceUrl:targetId?targetId:null});
-}
-// Rich event tasks: tree, links, durations, glow
-let logHovered=false;
-
-function addEventTask(td){
-    const c=document.getElementById('log-entries');if(!c)return;
-    const w=document.createElement('div');
-    const el=document.createElement('div');el.className='task-item task-'+td.status;
-    const ds=td.endTime?'['+td.startTime+' ➔ '+td.endTime+']':'['+td.startTime+' ➔ aktiv]';
-    const hc=td.children&&td.children.length>0;
-    el.innerHTML='<div style=\"display:flex;justify-content:space-between;align-items:center;\"><span>'+ds+' '+td.text+'</span>'+(hc?'<span class=\"toggle-icon\" style=\"font-weight:bold;margin-left:6px;\">▶</span>':'')+'</div>';
-    el.addEventListener('click',e=>{e.stopPropagation();
-        if(td.sourceUrl){window.open(td.sourceUrl,'_blank');}
-        else if(hc){const cb=w.querySelector('.task-children');const ic=el.querySelector('.toggle-icon');if(cb){const ih=cb.style.display==='none';cb.style.display=ih?'block':'none';ic.textContent=ih?'▼':'▶';}}
-    });
-    w.appendChild(el);
-    if(hc){const cc=document.createElement('div');cc.className='task-children';
-        td.children.forEach(ch=>{const ce=document.createElement('div');const cd=ch.endTime?'['+ch.startTime+' ➔ '+ch.endTime+']':'['+ch.startTime+']';ce.className='task-item task-'+ch.status;ce.innerHTML=cd+' ↳ '+ch.text;ce.addEventListener('click',ev=>{ev.stopPropagation();if(ch.sourceUrl)window.open(ch.sourceUrl,'_blank');});cc.appendChild(ce);});
-        w.appendChild(cc);}
-    c.prepend(w);
-    // Don't auto-scroll when user is hovering (reading/scrolling manually)
-    if(!logHovered)w.scrollIntoView({behavior:'smooth',block:'start'});
-    // Auto-cleanup: delete after 6h, or 6min if pipeline fully completed
-    w._ts=Date.now();w._pipeline=td.children&&td.children.every(ch=>ch.status==='success');
-    cleanupLog();
-}
-// Filter: search in event log
-function filterLog(){const q=document.getElementById('log-filter').value.toLowerCase();
-    document.querySelectorAll('#log-entries > div').forEach(e=>{e.style.display=!q||e.textContent.toLowerCase().includes(q)?'':'none';});
-}
-// Auto-cleanup: remove entries after 6h (or 6min if pipeline completed)
-function cleanupLog(){
-    const now=Date.now();
-    document.querySelectorAll('#log-entries > div').forEach(w=>{
-        const age=(now-(w._ts||0))/1000;
-        if((w._pipeline&&age>360)||age>21600)w.remove();
+        gd.innerHTML+=h+'</div>';
     });
 }
-// Audio: sci-fi cues via Web Audio API
-const AC=new(window.AudioContext||window.webkitAudioContext)();
-function beep(freq,dur,vol,type){const o=AC.createOscillator(),g=AC.createGain();o.type=type||'sine';o.frequency.value=freq;g.gain.setValueAtTime(vol||0.05,AC.currentTime);g.gain.exponentialRampToValueAtTime(0.001,AC.currentTime+dur);o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+dur);}
-function sfx(status){if(status==='error')beep(200,0.3,0.06,'square');else if(status==='success')beep(800,0.1,0.03,'sine');else if(status==='warning')beep(400,0.15,0.04,'triangle');}
-// Config modal (DE/EN help)
-let currentConfig={};
-async function loadCfg(){try{const r=await fetch('config.json');currentConfig=await r.json();}catch(e){console.error('Config load error:',e);}}
-function renderCfg(){try{const c=document.getElementById('cfg-content');if(!c)return;c.innerHTML='';
-    for(const[sk,so]of Object.entries(currentConfig||{})){
-        const h=document.createElement('div');h.style.cssText='color:#38f;font-weight:bold;font-size:12px;margin-top:10px;border-bottom:1px dashed rgba(51,136,255,.3);padding-bottom:3px;';h.textContent='[ '+sk.toUpperCase()+' ]';c.appendChild(h);
-        for(const[pk,pd]of Object.entries(so)){
-            const b=document.createElement('div');b.style.cssText='background:rgba(0,255,204,.03);border:1px solid rgba(0,255,204,.15);padding:8px;border-radius:4px;';
-            b.innerHTML='<div style=\"display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;\"><span style=\"color:#0fc;font-weight:bold;\">'+pk+'</span><span style=\"color:#fa0;font-size:10px;background:rgba(255,170,0,.1);padding:1px 4px;border-radius:2px;\">'+pd.value+'</span></div><div style=\"font-size:11px;color:#ccc;margin-bottom:4px;\">🇩🇪 '+pd.desc_de+'</div><div style=\"font-size:10px;color:#888;font-style:italic;\">🇬🇧 '+pd.desc_en+'</div>';
-            c.appendChild(b);}}}catch(e){console.error('Config render error:',e);}}
-document.getElementById('cfg-btn').addEventListener('click',async()=>{await loadCfg();renderCfg();document.getElementById('cfg-modal').style.display='flex';});
-document.getElementById('cfg-close').addEventListener('click',()=>{document.getElementById('cfg-modal').style.display='none';});
-loadCfg();
-// Periodic log cleanup every 60s
-setInterval(cleanupLog,60000);
-// Center universe button
-document.getElementById('center-btn').addEventListener('click',()=>{
-    uniOffset.set(0,0,0);controls.target.set(0,0,0);camDirty=false;
-    // Reset pipeline badge to monitoring
-    const el=document.getElementById('pl-badge');if(el){el.textContent='● Monitoring';el.style.color='#00ff88';}
-    // Re-fetch live data
-    fl();
-    logMsg('Universum auf Zentrum (0,0,0)','info');
-});
-// Focus on a node by CT/Galaxy ID
-function focusNode(nodeId){
-    // Try solar system first, then galaxy
-    let t=Sg[nodeId]?Sg[nodeId].children[1]:null;
-    if(!t&&Gg[nodeId])t=Gg[nodeId].children[0]; // galaxy core
-    if(!t){logMsg('Ziel '+nodeId+' nicht gefunden','warning');return;}
-    const wp=new THREE.Vector3();t.getWorldPosition(wp);uniOffset.copy(wp).negate();
-    controls.target.set(0,0,0);logMsg('Fokus: '+nodeId,'success');
+function updateStage(id,newStatus){
+    var el=document.getElementById('s-'+id);
+    if(!el)return;
+    el.className='st '+newStatus;
+    state[id]=newStatus;
 }
-// Accordion toggle
-function tgl(id){
-    const s=document.getElementById(id);if(!s)return;
-    const v=s.style.display==='none';s.style.display=v?'block':'none';
-    const h=s.previousElementSibling;
-    if(h)h.textContent=h.textContent.replace(v?'▶':'▼',v?'▼':'▶');
+function tick(){
+    n++;sd.textContent='Tick #'+n+' | Events: '+ev+' | Uptime: '+(n*0.8).toFixed(0)+'s';
+    // Pick random entity and stage, change its status
+    var g=GN[Math.floor(Math.random()*5)],ci=Math.ceil(Math.random()*5);
+    var sv=SN[Math.floor(Math.random()*3)],tn=TN[Math.floor(Math.random()*3)];
+    var id=g+'-'+ci+'-'+sv+'-'+tn,ns=SS[Math.floor(Math.random()*SS.length)];
+    updateStage(id,ns);
+    // Log event
+    var cl=ns==='error'?'#f33':ns==='busy'?'#fa0':'#0f8';
+    ed.innerHTML+='<div class="ev" style="border-left-color:'+cl+'">['+new Date().toLocaleTimeString()+'] <b>'+g+'-'+ci+'</b> '+sv+'/'+tn+': <span style="color:'+cl+'">'+ns+'</span></div>';
+    ev++;if(ed.children.length>80)ed.firstChild.remove();
+    ed.parentElement.scrollTop=ed.parentElement.scrollHeight;
 }
-fl();setInterval(fl,30000);
-// Seed event log
-setTimeout(()=>{
-    addEventTask({text:'Universe initialisiert',status:'success',startTime:new Date().toLocaleTimeString(),endTime:new Date().toLocaleTimeString(),ghost:false,sourceUrl:null});
-},1500);
-window.addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();if(R)R.setSize(innerWidth,innerHeight);});
-
-// ═══ CLICK-TO-CENTER: Universe verschiebt sich zum angeklickten Objekt ═══
-let camTarget=new THREE.Vector3(0,0,0),camDirty=false,uniOffset=new THREE.Vector3(0,0,0);
-const rc=new THREE.Raycaster();const mc=new THREE.Vector2();
-window.addEventListener('click',e=>{
-    mc.x=(e.clientX/innerWidth)*2-1;mc.y=-(e.clientY/innerHeight)*2+1;
-    rc.setFromCamera(mc,cam);
-    const hits=rc.intersectObjects(U.children,true);
-    if(hits.length>0){
-        let tg=hits[0].object;
-        while(tg.parent&&tg.parent!==U&&tg.parent!==scene)tg=tg.parent;
-        const wp=new THREE.Vector3();tg.getWorldPosition(wp);
-        // Shift universe so clicked object becomes (0,0,0)
-        uniOffset.copy(wp).negate();
-        camTarget.set(0,0,0);camDirty=true;
-    }
-});
-window.addEventListener('dblclick',e=>{uniOffset.set(0,0,0);camTarget.set(0,0,0);camDirty=true;});
-</script>
-</body>
-</html>
+init();tick();setInterval(tick,600);
+</script></body></html>
