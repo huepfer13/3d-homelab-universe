@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <title>3D Universe Demo</title>
 <style>
-body{margin:0;padding:0;overflow:hidden;width:100vw;height:100vh;background:#020208;font-family:'Segoe UI',Tahoma,sans-serif;color:#00ffcc;}
+body{margin:0;padding:0;overflow:hidden;width:100vw;height:100vh;background:#0a0a2e;font-family:'Segoe UI',Tahoma,sans-serif;color:#00ffcc;}
 #canvas-container{position:absolute;top:0;left:0;width:100vw;height:100vh;display:block;}
 #hud{position:absolute;top:20px;left:20px;background:rgba(5,10,25,0.9);border:1px solid #00ffcc44;padding:15px 20px;border-radius:8px;pointer-events:none;z-index:10;max-width:340px;}
 h1{font-size:16px;margin:0 0 10px;color:#fff;letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid #00ffcc33;padding-bottom:5px;}
@@ -105,14 +105,16 @@ function simCT(){return 'Node-'+String.fromCharCode(65+Math.floor(Math.random()*
 let R,scene,cam,controls,U,PkG;
 // Scene objects always created (independent of WebGL)
 const C=document.getElementById('canvas-container');
-scene=new THREE.Scene();scene.fog=new THREE.FogExp2(0x020208,0.01);
+scene=new THREE.Scene();
 cam=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,0.1,1200);cam.position.set(0,25,70);cam.lookAt(0,0,-12);
 U=new THREE.Group();scene.add(U);
 PkG=new THREE.Group();U.add(PkG);
 // WebGL renderer — may fail in headless browsers
 try{
-R=new THREE.WebGLRenderer({antialias:true});R.setSize(innerWidth,innerHeight);R.setPixelRatio(devicePixelRatio);C.appendChild(R.domElement);
-}catch(e){console.warn('WebGL unavailable — simulation mode');R=null;}
+R=new THREE.WebGLRenderer({antialias:true});R.setSize(innerWidth,innerHeight);R.setPixelRatio(devicePixelRatio);R.setClearColor(0x0a0a2e);C.appendChild(R.domElement);
+}catch(e){console.warn('WebGL unavailable — simulation mode');R=null;
+document.body.insertAdjacentHTML('beforeend','<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);color:#0fc;font-size:18px;text-align:center;z-index:5;pointer-events:none"><div style="font-size:48px;margin-bottom:10px">◈</div>Simulation Active<br><span style="font-size:11px;opacity:.6">3D rendering unavailable<br>Events &amp; metrics are live</span></div>');
+}
 
 if(R){
 controls=new THREE.OrbitControls(cam,R.domElement);
