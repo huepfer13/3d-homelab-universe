@@ -696,7 +696,10 @@ function animate(){
     const thresholds=window._thresholds||[{maxLoad:0.50,color:'#00ffcc',speedMultiplier:1.0},{maxLoad:0.85,color:'#ffaa00',speedMultiplier:2.2},{maxLoad:1.00,color:'#ff3333',speedMultiplier:4.5}];
     S.forEach(s=>{
         if(!s._innerRings)return;
-        // Simulate drifting load (overridden by live API metrics)
+        // Hide halos for nodes without live metrics (no Prometheus data)
+        const showHalos=window._universeCfg?.globalConfig?.showAllHalos!==false||s._liveMetrics;
+        s._innerRings.forEach(r=>r.visible=showHalos);
+        if(!showHalos)return;
         if(!s._liveMetrics){
             s._load+=s._loadDir*0.002*(0.5+Math.random());
             if(s._load>=0.95){s._load=0.95;s._loadDir=-1;}
