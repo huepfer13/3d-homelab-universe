@@ -101,6 +101,11 @@ function rnd(arr){return arr[Math.floor(Math.random()*arr.length)];}
 function simNode(n){return NODES[n%NODES.length];}
 function simCT(){return 'Node-'+String.fromCharCode(65+Math.floor(Math.random()*NODES.length))+String(1+Math.floor(Math.random()*CT_PER_NODE));}
 
+// Check if Three.js loaded
+if(typeof THREE==='undefined'){
+    document.body.innerHTML='<div style="text-align:center;color:#faa;padding-top:40vh;font-family:monospace">⚠ Three.js CDN not loaded<br><a href="./" style="color:#fa0">Open text simulation</a></div>';
+}else{
+
 // ═══ THREE.JS 3D SCENE ═══
 let R,scene,cam,controls,U,PkG;
 // Scene objects always created (independent of WebGL)
@@ -524,6 +529,7 @@ window.addEventListener('click',e=>{
     }
 });
 window.addEventListener('dblclick',e=>{uniOffset.set(0,0,0);camTarget.set(0,0,0);camDirty=true;});
+} // end if(typeof THREE!=='undefined')
 </script>
 </body>
 </html>
