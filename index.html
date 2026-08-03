@@ -129,8 +129,8 @@ function initWebGL(){
         if(typeof THREE==='undefined')throw new Error('THREE not loaded');
         R=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
         R.setSize(innerWidth,innerHeight);R.setPixelRatio(devicePixelRatio);R.setClearColor(0x0a0a2e);C.appendChild(R.domElement);
-        R.domElement.addEventListener('webglcontextlost',function(e){e.preventDefault();});
-        R.domElement.addEventListener('webglcontextrestored',function(){});
+        R.domElement.addEventListener('webglcontextlost',function(e){e.preventDefault();console.warn('[GPU] Context lost — pausing');});
+        R.domElement.addEventListener('webglcontextrestored',function(){console.log('[GPU] Context restored — rebuilding scene');rebuildAfterContextLoss();});
         return true;
     }catch(e){console.warn('WebGL unavailable',e.message);R=null;
         document.body.insertAdjacentHTML('beforeend','<div id="webgl-fallback" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);color:#0fc;font-size:18px;text-align:center;z-index:5;"><div style="font-size:48px;margin-bottom:10px">◈</div>3D nicht verfügbar<br><span style="font-size:11px;opacity:.6">Events & Metriken sind live</span><br><button onclick="retryWebGL()" style="margin-top:12px;background:rgba(0,255,136,0.15);border:1px solid #0fc;color:#0fc;padding:6px 16px;border-radius:4px;cursor:pointer;font-family:monospace;">3D neu starten</button></div>');
@@ -143,6 +143,17 @@ function retryWebGL(){
         controls=new THREE.OrbitControls(cam,R.domElement);controls.enableDamping=true;controls.dampingFactor=0.08;
         if(!G||!Object.keys(G).length)initUniverse();
     }
+}
+function rebuildAfterContextLoss(){
+    // Clear WebGL-dependent objects (all buffers invalid after context loss)
+    Object.values(Gg).forEach(g=>{U.remove(g);g.traverse(c=>{if(c.geometry)c.geometry.dispose();if(c.material)c.material.dispose();});});
+    Gg={};G={};S.forEach(s=>{s._innerRings=null;s._innerMats=null;});S=[];Sg={};
+    pks.forEach(p=>{PkG.remove(p.mesh);if(p.tl)U.remove(p.tl);});pks=[];
+    loopTubes.forEach(tb=>{U.remove(tb.mesh);});loopTubes=[];
+    pkLabels.forEach(l=>l.e.remove());pkLabels=[];
+    galaxyNames=[];systemIds=[];
+    // Rebuild with current config
+    initUniverse();
 }
 if(!initWebGL()){/* fallback active */}
 
