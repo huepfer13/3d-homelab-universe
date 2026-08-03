@@ -23,14 +23,14 @@ SCRAPE_INTERVAL = int(os.environ.get("SCRAPE_INTERVAL", "5"))
 
 # ─── IP → System-ID Mapping (Prometheus targets → homelab.json systems) ───
 TARGET_MAP = {
-    "192.168.2.222:9100": "node-a1",   # paperless-ngx CT100
-    "192.168.2.188:9100": "node-a2",   # pihole CT101
-    "192.168.2.230:9100": "node-a3",   # paperless-ai CT103
-    "192.168.2.184:9100": "node-b1",   # dashboard CT105
-    "192.168.2.186:9100": "node-c1",   # grafana CT107
-    "192.168.2.241:9100": "node-d1",   # gitea CT241
-    "192.168.2.242:9100": "node-e1",   # nextcloud CT242
-    "192.168.2.178:9101": "node-c2",   # shelly
+    "192.168.2.222:9100": "ct100",   # paperless-ngx CT100
+    "192.168.2.188:9100": "ct101",   # pihole CT101
+    "192.168.2.230:9100": "ct103",   # paperless-ai CT103
+    "192.168.2.184:9100": "ct105",   # dashboard CT105
+    "192.168.2.186:9100": "ct107",   # grafana CT107
+    "192.168.2.241:9100": "ct241",   # gitea CT241
+    "192.168.2.242:9100": "ct242",   # nextcloud CT242
+    "192.168.2.178:9101": "shelly",  # shelly IoT
 }
 
 # ─── PromQL Queries ───

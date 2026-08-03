@@ -1,11 +1,8 @@
 {
-  "title": "3D Universe Command Center",
-  "version": "3.0-generic",
+  "title": "Homelab Infrastructure — ProxCluster",
+  "version": "3.0-live",
   "globalConfig": {
-    "defaults": {
-      "nodeCapacityScore": 100,
-      "nodeColor": 65535
-    },
+    "defaults": { "nodeCapacityScore": 100, "nodeColor": 65535 },
     "thresholds": [
       { "maxLoad": 0.50, "color": "#00ffcc", "speedMultiplier": 1.0, "label": "NORMAL" },
       { "maxLoad": 0.85, "color": "#ffaa00", "speedMultiplier": 2.2, "label": "WARNING" },
@@ -13,59 +10,53 @@
     ]
   },
   "galaxies": [
-    { "id": "alpha",   "name": "Alpha",   "x": -40, "y": 0, "z": -15, "r": 11, "color": 34543 },
-    { "id": "beta",    "name": "Beta",    "x": -20, "y": 0, "z": -10, "r": 10, "color": 34543 },
-    { "id": "gamma",   "name": "Gamma",   "x":   0, "y": 0, "z": -16, "r": 11, "color": 43690 },
-    { "id": "delta",   "name": "Delta",   "x":  20, "y": 0, "z": -10, "r": 10, "color": 34543 },
-    { "id": "epsilon", "name": "Epsilon", "x":  40, "y": 0, "z": -15, "r": 10, "color": 34543 }
+    { "id": "alpha",   "name": "Proxmox Core",       "x": -40, "y": 0, "z": -15, "r": 12, "color": 34543 },
+    { "id": "beta",    "name": "Acemagic AI",         "x": -20, "y": 0, "z": -10, "r": 10, "color": 43690 },
+    { "id": "gamma",   "name": "Xshaka Dashboard",    "x":   0, "y": 0, "z": -16, "r": 10, "color": 65535 },
+    { "id": "delta",   "name": "Network & Security",  "x":  20, "y": 0, "z": -10, "r": 10, "color": 16755200 },
+    { "id": "epsilon", "name": "Smart Home & IoT",    "x":  40, "y": 0, "z": -15, "r": 10, "color": 16711935 }
   ],
   "systems": [
-    {"id":"node-a1","name":"Node A1","g":"alpha","x":-8,"y":6,"z":-3,"capacityScore":150,"halos":[{"metricKey":"cpu","baseRadius":5.5}],"color":65535},
-    {"id":"node-a2","name":"Node A2","g":"alpha","x":4,"y":-4,"z":-5,"capacityScore":120,"halos":[{"metricKey":"cpu","baseRadius":5}],"color":65535},
-    {"id":"node-a3","name":"Node A3","g":"alpha","x":-5,"y":-8,"z":3,"capacityScore":80,"halos":[{"metricKey":"cpu","baseRadius":3.5}],"color":65535},
-    {"id":"node-a4","name":"Node A4","g":"alpha","x":8,"y":-8,"z":2,"capacityScore":90,"halos":[{"metricKey":"cpu","baseRadius":4}],"color":16755200},
-    {"id":"node-a5","name":"Node A5","g":"alpha","x":0,"y":5,"z":-6,"capacityScore":75,"halos":[{"metricKey":"cpu","baseRadius":3.5}],"color":65535},
-    {"id":"node-b1","name":"Node B1","g":"beta","x":-10,"y":6,"z":-2,"capacityScore":140,"halos":[{"metricKey":"cpu","baseRadius":5.5}],"color":65535},
-    {"id":"node-b2","name":"Node B2","g":"beta","x":4,"y":-2,"z":-5,"capacityScore":130,"halos":[{"metricKey":"cpu","baseRadius":5.5}],"color":65535},
-    {"id":"node-b3","name":"Node B3","g":"beta","x":10,"y":4,"z":-2,"capacityScore":85,"halos":[{"metricKey":"cpu","baseRadius":3.5}],"color":16755200},
-    {"id":"node-b4","name":"Node B4","g":"beta","x":-3,"y":-8,"z":3,"capacityScore":70,"halos":[{"metricKey":"cpu","baseRadius":3.5}],"color":16755200},
-    {"id":"node-b5","name":"Node B5","g":"beta","x":6,"y":-5,"z":5,"capacityScore":80,"halos":[{"metricKey":"cpu","baseRadius":3.5}],"color":65535},
-    {"id":"node-c1","name":"Node C1","g":"gamma","x":-8,"y":6,"z":-2,"capacityScore":110,"halos":[{"metricKey":"cpu","baseRadius":4.5}],"color":65535},
-    {"id":"node-c2","name":"Node C2","g":"gamma","x":4,"y":-2,"z":-4,"capacityScore":105,"halos":[{"metricKey":"cpu","baseRadius":4.5}],"color":65535},
-    {"id":"node-c3","name":"Node C3","g":"gamma","x":8,"y":-6,"z":3,"capacityScore":95,"halos":[{"metricKey":"cpu","baseRadius":4.5}],"color":65535},
-    {"id":"node-c4","name":"Node C4","g":"gamma","x":-4,"y":-2,"z":6,"capacityScore":65,"halos":[{"metricKey":"cpu","baseRadius":3.5}],"color":16755200},
-    {"id":"node-c5","name":"Node C5","g":"gamma","x":3,"y":8,"z":-1,"capacityScore":70,"halos":[{"metricKey":"cpu","baseRadius":3.5}],"color":65535},
-    {"id":"node-d1","name":"Node D1","g":"delta","x":-8,"y":6,"z":-2,"capacityScore":115,"halos":[{"metricKey":"cpu","baseRadius":5}],"color":65535},
-    {"id":"node-d2","name":"Node D2","g":"delta","x":4,"y":-2,"z":-4,"capacityScore":100,"halos":[{"metricKey":"cpu","baseRadius":4.5}],"color":65535},
-    {"id":"node-d3","name":"Node D3","g":"delta","x":8,"y":-6,"z":3,"capacityScore":85,"halos":[{"metricKey":"cpu","baseRadius":4}],"color":16755200},
-    {"id":"node-d4","name":"Node D4","g":"delta","x":-3,"y":-8,"z":3,"capacityScore":60,"halos":[{"metricKey":"cpu","baseRadius":3.5}],"color":16755200},
-    {"id":"node-d5","name":"Node D5","g":"delta","x":-5,"y":3,"z":-5,"capacityScore":70,"halos":[{"metricKey":"cpu","baseRadius":3.5}],"color":65535},
-    {"id":"node-e1","name":"Node E1","g":"epsilon","x":-8,"y":6,"z":-2,"capacityScore":110,"halos":[{"metricKey":"cpu","baseRadius":5}],"color":65535},
-    {"id":"node-e2","name":"Node E2","g":"epsilon","x":4,"y":-2,"z":-4,"capacityScore":100,"halos":[{"metricKey":"cpu","baseRadius":4.5}],"color":65535},
-    {"id":"node-e3","name":"Node E3","g":"epsilon","x":8,"y":-6,"z":3,"capacityScore":90,"halos":[{"metricKey":"cpu","baseRadius":4}],"color":65535},
-    {"id":"node-e4","name":"Node E4","g":"epsilon","x":-3,"y":-2,"z":5,"capacityScore":65,"halos":[{"metricKey":"cpu","baseRadius":3.5}],"color":16755200},
-    {"id":"node-e5","name":"Node E5","g":"epsilon","x":5,"y":3,"z":-5,"capacityScore":70,"halos":[{"metricKey":"cpu","baseRadius":3.5}],"color":65535}
+    {"id":"ct100","name":"paperless-ngx","g":"alpha","x":-9,"y":7,"z":-4,"capacityScore":150,"halos":[{"metricKey":"storage","baseRadius":6}],"color":65535},
+    {"id":"ct103","name":"paperless-ai","g":"alpha","x":5,"y":-5,"z":-6,"capacityScore":90,"halos":[{"metricKey":"gpu","baseRadius":4}],"color":16755200},
+    {"id":"ct241","name":"gitea","g":"alpha","x":-6,"y":-8,"z":3,"capacityScore":100,"halos":[{"metricKey":"repo","baseRadius":4.5}],"color":65535},
+    {"id":"ct242","name":"nextcloud","g":"alpha","x":9,"y":-4,"z":2,"capacityScore":130,"halos":[{"metricKey":"storage","baseRadius":5.5}],"color":65535},
+    {"id":"ct107","name":"grafana","g":"alpha","x":3,"y":5,"z":-3,"capacityScore":80,"halos":[{"metricKey":"monitor","baseRadius":3.5}],"color":16755200},
+    {"id":"ct108","name":"SearXNG","g":"alpha","x":-10,"y":-3,"z":5,"capacityScore":65,"halos":[{"metricKey":"search","baseRadius":3}],"color":65535},
+    {"id":"ct109","name":"ct109-service","g":"alpha","x":6,"y":4,"z":-7,"capacityScore":85,"halos":[{"metricKey":"cpu","baseRadius":3.5}],"color":65535},
+    {"id":"ct102","name":"hermesagent","g":"beta","x":-7,"y":5,"z":-3,"capacityScore":120,"halos":[{"metricKey":"agent","baseRadius":5}],"color":65535},
+    {"id":"ct104","name":"ollama","g":"beta","x":6,"y":-4,"z":-5,"capacityScore":140,"halos":[{"metricKey":"gpu","baseRadius":5.5}],"color":16755200},
+    {"id":"ct105","name":"dashboard","g":"gamma","x":-6,"y":6,"z":-3,"capacityScore":90,"halos":[{"metricKey":"web","baseRadius":4}],"color":65535},
+    {"id":"vm120","name":"Windows ETS6","g":"gamma","x":5,"y":-5,"z":-4,"capacityScore":110,"halos":[{"metricKey":"cpu","baseRadius":4.5}],"color":16755200},
+    {"id":"ct101","name":"pihole","g":"delta","x":-8,"y":5,"z":-2,"capacityScore":80,"halos":[{"metricKey":"dns","baseRadius":3.5}],"color":65535},
+    {"id":"ct250","name":"wireguard-vpn","g":"delta","x":5,"y":-4,"z":-4,"capacityScore":70,"halos":[{"metricKey":"vpn","baseRadius":3}],"color":16755200},
+    {"id":"ct251","name":"caddy-proxy","g":"delta","x":-4,"y":-7,"z":3,"capacityScore":75,"halos":[{"metricKey":"proxy","baseRadius":3.5}],"color":65535},
+    {"id":"vm106","name":"Home Assistant","g":"epsilon","x":-8,"y":6,"z":-3,"capacityScore":100,"halos":[{"metricKey":"automation","baseRadius":4.5}],"color":16711935},
+    {"id":"shelly","name":"Shelly IoT","g":"epsilon","x":5,"y":-3,"z":-4,"capacityScore":60,"halos":[{"metricKey":"energy","baseRadius":3}],"color":65535}
   ],
   "connections": [
-    {"from":"node-a1","to":"node-a2","protocol":"https","status":"active","style":{"lineType":"solid","glowColor":"#ffcc00"}},
-    {"from":"node-a1","to":"node-c3","protocol":"https","tunnel":"wireguard-vpn","status":"active","style":{"lineType":"dashed","glowColor":"#ffcc00","tubeOpacity":0.15}},
-    {"from":"node-b2","to":"node-b1","protocol":"mqtt","status":"active","style":{"lineType":"solid","glowColor":"#00ffcc"}},
-    {"from":"node-c2","to":"node-c1","protocol":"https","status":"active","style":{"lineType":"solid","glowColor":"#ffcc00"}},
-    {"from":"node-d1","to":"node-d2","protocol":"ssh","status":"active","style":{"lineType":"solid","glowColor":"#3388ff"}},
-    {"from":"node-e2","to":"node-e1","protocol":"https","tunnel":"wireguard-vpn","status":"active","style":{"lineType":"dashed","glowColor":"#ffcc00","tubeOpacity":0.15}},
-    {"from":"node-a1","to":"node-b2","protocol":"ping","status":"ping","style":{"lineType":"dashed","glowColor":"#334455"}},
-    {"from":"node-b1","to":"node-c1","protocol":"ping","status":"ping","style":{"lineType":"dashed","glowColor":"#334455"}}
+    {"from":"ct100","to":"ct104","protocol":"https","status":"active","style":{"lineType":"solid","glowColor":"#ffcc00"}},
+    {"from":"ct100","to":"ct242","protocol":"https","status":"active","style":{"lineType":"solid","glowColor":"#ffcc00"}},
+    {"from":"ct100","to":"ct103","protocol":"https","status":"active","style":{"lineType":"solid","glowColor":"#ffcc00"}},
+    {"from":"ct102","to":"ct104","protocol":"https","status":"active","style":{"lineType":"solid","glowColor":"#ffcc00"}},
+    {"from":"ct241","to":"ct251","protocol":"https","tunnel":"caddy-tls","status":"active","style":{"lineType":"dashed","glowColor":"#ffcc00","tubeOpacity":0.15}},
+    {"from":"ct242","to":"ct251","protocol":"https","tunnel":"caddy-tls","status":"active","style":{"lineType":"dashed","glowColor":"#ffcc00","tubeOpacity":0.15}},
+    {"from":"ct101","to":"ct250","protocol":"dns","status":"active","style":{"lineType":"solid","glowColor":"#3388ff"}},
+    {"from":"ct105","to":"ct107","protocol":"https","status":"active","style":{"lineType":"solid","glowColor":"#00ffcc"}},
+    {"from":"vm106","to":"shelly","protocol":"mqtt","status":"active","style":{"lineType":"solid","glowColor":"#00ffcc"}},
+    {"from":"ct102","to":"ct241","protocol":"ssh","status":"ping","style":{"lineType":"dashed","glowColor":"#334455"}},
+    {"from":"ct105","to":"ct102","protocol":"ping","status":"ping","style":{"lineType":"dashed","glowColor":"#334455"}},
+    {"from":"vm106","to":"ct251","protocol":"https","status":"ping","style":{"lineType":"dashed","glowColor":"#334455"}}
   ],
-  "routingRules": {
-    "forceCoreTransit": true
-  },
+  "routingRules": { "forceCoreTransit": true },
   "packets": [
-    {"id":"pkg-req-a","type":"request","title":"Datenabfrage Alpha","from":"node-a1","to":"node-c2","speed":0.003,"style":{"color":"#00ffcc","trailLength":60}},
-    {"id":"pkg-res-a","type":"response","title":"Antwort Alpha (Huckepack)","from":"node-c2","to":"node-a1","parentPacketId":"pkg-req-a","payloadHistory":[{"id":"pkg-req-a","status":"processed"}],"speed":0.0035,"style":{"color":"#ffaa00","trailLength":100,"fadeEffect":"glow-to-core"}},
-    {"id":"pkg-req-b","type":"request","title":"Deploy Sync Beta","from":"node-b2","to":"node-b1","speed":0.0025,"style":{"color":"#00ffcc","trailLength":50}},
-    {"id":"pkg-res-b","type":"response","title":"Sync OK Beta","from":"node-b1","to":"node-b2","parentPacketId":"pkg-req-b","payloadHistory":[{"id":"pkg-req-b","status":"completed"}],"speed":0.003,"style":{"color":"#ffaa00","trailLength":80,"fadeEffect":"glow-to-core"}},
-    {"id":"pkg-err-1","type":"error","title":"API Timeout","from":"node-b2","to":"node-a1","speed":0.004,"style":{"color":"#ff3333","trailLength":40}},
-    {"id":"pkg-req-c","type":"request","title":"Dashboard Build","from":"node-a1","to":"node-c3","speed":0.002,"style":{"color":"#00ffcc","trailLength":55}},
-    {"id":"pkg-res-c","type":"response","title":"Build Complete","from":"node-c3","to":"node-a1","parentPacketId":"pkg-req-c","payloadHistory":[{"id":"pkg-req-c","status":"built"}],"speed":0.0025,"style":{"color":"#ffaa00","trailLength":90,"fadeEffect":"glow-to-core"}}
+    {"id":"pkg-ocr-1","type":"request","title":"OCR Classify","from":"ct100","to":"ct104","speed":0.003,"style":{"color":"#00ffcc","trailLength":60}},
+    {"id":"pkg-ocr-2","type":"response","title":"Classification OK","from":"ct104","to":"ct100","parentPacketId":"pkg-ocr-1","payloadHistory":[{"id":"pkg-ocr-1","status":"classified"}],"speed":0.0035,"style":{"color":"#ffaa00","trailLength":80,"fadeEffect":"glow-to-core"}},
+    {"id":"pkg-sync-1","type":"request","title":"WebDAV Sync","from":"ct100","to":"ct242","speed":0.0025,"style":{"color":"#00ffcc","trailLength":50}},
+    {"id":"pkg-sync-2","type":"response","title":"Sync Complete","from":"ct242","to":"ct100","parentPacketId":"pkg-sync-1","payloadHistory":[{"id":"pkg-sync-1","status":"synced"}],"speed":0.003,"style":{"color":"#ffaa00","trailLength":70,"fadeEffect":"glow-to-core"}},
+    {"id":"pkg-agent-1","type":"request","title":"LLM Inference","from":"ct102","to":"ct104","speed":0.003,"style":{"color":"#00ffcc","trailLength":55}},
+    {"id":"pkg-agent-2","type":"response","title":"Inference Done","from":"ct104","to":"ct102","parentPacketId":"pkg-agent-1","payloadHistory":[{"id":"pkg-agent-1","status":"completed"}],"speed":0.0035,"style":{"color":"#ffaa00","trailLength":75,"fadeEffect":"glow-to-core"}},
+    {"id":"pkg-iot-1","type":"request","title":"Energy Query","from":"vm106","to":"shelly","speed":0.002,"style":{"color":"#00ffcc","trailLength":40}},
+    {"id":"pkg-iot-2","type":"response","title":"Power: 342W","from":"shelly","to":"vm106","parentPacketId":"pkg-iot-1","payloadHistory":[{"id":"pkg-iot-1","status":"ok"}],"speed":0.0025,"style":{"color":"#ffaa00","trailLength":65,"fadeEffect":"glow-to-core"}}
   ]
 }
