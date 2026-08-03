@@ -36,7 +36,7 @@ h1{font-size:16px;margin:0 0 10px;color:#fff;letter-spacing:1px;text-transform:u
 <div id="hud"><h1>3D Universe</h1>
 <div style="font-size:10px;color:#00ffcc;margin:-5px 0 8px;opacity:.7;">Interactive Demo</div>
 <div class="metric">Nodes: <span id="node-count" style="color:#0088ff;">5 Nodes</span></div>
-<div class="metric">CTs/VMs: <span id="ct-count" style="color:#00ffcc;">18 CTs</span></div>
+<div class="metric">CTs/VMs: <span id="ct-count" style="color:#00ffcc;">25 CTs</span></div>
 <div class="metric">Pipeline: <span id="pl-badge" style="color:#00ff88;">● Simulation</span></div>
 <div class="metric">Documents: <span id="paperless-count" style="color:#ffaa00;">—</span></div>
 <div class="metric">Issues: <span id="issue-count" style="color:#ff00ff;">—</span></div>
@@ -55,7 +55,7 @@ h1{font-size:16px;margin:0 0 10px;color:#fff;letter-spacing:1px;text-transform:u
 <div class="legend-subitem" onclick="focusNode('galaxy-delta')" style="cursor:pointer;color:#fff;padding:2px 0;">• Delta</div>
 <div class="legend-subitem" onclick="focusNode('galaxy-epsilon')" style="cursor:pointer;color:#fff;padding:2px 0;">• Epsilon</div>
 </div></div>
-<div style="margin-top:4px;"><div class="legend-toggle" onclick="tgl('sub-ct')" style="cursor:pointer;color:#0f8;padding:3px 0;">▶ Container (18)</div>
+<div style="margin-top:4px;"><div class="legend-toggle" onclick="tgl('sub-ct')" style="cursor:pointer;color:#0f8;padding:3px 0;">▶ Container (25)</div>
 <div id="sub-ct" style="display:none;padding-left:12px;border-left:1px solid rgba(0,255,136,.3);margin-left:4px;">
 <div class="legend-subitem" onclick="focusNode('node-a1')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node A1</div>
 <div class="legend-subitem" onclick="focusNode('node-a2')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node A2</div>
@@ -185,20 +185,27 @@ const S=[
     {id:'node-a2',g:'alpha',x:4,y:-4,z:-5,r:5,name:'🌐 Node A2',c:0x00ffcc},
     {id:'node-a3',g:'alpha',x:-5,y:-8,z:3,r:3.5,name:'🔒 Node A3',c:0x00ffcc},
     {id:'node-a4',g:'alpha',x:8,y:-8,z:2,r:4,name:'🖥️ Node A4',c:0xffaa00},
+    {id:'node-a5',g:'alpha',x:0,y:5,z:-6,r:3.5,name:'📡 Node A5',c:0x00ffcc},
     {id:'node-b1',g:'beta',x:-10,y:6,z:-2,r:5.5,name:'📁 Node B1',c:0x00ffcc},
     {id:'node-b2',g:'beta',x:4,y:-2,z:-5,r:5.5,name:'📄 Node B2',c:0x00ffcc},
     {id:'node-b3',g:'beta',x:10,y:4,z:-2,r:3.5,name:'🧪 Node B3',c:0xffaa00},
     {id:'node-b4',g:'beta',x:-3,y:-8,z:3,r:3.5,name:'🏠 Node B4',c:0xffaa00},
+    {id:'node-b5',g:'beta',x:6,y:-5,z:5,r:3.5,name:'📡 Node B5',c:0x00ffcc},
     {id:'node-c1',g:'gamma',x:-8,y:6,z:-2,r:4.5,name:'🔍 Node C1',c:0x00ffcc},
     {id:'node-c2',g:'gamma',x:4,y:-2,z:-4,r:4.5,name:'🐙 Node C2',c:0x00ffcc},
     {id:'node-c3',g:'gamma',x:8,y:-6,z:3,r:4.5,name:'📊 Node C3',c:0x00ffcc},
+    {id:'node-c4',g:'gamma',x:-4,y:-2,z:6,r:3.5,name:'⚙ Node C4',c:0xffaa00},
+    {id:'node-c5',g:'gamma',x:3,y:8,z:-1,r:3.5,name:'🔒 Node C5',c:0x00ffcc},
     {id:'node-d1',g:'delta',x:-8,y:6,z:-2,r:5,name:'🌐 Node D1',c:0x00ffcc},
     {id:'node-d2',g:'delta',x:4,y:-2,z:-4,r:4.5,name:'📄 Node D2',c:0x00ffcc},
     {id:'node-d3',g:'delta',x:8,y:-6,z:3,r:4,name:'🧪 Node D3',c:0xffaa00},
     {id:'node-d4',g:'delta',x:-3,y:-8,z:3,r:3.5,name:'🏠 Node D4',c:0xffaa00},
+    {id:'node-d5',g:'delta',x:-5,y:3,z:-5,r:3.5,name:'📊 Node D5',c:0x00ffcc},
     {id:'node-e1',g:'epsilon',x:-8,y:6,z:-2,r:5,name:'🔍 Node E1',c:0x00ffcc},
     {id:'node-e2',g:'epsilon',x:4,y:-2,z:-4,r:4.5,name:'🐙 Node E2',c:0x00ffcc},
     {id:'node-e3',g:'epsilon',x:8,y:-6,z:3,r:4,name:'📊 Node E3',c:0x00ffcc},
+    {id:'node-e4',g:'epsilon',x:-3,y:-2,z:5,r:3.5,name:'🧪 Node E4',c:0xffaa00},
+    {id:'node-e5',g:'epsilon',x:5,y:3,z:-5,r:3.5,name:'🔒 Node E5',c:0x00ffcc},
 ];
 const Sg={};
 S.forEach(s=>{
