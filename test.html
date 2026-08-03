@@ -1,0 +1,40 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Universe Test</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#020208;color:#0f0;font-family:monospace;padding:20px}
+h1{color:#fff;font-size:16px;margin-bottom:12px}
+.g{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.gx{border:1px solid rgba(0,255,204,.3);border-radius:6px;padding:8px;min-width:140px;background:rgba(0,255,204,.03)}
+.gx h3{font-size:12px;color:#08f;margin-bottom:4px}
+.s{font-size:9px;padding:1px 0;color:#aaa}
+.e{font-size:9px;padding:1px 0;border-left:2px solid #0f8;padding-left:4px;margin:2px 0;color:#888}
+#log{max-height:400px;overflow-y:auto;border:1px solid rgba(0,255,204,.2);border-radius:6px;padding:6px;margin-top:10px}
+</style></head><body>
+<h1>UNIVERSE SIMULATION</h1>
+<div class="g" id="gal"></div>
+<div id="st" style="font-size:10px;color:#666;margin-bottom:8px"></div>
+<div id="log"><b style="font-size:11px;color:#0fc">EVENT STREAM</b><div id="el"></div></div>
+<script>
+var N=['Alpha','Beta','Gamma','Delta','Epsilon'];
+var C=5,SV=['API','DB','Cache','Queue','Worker'];
+var ST=['ok','ok','ok','ok','busy','error'];
+var gd=document.getElementById('gal'),ed=document.getElementById('el'),sd=document.getElementById('st');
+var n=0,ev=0;
+function showGalaxies(){
+    N.forEach(function(nm,i){
+        var h='<div class="gx"><h3>💠 '+nm+'</h3>';
+        for(var j=1;j<=C;j++){var s=ST[Math.floor(Math.random()*ST.length)];var cl=s==='error'?'#f33':s==='busy'?'#fa0':'#0f8';h+='<div class="s"><span style="color:'+cl+'">●</span> '+nm+'-'+j+'</div>'}
+        h+='</div>';gd.innerHTML+=h;
+    });
+}
+function tick(){
+    n++;sd.textContent='Tick #'+n+' | Events: '+ev+' | '+new Date().toLocaleTimeString();
+    var g=N[Math.floor(Math.random()*5)],c=Math.ceil(Math.random()*5);
+    var sv=SV[Math.floor(Math.random()*5)],st=ST[Math.floor(Math.random()*ST.length)];
+    var cl=st==='error'?'#f33':st==='busy'?'#fa0':'#0f8';
+    ed.innerHTML+='<div class="e" style="border-left-color:'+cl+'">['+new Date().toLocaleTimeString()+'] <b>'+g+'-'+c+'</b> '+sv+': <span style="color:'+cl+'">'+st+'</span></div>';
+    ev++;if(ed.children.length>60)ed.firstChild.remove();
+    ed.parentElement.scrollTop=ed.parentElement.scrollHeight;
+}
+showGalaxies();tick();setInterval(tick,800);
+</script></body></html>
