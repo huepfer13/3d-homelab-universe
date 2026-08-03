@@ -891,7 +891,7 @@ function cleanupLog(){
 const AC=new(window.AudioContext||window.webkitAudioContext)();
 function beep(freq,dur,vol,type){const o=AC.createOscillator(),g=AC.createGain();o.type=type||'sine';o.frequency.value=freq;g.gain.setValueAtTime(vol||0.05,AC.currentTime);g.gain.exponentialRampToValueAtTime(0.001,AC.currentTime+dur);o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+dur);}
 function sfx(status){if(status==='error')beep(200,0.3,0.06,'square');else if(status==='success')beep(800,0.1,0.03,'sine');else if(status==='warning')beep(400,0.15,0.04,'triangle');}
-// ═══ CONFIG ASSISTANT (bilingual, cache, download, import) ═══
+// ═══ CONFIG ASSISTANT (human-friendly: sliders, presets, dropdowns) ═══
 let activeConfigData=null;
 let paramMeta={}; // loaded from configs/param-meta.json
 
@@ -913,53 +913,80 @@ function closeConfigModal(){document.getElementById('cfg-modal').style.display='
 function renderConfigEditor(){
     const nav=document.getElementById('config-nav'),ed=document.getElementById('config-editor');
     nav.innerHTML='';ed.innerHTML='';
-    Object.keys(activeConfigData).forEach((key,i)=>{
-        if(key.startsWith('_'))return;
+    // Layout presets
+    ed.innerHTML='<div style="margin-bottom:20px;padding:15px;background:rgba(0,255,136,0.05);border:1px solid rgba(0,255,136,0.2);border-radius:6px;">'+
+        '<h4 style="margin:0 0 10px;color:#00ff88;">📐 LAYOUT-VORLAGEN</h4>'+
+        '<button onclick="applyPreset(\'compact\')" style="background:rgba(0,255,136,0.1);border:1px solid #00ff88;color:#0fc;padding:6px 12px;border-radius:4px;cursor:pointer;margin-right:6px;">🔘 Kompakter Cluster</button>'+
+        '<button onclick="applyPreset(\'balanced\')" style="background:rgba(0,255,136,0.1);border:1px solid #00ff88;color:#0fc;padding:6px 12px;border-radius:4px;cursor:pointer;margin-right:6px;">⚖️ Ausgewogen</button>'+
+        '<button onclick="applyPreset(\'spread\')" style="background:rgba(0,255,136,0.1);border:1px solid #00ff88;color:#0fc;padding:6px 12px;border-radius:4px;cursor:pointer;">🌌 Weit aufgespreizt</button>'+
+        '<div id="preset-msg" style="margin-top:8px;font-size:11px;color:#888;"></div></div><div id="section-editor"></div>';
+    // Navigation: human-friendly sections
+    const sections=[
+        {key:'galaxies',icon:'🌌',label:'Galaxien & Switches'},
+        {key:'systems',icon:'🪐',label:'Geräte & Container'},
+        {key:'connections',icon:'🔗',label:'Verbindungen'}
+    ];
+    sections.forEach((s,i)=>{
         const item=document.createElement('div');
-        item.style.cssText='padding:8px 10px;cursor:pointer;border-radius:5px;margin-bottom:3px;color:#00ff88;';
-        item.textContent='📂 '+key.toUpperCase();item.onclick=()=>loadConfigSection(key,ed);
-        nav.appendChild(item);if(i===0)loadConfigSection(key,ed);
+        item.style.cssText='padding:10px 12px;cursor:pointer;border-radius:5px;margin-bottom:3px;color:#00ff88;';
+        item.textContent=s.icon+' '+s.label;
+        item.onclick=()=>loadFriendlySection(s.key);
+        nav.appendChild(item);
+        if(i===0)loadFriendlySection(s.key);
     });
 }
 
-function loadConfigSection(key,container){
-    container.innerHTML='<h4 style=\"color:#00ff88;margin-top:0;\">Sektion: '+key+'</h4>';
-    const meta=paramMeta[key];
-    if(meta)container.innerHTML+='<p style=\"font-size:11px;color:#aaa;margin-bottom:12px;\">🇩🇪 '+meta.de+'<br>🇬🇧 '+meta.en+'</p>';
+function applyPreset(preset){
+    const gals=activeConfigData.galaxies;
+    if(!gals||!gals.length)return;
+    const msg=document.getElementById('preset-msg');
+    const positions={compact:[[-2,0,-1],[2,0,-1],[0,0,2],[-2,0,3],[2,0,3]],balanced:[[-35,0,-18],[0,0,-20],[35,0,-18],[-20,0,25],[20,0,25]],spread:[[-70,0,-30],[0,0,-40],[70,0,-30],[-40,0,50],[40,0,50]]};
+    const radii={compact:[8,7,7,6,6],balanced:[14,11,12,9,9],spread:[22,18,20,14,14]};
+    gals.forEach((g,i)=>{
+        if(i<positions[preset].length){g.x=positions[preset][i][0];g.y=positions[preset][i][1];g.z=positions[preset][i][2];g.r=radii[preset][i];}
+    });
+    const labels={compact:'Kompakter Cluster',balanced:'Ausgewogen',spread:'Weit aufgespreizt'};
+    msg.innerHTML='✅ '+labels[preset]+' — gesetzt!';
+    msg.style.color='#0fc';
+    loadFriendlySection('galaxies');
+}
+
+function loadFriendlySection(key){
+    const container=document.getElementById('section-editor');
     const val=activeConfigData[key];
-    if(Array.isArray(val)){
-        val.forEach((item,idx)=>{
-            const card=document.createElement('div');
-            card.style.cssText='background:rgba(255,255,255,0.03);border:1px solid rgba(0,255,136,0.2);padding:12px;border-radius:5px;margin-bottom:10px;';
-            card.innerHTML='<strong style=\"color:#00ff88;\">[Eintrag '+(idx+1)+']</strong>';
-            if(typeof item==='object'&&item!==null){
-                Object.keys(item).forEach(subKey=>{
-                    const subVal=item[subKey];
-                    const fd=document.createElement('div');fd.style.cssText='margin-top:6px;';
-                    const sm=paramMeta[subKey];
-                    const desc=sm?'<div style=\"font-size:9px;color:#666;\">'+sm.de+'</div>':'';
-                    if(Array.isArray(subVal)){
-                        fd.innerHTML='<label style=\"font-size:10px;color:#ccc;\">'+subKey+':</label>'+desc+'<span style=\"color:#888;font-size:10px;\">['+subVal.length+' items]</span>';
-                    }else if(typeof subVal==='object'){
-                        fd.innerHTML='<label style=\"font-size:10px;color:#ccc;\">'+subKey+':</label>'+desc+'<span style=\"color:#888;font-size:10px;\">{object}</span>';
-                    }else{
-                        fd.innerHTML='<label style=\"font-size:10px;color:#ccc;\">'+subKey+':</label>'+desc+'<input value=\"'+subVal+'\" onchange=\"activeConfigData.'+key+'['+idx+'].'+subKey+'=this.value\" style=\"width:100%;background:#111;color:#00ff88;border:1px solid #444;padding:4px;border-radius:3px;box-sizing:border-box;\">';
-                    }
-                    card.appendChild(fd);
-                });
-            }
-            container.appendChild(card);
+    if(!val){container.innerHTML='<p style="color:#888;">Keine Daten.</p>';return;}
+    let html='';
+    if(key==='galaxies'){
+        html='<h4 style="color:#00ff88;">🌌 GALAXIEN & SWITCHES</h4><p style="font-size:11px;color:#888;margin-bottom:12px;">Jede Galaxie ist ein physischer Switch oder Cluster-Knoten.</p>';
+        val.forEach((g,idx)=>{
+            html+='<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(0,255,136,0.15);padding:12px;border-radius:5px;margin-bottom:10px;">'+
+                '<strong style="color:#00ff88;">'+g.name+'</strong> <span style="color:#666;font-size:10px;">('+g.id+')</span>'+
+                '<div style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:8px;">'+
+                '<div><label style="font-size:10px;color:#aaa;">Name</label><input id="gal_name_'+idx+'" value="'+g.name+'" onchange="activeConfigData.galaxies['+idx+'].name=this.value" style="width:100%;background:#111;color:#0fc;border:1px solid #444;padding:4px;border-radius:3px;box-sizing:border-box;"></div>'+
+                '<div><label style="font-size:10px;color:#aaa;">Größe <span style="color:#666;">('+g.r+')</span></label><input type="range" min="5" max="30" value="'+g.r+'" oninput="this.nextElementSibling.textContent=this.value;activeConfigData.galaxies['+idx+'].r=parseInt(this.value)" style="width:100%;"><span style="font-size:9px;color:#888;">'+g.r+'</span></div>'+
+                '</div></div>';
         });
-    }else if(typeof val==='object'&&val!==null){
-        Object.keys(val).forEach(subKey=>{
-            const subVal=val[subKey];
-            const fd=document.createElement('div');fd.style.cssText='margin-top:8px;';
-            fd.innerHTML='<label style=\"font-size:11px;color:#ccc;\">'+subKey+':</label> <span style=\"color:#00ff88;\">'+JSON.stringify(subVal).substring(0,80)+'</span>';
-            container.appendChild(fd);
+    }else if(key==='systems'){
+        const galaxyNames=(activeConfigData.galaxies||[]).map(g=>'<option value="'+g.id+'">'+g.name+'</option>').join('');
+        html='<h4 style="color:#00ff88;">🪐 GERÄTE & CONTAINER</h4><p style="font-size:11px;color:#888;margin-bottom:12px;">Ordne jedes Gerät einem Switch zu. Position wird automatisch berechnet.</p>';
+        val.forEach((s,idx)=>{
+            const capLabel=s.capacityScore>120?'🔥 Hoch':s.capacityScore>80?'⚡ Mittel':'💤 Niedrig';
+            const gOpts=galaxyNames.replace('value="'+s.g+'"','value="'+s.g+'" selected');
+            html+='<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(0,255,136,0.15);padding:10px;border-radius:5px;margin-bottom:8px;">'+
+                '<strong style="color:#0fc;">'+s.name+'</strong> <span style="color:#666;font-size:10px;">('+s.id+(s.ip?', '+s.ip:'')+')</span>'+
+                '<div style="margin-top:6px;display:grid;grid-template-columns:1fr 1fr;gap:6px;">'+
+                '<div><label style="font-size:10px;color:#aaa;">Switch / Galaxie</label><select onchange="activeConfigData.systems['+idx+'].g=this.value" style="width:100%;background:#111;color:#0fc;border:1px solid #444;padding:4px;border-radius:3px;">'+gOpts+'</select></div>'+
+                '<div><label style="font-size:10px;color:#aaa;">Leistung: '+capLabel+'</label><input type="range" min="20" max="200" value="'+s.capacityScore+'" oninput="var v=parseInt(this.value);activeConfigData.systems['+idx+'].capacityScore=v;var l=v>120?\'🔥 Hoch\':v>80?\'⚡ Mittel\':\'💤 Niedrig\';this.previousElementSibling.textContent=\'Leistung: \'+l;this.nextElementSibling.textContent=v;" style="width:100%;"><span style="font-size:9px;color:#888;">'+s.capacityScore+'</span></div>'+
+                '</div></div>';
         });
-    }else{
-        container.innerHTML+='<span style=\"color:#00ff88;\">'+JSON.stringify(val)+'</span>';
+    }else if(key==='connections'){
+        html='<h4 style="color:#00ff88;">🔗 VERBINDUNGEN</h4><p style="font-size:11px;color:#888;margin-bottom:12px;">'+val.length+' Verbindungen zwischen Geräten.</p>';
+        val.forEach((c,idx)=>{
+            html+='<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(0,255,136,0.1);padding:8px;border-radius:4px;margin-bottom:5px;font-size:11px;">'+
+                '<span style="color:#0fc;">'+c.from+'</span> → <span style="color:#fa0;">'+c.to+'</span> <span style="color:#666;margin-left:6px;">['+c.protocol+']</span></div>';
+        });
     }
+    container.innerHTML=html;
 }
 
 function saveConfigToLive(){
@@ -972,7 +999,12 @@ function saveConfigToLive(){
 }
 
 function downloadConfig(){
-    const blob=new Blob([JSON.stringify(activeConfigData,null,2)],{type:'application/json'});
+    // Strip runtime/internal fields (_load, _tunnelRefs, _ring, etc.)
+    const clean=JSON.parse(JSON.stringify(activeConfigData,(k,v)=>{
+        if(k.startsWith('_'))return undefined;
+        return v;
+    }));
+    const blob=new Blob([JSON.stringify(clean,null,2)],{type:'application/json'});
     const a=document.createElement('a');a.href=URL.createObjectURL(blob);
     a.download='homelab_custom.json';a.click();
 }
