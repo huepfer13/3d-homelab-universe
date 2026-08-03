@@ -697,14 +697,17 @@ function animate(){
             op*=0.3+nearTarget*0.7;
             p.mesh.scale.setScalar(PT.request?.s||0.6*(1+nearTarget*0.5));
         }
-        p.mesh.material.opacity=Math.max(0.1,op);
-        p.tl.material.opacity=Math.max(0.05,op*0.5);
-        // Trail: history-based (dynamic trailLength per packet)
+        p.mesh.material.opacity=Math.max(0.2,op);
+        p.tl.material.opacity=Math.max(0.15,op*0.9);
+        // Trail: history-based, follow packet from start to current
         const tLen=p.trailLen||TL;
         p.history.unshift(curPos.clone());
         if(p.history.length>tLen)p.history.pop();
         const pa=p.tg.attributes.position;
-        for(let i=0;i<tLen;i++){if(p.history[i])pa.setXYZ(i,p.history[i].x,p.history[i].y,p.history[i].z);else pa.setXYZ(i,0,0,0);}
+        for(let i=0;i<tLen;i++){
+            if(p.history[i])pa.setXYZ(i,p.history[i].x,p.history[i].y,p.history[i].z);
+            else pa.setXYZ(i,curPos.x,curPos.y,curPos.z); // trail starts at current pos
+        }
         pa.needsUpdate=true;
         p.mesh.position.copy(curPos);
     });
