@@ -1,0 +1,23 @@
+{
+  "name": "3d-homelab-universe",
+  "version": "1.0.0",
+  "description": "> **Dein gesamtes Homelab als lebendiges, leuchtendes Sci-Fi-Universum – auf einen Blick.** > > 🚀 **[LIVE DEMO](https://huepfer13.github.io/3d-homelab-universe/)** — direkt im Browser testen!",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test_universe.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/huepfer13/3d-homelab-universe.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/huepfer13/3d-homelab-universe/issues"
+  },
+  "homepage": "https://github.com/huepfer13/3d-homelab-universe#readme",
+  "dependencies": {
+    "puppeteer": "^25.4.0"
+  }
+}
