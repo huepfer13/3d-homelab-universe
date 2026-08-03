@@ -236,17 +236,53 @@ function buildRoutes(galaxies){
     }
 }
 
+// ═══ PROTOCOL DEFAULT STYLES ═══
+const PROTO_STYLES={
+    https:{glowColor:'#ffcc00',lineType:'solid',opacity:0.25},
+    mqtt:{glowColor:'#00ffcc',lineType:'solid',opacity:0.2},
+    ssh:{glowColor:'#3388ff',lineType:'solid',opacity:0.2},
+    ping:{glowColor:'#334455',lineType:'dashed',opacity:0.08}
+};
+
 function buildConnections(connections){
-    const pingMat=new THREE.LineDashedMaterial({color:0x334455,transparent:true,opacity:0.08,dashSize:1,gapSize:1});
-    const activeMat=new THREE.LineBasicMaterial({color:0x00ffcc,transparent:true,opacity:0.2});
-    connections.forEach(([a,b,type])=>{
+    connections.forEach(c=>{
+        const a=c.from||c[0],b=c.to||c[1];
         const sa=S.find(s=>s.id===a),sb=S.find(s=>s.id===b);
         if(!sa||!sb)return;
         const ga=G[sa.g],gb=G[sb.g];
         const p1=new THREE.Vector3(ga.x+sa.x,ga.y+sa.y,ga.z+sa.z);
         const p2=new THREE.Vector3(gb.x+sb.x,gb.y+sb.y,gb.z+sb.z);
-        const mat=type==='ping'?pingMat:activeMat;
-        U.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([p1,p2]),mat));
+        // Protocol styling
+        const proto=c.protocol||'ping';
+        const ps=PROTO_STYLES[proto]||PROTO_STYLES.ping;
+        const style=c.style||{};
+        const glow=style.glowColor||ps.glowColor;
+        const lt=style.lineType||ps.lineType;
+        const op=style.lineOpacity||ps.opacity;
+        const hex=parseInt(glow.replace('#',''),16);
+        // Line material
+        let mat;
+        if(lt==='dashed'){
+            mat=new THREE.LineDashedMaterial({color:hex,transparent:true,opacity:op,dashSize:1,gapSize:1});
+        }else{
+            mat=new THREE.LineBasicMaterial({color:hex,transparent:true,opacity:op});
+        }
+        const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints([p1,p2]),mat);
+        U.add(line);
+        // Tunnel (semi-transparent 3D cylinder around connection)
+        if(c.tunnel){
+            const to=style.tubeOpacity||0.15;
+            const mid=new THREE.Vector3().addVectors(p1,p2).multiplyScalar(0.5);mid.y+=3;
+            const curve=new THREE.QuadraticBezierCurve3(p1,mid,p2);
+            const tMesh=new THREE.Mesh(
+                new THREE.TubeGeometry(curve,24,0.3,8,false),
+                new THREE.MeshStandardMaterial({color:hex,emissive:hex,emissiveIntensity:0.5,transparent:true,opacity:to,roughness:0.4})
+            );
+            U.add(tMesh);
+            // Store for animation
+            if(!c._tunnelRefs)c._tunnelRefs=[];
+            c._tunnelRefs.push(tMesh);
+        }
     });
 }
 
@@ -267,16 +303,14 @@ function makeTube(sid1,sid2,color,thickness){
 }
 
 function buildTubes(connections){
-    const tubeColors={active:0xff4400,'default':0xff1111};
-    connections.filter(c=>!c[2]||c[2]==='active').forEach(([a,b],i)=>{
-        const tc=tubeColors.active||0xff1111;
-        const tb=makeTube(a,b,tc,0.6+(i*0.1));
+    connections.filter(c=>(c.status||c[2])==='active').forEach((c,i)=>{
+        const a=c.from||c[0],b=c.to||c[1];
+        const tb=makeTube(a,b,0xff4400,0.6+(i*0.1));
         if(tb)loopTubes.push(tb);
     });
     if(loopTubes.length===0&&connections.length>=2){
-        // Fallback: first connection as tube
-        const c=connections[0];
-        const tb=makeTube(c[0],c[1],0xff1111,0.8); if(tb)loopTubes.push(tb);
+        const c=connections[0];const a=c.from||c[0],b=c.to||c[1];
+        const tb=makeTube(a,b,0xff1111,0.8);if(tb)loopTubes.push(tb);
     }
 }
 
@@ -289,6 +323,12 @@ function mkPktOnPath(type,title,status,sid1,sid2,spd){
     mkPkt(type,title,status,sx,sy,sz,ex,ey,ez,spd);
     const pk=pks[pks.length-1];
     pk.startCT=Sg[sid1]?.children[1]; pk.endCT=Sg[sid2]?.children[1];
+    // Store galaxy center for via-center routing
+    const viaCenter=window._routingRules&&window._routingRules.forceCoreTransit;
+    if(viaCenter){
+        const gCenter=Gg[ct1.g]?.children[0];
+        if(gCenter){const wc=new THREE.Vector3();gCenter.getWorldPosition(wc);pk._galaxyCenter=wc.clone();}
+    }
 }
 
 function seedPackets(packets){
@@ -355,6 +395,7 @@ async function initUniverse(){
             {maxLoad:0.85,color:'#ffaa00',speedMultiplier:2.2,label:'WARNING'},
             {maxLoad:1.00,color:'#ff3333',speedMultiplier:4.5,label:'CRITICAL'}
         ];
+        window._routingRules=cfg.routingRules||{forceCoreTransit:false};
 
         // 3. Build universe
         buildGalaxies(cfg.galaxies);
@@ -432,7 +473,8 @@ function animate(){
         tb.mesh.geometry=new THREE.TubeGeometry(lc,32,0.7,8,false);
     }});
 
-    // Trail packets: dynamic coords + ping-pong + halo fade-in/out
+    // Trail packets: dynamic coords + ping-pong + via-center routing + halo fade-in/out
+    const viaCenter=window._routingRules&&window._routingRules.forceCoreTransit;
     pks.forEach(p=>{
         if(!p.startCT||!p.endCT)return;
         const sp=new THREE.Vector3();p.startCT.getWorldPosition(sp);
@@ -440,6 +482,33 @@ function animate(){
         p.progress+=p.speed;
         if(p.progress>=1.0){p.progress=1.0;p.speed*=-1;}
         else if(p.progress<=0.0){p.progress=0.0;p.speed*=-1;}
+        // Via-center routing: source → galaxy center → target
+        let curPos;
+        if(viaCenter){
+            // Recalculate galaxy center world position each frame (universe rotates)
+            const gc=new THREE.Vector3();
+            if(p.startCT){
+                // Find parent galaxy group via Sg → Gg
+                let found=false;
+                for(const[sid,sg]of Object.entries(Sg)){
+                    if(sg.children[1]===p.startCT){
+                        const gid=S.find(s=>s.id===sid)?.g;
+                        if(gid&&Gg[gid]?.children[0]){
+                            Gg[gid].children[0].getWorldPosition(gc);found=true;
+                        }
+                        break;
+                    }
+                }
+                if(!found)gc.copy(p._galaxyCenter||sp);
+            }
+            if(p.progress<0.5){
+                curPos=new THREE.Vector3().lerpVectors(sp,gc,p.progress*2);
+            }else{
+                curPos=new THREE.Vector3().lerpVectors(gc,ep,(p.progress-0.5)*2);
+            }
+        }else{
+            curPos=new THREE.Vector3().lerpVectors(sp,ep,p.progress);
+        }
         // Fade-in/out at halos: first/last 15% of path
         const FZ=0.15;let op=1.0;
         if(p.progress<FZ)op=p.progress/FZ;
@@ -447,12 +516,12 @@ function animate(){
         p.mesh.material.opacity=Math.max(0.1,op);
         p.tl.material.opacity=Math.max(0.05,op*0.5);
         // Trail: history-based (follows actual movement path)
-        p.history.unshift(new THREE.Vector3().lerpVectors(sp,ep,p.progress));
+        p.history.unshift(curPos.clone());
         if(p.history.length>TL)p.history.pop();
         const pa=p.tg.attributes.position;
         for(let i=0;i<TL;i++){if(p.history[i])pa.setXYZ(i,p.history[i].x,p.history[i].y,p.history[i].z);else pa.setXYZ(i,0,0,0);}
         pa.needsUpdate=true;
-        p.mesh.position.copy(new THREE.Vector3().lerpVectors(sp,ep,p.progress));
+        p.mesh.position.copy(curPos);
     });
 
     // Packet labels: project 3D→2D, update every frame

@@ -47,11 +47,18 @@
     {"id":"node-e5","name":"Node E5","g":"epsilon","x":5,"y":3,"z":-5,"capacityScore":70,"halos":[{"metricKey":"cpu","baseRadius":3.5}],"color":65535}
   ],
   "connections": [
-    ["node-a1","node-a2","active"],["node-a1","node-c3","active"],
-    ["node-b2","node-b1","active"],["node-c2","node-c1","active"],
-    ["node-d1","node-d2","active"],["node-e2","node-e1","active"],
-    ["node-a1","node-b2","ping"],["node-b1","node-c1","ping"]
+    {"from":"node-a1","to":"node-a2","protocol":"https","status":"active","style":{"lineType":"solid","glowColor":"#ffcc00"}},
+    {"from":"node-a1","to":"node-c3","protocol":"https","tunnel":"wireguard-vpn","status":"active","style":{"lineType":"dashed","glowColor":"#ffcc00","tubeOpacity":0.15}},
+    {"from":"node-b2","to":"node-b1","protocol":"mqtt","status":"active","style":{"lineType":"solid","glowColor":"#00ffcc"}},
+    {"from":"node-c2","to":"node-c1","protocol":"https","status":"active","style":{"lineType":"solid","glowColor":"#ffcc00"}},
+    {"from":"node-d1","to":"node-d2","protocol":"ssh","status":"active","style":{"lineType":"solid","glowColor":"#3388ff"}},
+    {"from":"node-e2","to":"node-e1","protocol":"https","tunnel":"wireguard-vpn","status":"active","style":{"lineType":"dashed","glowColor":"#ffcc00","tubeOpacity":0.15}},
+    {"from":"node-a1","to":"node-b2","protocol":"ping","status":"ping","style":{"lineType":"dashed","glowColor":"#334455"}},
+    {"from":"node-b1","to":"node-c1","protocol":"ping","status":"ping","style":{"lineType":"dashed","glowColor":"#334455"}}
   ],
+  "routingRules": {
+    "forceCoreTransit": true
+  },
   "packets": [
     {"type":"issue","title":"Demo: Plan","status":"Draft","from":"node-a1","to":"node-c2","speed":0.003},
     {"type":"deploy","title":"Data Sync","status":"Active","from":"node-b2","to":"node-b1","speed":0.0025},
