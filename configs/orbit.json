@@ -13,9 +13,9 @@
   "galaxies": [
     { "id": "cluster",  "name": "Proxmox Compute Cluster", "x": -35, "y": 0, "z": -18, "r": 14, "color": 34543 },
     { "id": "network",  "name": "Core Router & Switch",    "x":   0, "y": 0, "z": -20, "r": 11, "color": 43690 },
-    { "id": "ai",       "name": "AI & Agent Hub",          "x":  35, "y": 0, "z": -18, "r": 11, "color": 65535 },
-    { "id": "security", "name": "Network Security & VPN",   "x": -20, "y": 0, "z":  25, "r":  9, "color": 16755200 },
-    { "id": "iot",      "name": "Smart Home & IoT Edge",    "x":  20, "y": 0, "z":  25, "r":  9, "color": 16711935 }
+    { "id": "ai",       "name": "Acemagic AI & Agent",   "x":  35, "y": 0, "z": -18, "r": 12, "color": 65535 },
+    { "id": "security", "name": "Network Security & VPN", "x": -20, "y": 0, "z":  25, "r":  9, "color": 16755200 },
+    { "id": "iot",      "name": "Smart Home & IoT Edge",  "x":  20, "y": 0, "z":  25, "r":  9, "color": 16711935 }
   ],
   "systems": [
     {"id":"proxmox","name":"Proxmox Master","g":"cluster","x":-12,"y":4,"z":-5,"capacityScore":140,"halos":[{"metricKey":"compute","baseRadius":6}],"color":65535},
@@ -32,7 +32,7 @@
     {"id":"ct102","name":"hermesagent","g":"ai","x":-7,"y":5,"z":-3,"capacityScore":110,"halos":[{"metricKey":"agent","baseRadius":5}],"color":65535},
     {"id":"ct104","name":"ollama","g":"ai","x":6,"y":-4,"z":-5,"capacityScore":150,"halos":[{"metricKey":"gpu","baseRadius":5.5}],"color":16755200},
     {"id":"ct105","name":"dashboard","g":"ai","x":-3,"y":-7,"z":3,"capacityScore":85,"halos":[{"metricKey":"web","baseRadius":4}],"color":65535},
-    {"id":"vm120","name":"Windows ETS6","g":"iot","x":-7,"y":5,"z":-2,"capacityScore":100,"halos":[{"metricKey":"cpu","baseRadius":4}],"color":16755200},
+    {"id":"vm120","name":"Windows ETS6","g":"cluster","x":10,"y":3,"z":-6,"capacityScore":100,"halos":[{"metricKey":"cpu","baseRadius":4}],"color":16755200},
     {"id":"vm106","name":"Home Assistant","g":"iot","x":5,"y":-4,"z":-4,"capacityScore":95,"halos":[{"metricKey":"automation","baseRadius":4}],"color":16711935},
     {"id":"shelly","name":"Shelly IoT","g":"iot","x":-3,"y":-7,"z":3,"capacityScore":55,"halos":[{"metricKey":"energy","baseRadius":2.5}],"color":65535}
   ],
@@ -46,7 +46,9 @@
     {"from":"vm106","to":"shelly","protocol":"mqtt","status":"active","style":{"lineType":"solid","glowColor":"#00ffcc"}},
     {"from":"ct105","to":"ct102","protocol":"ping","status":"ping","style":{"lineType":"dashed","glowColor":"#334455"}},
     {"from":"acemagic","to":"ct104","protocol":"https","status":"active","style":{"lineType":"solid","glowColor":"#ffcc00"}},
-    {"from":"xshaka","to":"ct105","protocol":"https","status":"active","style":{"lineType":"solid","glowColor":"#00ffcc"}}
+    {"from":"xshaka","to":"ct105","protocol":"https","status":"active","style":{"lineType":"solid","glowColor":"#00ffcc"}},
+    {"from":"xshaka","to":"vm120","protocol":"rdp","status":"active","style":{"lineType":"solid","glowColor":"#ff6600"}},
+    {"from":"acemagic","to":"ct102","protocol":"https","status":"active","style":{"lineType":"solid","glowColor":"#ffcc00"}}
   ],
   "routingRules": { "forceCoreTransit": true },
   "packets": [
