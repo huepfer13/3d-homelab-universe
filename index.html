@@ -461,17 +461,35 @@ function seedPackets(packets, connections){
     const defTrail=defs.defaultTrailLength||40;
     const defSpeed=defs.defaultSpeed||0.003;
     const defColor=defs.defaultColor||'#00ffcc';
-    // If no explicit packets, auto-generate from connections
-    const pktList=(packets&&packets.length)?packets:(connections||[]).map((c,i)=>({
-        type:'data',title:'Auto '+c.from+'→'+c.to,status:'OK',
-        from:c.from,to:c.to,speed:defSpeed,
-        style:{color:defColor,trailLength:defTrail}
-    }));
-    if(!connections&&!packets.length)return;
+    // Build override map from explicit packets: key = "from→to"
+    const overrides={};
+    if(packets&&packets.length)packets.forEach(p=>{overrides[p.from+'\u2192'+p.to]=p;});
+    // Generate from connections, applying overrides where present
+    const conns=connections||[];
+    const seen=new Set();
+    const pktList=[];
+    conns.forEach(c=>{
+        const key=c.from+'\u2192'+c.to;
+        const ov=overrides[key];
+        seen.add(key);
+        pktList.push({
+            type:ov?.type||'data',
+            title:ov?.title||'Auto '+c.from+'\u2192'+c.to,
+            status:ov?.status||'OK',
+            from:c.from,to:c.to,
+            speed:ov?.speed||defSpeed,
+            style:ov?.style||{color:defColor,trailLength:defTrail},
+            parentPacketId:ov?.parentPacketId||null,
+            payloadHistory:ov?.payloadHistory||null
+        });
+    });
+    // Add any explicit packets NOT covered by connections (extra streams)
+    if(packets)packets.forEach(p=>{
+        const key=p.from+'\u2192'+p.to;
+        if(!seen.has(key))pktList.push(p);
+    });
     pktList.forEach(p=>{
-        const type=p.type||'data';
-        const title=p.title||'Packet';
-        const status=p.status||'OK';
+        const type=p.type||'data',title=p.title||'Packet',status=p.status||'OK';
         const style=p.style||{color:defColor,trailLength:defTrail};
         mkPktOnPath(type,title,status,p.from,p.to,p.speed||defSpeed,style,p.parentPacketId,p.payloadHistory);
     });
