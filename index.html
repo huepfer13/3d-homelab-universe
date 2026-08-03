@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <title>3D Universe Demo</title>
 <style>
-body{margin:0;padding:0;overflow:hidden;width:100vw;height:100vh;background:#0a0a2e;font-family:'Segoe UI',Tahoma,sans-serif;color:#00ffcc;}
-#canvas-container{position:absolute;top:0;left:0;width:100vw;height:100vh;display:block;}
+body{margin:0;padding:0;overflow:hidden;width:100vw;height:100vh;background:#0a0a2e;font-family:'Segoe UI',Tahoma,sans-serif;color:#00ffcc;position:fixed;overscroll-behavior:none;}
+#canvas-container{position:fixed;top:0;left:0;width:100vw;height:100vh;display:block;touch-action:none;}
 #hud{position:absolute;top:20px;left:20px;background:rgba(5,10,25,0.9);border:1px solid #00ffcc44;padding:15px 20px;border-radius:8px;z-index:10;max-width:340px;}
 #hud button,#hud select{pointer-events:auto}
 h1{font-size:16px;margin:0 0 10px;color:#fff;letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid #00ffcc33;padding-bottom:5px;}
