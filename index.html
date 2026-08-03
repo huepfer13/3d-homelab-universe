@@ -163,6 +163,61 @@ let G={},Gg={},S=[],Sg={},loopTubes=[];
 let galaxyNames=[],systemIds=[];
 const SPREAD=2.5; // galaxy spacing multiplier
 
+// ═══ N-BODY PHYSICS ENGINE ═══
+const physicsCfg={
+    gravConst:0.5, repulsion:1500, damping:0.85,
+    boundary:350, minDist:25
+};
+let physicsNodes=[];
+
+function initPhysics(){
+    physicsNodes=[];
+    Object.entries(Sg).forEach(([id,sg])=>{
+        const sys=S.find(s=>s.id===id);
+        if(!sys)return;
+        sg.velocity=sg.velocity||new THREE.Vector3((Math.random()-0.5)*2,(Math.random()-0.5)*2,(Math.random()-0.5)*2);
+        sg.mass=(sys.capacityScore||100)*0.5;
+        sg.force=new THREE.Vector3(0,0,0);
+        physicsNodes.push(sg);
+    });
+}
+
+function updatePhysics(delta,time){
+    if(!physicsNodes.length)return;
+    // N-Body forces
+    for(let i=0;i<physicsNodes.length;i++){
+        const a=physicsNodes[i];
+        a.force.set(0,0,0);
+        const load=a.userData?.load||(a._load||0.3);
+        let dynMass=a.mass;
+        if(load>0.7){dynMass+=Math.sin(time*0.01+i)*(load*25);}
+        for(let j=0;j<physicsNodes.length;j++){
+            if(i===j)continue;
+            const b=physicsNodes[j];
+            const dir=new THREE.Vector3().subVectors(b.position,a.position);
+            const dist=dir.length();
+            if(dist<0.001)continue;
+            if(dist<physicsCfg.minDist){
+                a.force.add(dir.clone().normalize().multiplyScalar(-physicsCfg.repulsion/(dist*dist)));
+            }
+            a.force.add(dir.clone().normalize().multiplyScalar((physicsCfg.gravConst*dynMass*(b.mass||20))/(dist*dist)));
+        }
+    }
+    // Apply forces + boundaries
+    physicsNodes.forEach(node=>{
+        const acc=node.force.clone().divideScalar(node.mass||20);
+        node.velocity.add(acc.multiplyScalar(delta));
+        node.velocity.multiplyScalar(physicsCfg.damping);
+        node.position.add(node.velocity.clone().multiplyScalar(delta*10));
+        ['x','y','z'].forEach(axis=>{
+            if(Math.abs(node.position[axis])>physicsCfg.boundary){
+                node.position[axis]=Math.sign(node.position[axis])*physicsCfg.boundary;
+                node.velocity[axis]*=-0.5;
+            }
+        });
+    });
+}
+
 function clampToParent(pos,parentR){const max=parentR*0.85;if(pos.length()>max)pos.setLength(max);return pos;}
 
 function buildGalaxies(galaxies){
@@ -470,6 +525,7 @@ async function switchDataset(datasetId){
         buildConnections(cfg.connections||[]);
         buildTubes(cfg.connections||[]);
         buildStages();
+        initPhysics();
         buildLegend(cfg.galaxies,cfg.systems);
         seedPackets(cfg.packets||[]);
         populateSwitcher(ds.datasets,datasetId);
@@ -545,6 +601,7 @@ async function initUniverse(){
         buildConnections(cfg.connections||[]);
         buildTubes(cfg.connections||[]);
         buildStages();
+        initPhysics();
         buildLegend(cfg.galaxies,cfg.systems);
         seedPackets(cfg.packets||[]);
         populateSwitcher(ds.datasets,activeId);
@@ -565,11 +622,13 @@ async function initUniverse(){
 
 // ═══ ANIMATION ═══
 const tv=new THREE.Vector3();
+let lastTime=0;
 function animate(){
     requestAnimationFrame(animate);
     if(!R)return;
     try{
     const t=cl.getElapsedTime();
+    const delta=Math.min(t-lastTime,0.1);lastTime=t; // cap delta
     // Oscillating rotation: bounce at ±30° instead of continuous spin
     const rotY = Math.sin(t * 0.08) * 0.5; // ±0.5 rad ≈ ±30°
     U.rotation.y = rotY;
@@ -590,6 +649,9 @@ function animate(){
     Object.values(Sg).forEach(s=>{
         s.rotation.y+=0.003; // continuous slow orbit
     });
+
+    // N-Body physics: gravitational waves + repulsion + boundaries
+    updatePhysics(delta,t);
 
     // ═══ THRESHOLD-DRIVEN DUAL HALOS ═══
     const thresholds=window._thresholds||[{maxLoad:0.50,color:'#00ffcc',speedMultiplier:1.0},{maxLoad:0.85,color:'#ffaa00',speedMultiplier:2.2},{maxLoad:1.00,color:'#ff3333',speedMultiplier:4.5}];
