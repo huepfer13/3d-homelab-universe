@@ -947,6 +947,14 @@ function openConfigModal(){
 }
 function closeConfigModal(){document.getElementById('cfg-modal').style.display='none';}
 
+// Extended metadata with descriptions
+const sectionMeta={
+    galaxies:{icon:'🌌',title:'Galaxien & Switches',desc:'Physische Netzwerk-Hubs im 3D-Raum. Jede Galaxie ist ein Switch oder Cluster-Kern. Systeme kreisen darum.\n\n  [⊙] ← Orbits →'},
+    systems:{icon:'🪐',title:'Geräte & Container',desc:'VMs, Container und Hosts als Planeten. Halos zeigen Live-Last (innerer Ring) und Kapazität (äußerer Ring).\n\n  ((◉)) ← Doppel-Halo'},
+    connections:{icon:'🔗',title:'Verbindungen & Protokolle',desc:'Netzwerk-Links zwischen Systemen. Jede Verbindung hat ein Protokoll (HTTPS=Gold, SSH=Blau, MQTT=Cyan).\n\n  A ═══ B ← Leitung'},
+    packets:{icon:'📨',title:'Datenpakete',desc:'Animierte Telegramme zwischen Systemen. Request/Response-Paare mit Huckepack-Daten und Trail-Spuren.\n\n  •→→→• ← Packet'}
+};
+
 function renderConfigEditor(){
     const nav=document.getElementById('config-nav'),ed=document.getElementById('config-editor');
     nav.innerHTML='';ed.innerHTML='';
@@ -957,13 +965,6 @@ function renderConfigEditor(){
         '<button onclick="applyPreset(\'balanced\')" style="background:rgba(0,255,136,0.1);border:1px solid #00ff88;color:#0fc;padding:6px 12px;border-radius:4px;cursor:pointer;margin-right:6px;">⚖️ Ausgewogen</button>'+
         '<button onclick="applyPreset(\'spread\')" style="background:rgba(0,255,136,0.1);border:1px solid #00ff88;color:#0fc;padding:6px 12px;border-radius:4px;cursor:pointer;">🌌 Weit aufgespreizt</button>'+
         '<div id="preset-msg" style="margin-top:8px;font-size:11px;color:#888;"></div></div><div id="section-editor"></div>';
-// Extended metadata with descriptions
-const sectionMeta={
-    galaxies:{icon:'🌌',title:'Galaxien & Switches',desc:'Physische Netzwerk-Hubs im 3D-Raum. Jede Galaxie ist ein Switch oder Cluster-Kern. Systeme kreisen darum.\n\n  [⊙] ← Orbits →'},
-    systems:{icon:'🪐',title:'Geräte & Container',desc:'VMs, Container und Hosts als Planeten. Halos zeigen Live-Last (innerer Ring) und Kapazität (äußerer Ring).\n\n  ((◉)) ← Doppel-Halo'},
-    connections:{icon:'🔗',title:'Verbindungen & Protokolle',desc:'Netzwerk-Links zwischen Systemen. Jede Verbindung hat ein Protokoll (HTTPS=Gold, SSH=Blau, MQTT=Cyan).\n\n  A ═══ B ← Leitung'},
-    packets:{icon:'📨',title:'Datenpakete',desc:'Animierte Telegramme zwischen Systemen. Request/Response-Paare mit Huckepack-Daten und Trail-Spuren.\n\n  •→→→• ← Packet'}
-};
     // Build nav from sectionMeta
     const sections=Object.entries(sectionMeta).map(([k,v])=>({key:k,icon:v.icon,label:v.title}));
     sections.forEach((s,i)=>{
@@ -1024,6 +1025,17 @@ function loadFriendlySection(key){
                 '<div style="margin-top:6px;display:grid;grid-template-columns:1fr 1fr;gap:6px;">'+
                 '<div><label style="font-size:10px;color:#aaa;">Switch / Galaxie</label><select onchange="activeConfigData.systems['+idx+'].g=this.value" style="width:100%;background:#111;color:#0fc;border:1px solid #444;padding:4px;border-radius:3px;">'+gOpts+'</select></div>'+
                 '<div><label style="font-size:10px;color:#aaa;">Leistung: '+capLabel+'</label><input type="range" min="20" max="200" value="'+s.capacityScore+'" oninput="var v=parseInt(this.value);activeConfigData.systems['+idx+'].capacityScore=v;var l=v>120?\'🔥 Hoch\':v>80?\'⚡ Mittel\':\'💤 Niedrig\';this.previousElementSibling.textContent=\'Leistung: \'+l;this.nextElementSibling.textContent=v;" style="width:100%;"><span style="font-size:9px;color:#888;">'+s.capacityScore+'</span></div>'+
+                '</div></div>';
+        });
+    }else if(key==='packets'){
+        html+='<h4 style="color:#00ff88;">📨 DATENPAKETE</h4><p style="font-size:11px;color:#888;margin-bottom:12px;">Trail-Länge und Geschwindigkeit pro Datenstrom.</p>';
+        val.forEach((p,idx)=>{
+            const tLen=p.style?.trailLength||TL;
+            html+='<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(0,255,136,0.1);padding:10px;border-radius:5px;margin-bottom:8px;">'+
+                '<strong style="color:#ffaa00;">📦 '+p.title+'</strong> <span style="color:#666;font-size:10px;">('+p.from+' → '+p.to+')</span>'+
+                '<div style="margin-top:6px;display:grid;grid-template-columns:1fr 1fr;gap:6px;">'+
+                '<div><label style="font-size:10px;color:#aaa;">⚡ Speed: <span style="color:#0fc;">'+p.speed+'</span></label><input type="range" min="0.001" max="0.01" step="0.0005" value="'+p.speed+'" oninput="this.previousElementSibling.children[0].textContent=this.value;activeConfigData.packets['+idx+'].speed=parseFloat(this.value);" style="width:100%;accent-color:#00ff88;"></div>'+
+                '<div><label style="font-size:10px;color:#aaa;">✨ Trail: <span style="color:#0fc;">'+tLen+'</span></label><input type="range" min="10" max="200" step="5" value="'+tLen+'" oninput="this.previousElementSibling.children[0].textContent=this.value;if(!activeConfigData.packets['+idx+'].style)activeConfigData.packets['+idx+'].style={};activeConfigData.packets['+idx+'].style.trailLength=parseInt(this.value);" style="width:100%;accent-color:#ffaa00;"></div>'+
                 '</div></div>';
         });
     }else if(key==='connections'){
