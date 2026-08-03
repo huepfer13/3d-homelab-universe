@@ -995,7 +995,18 @@ function saveConfigToLive(){
     window._thresholds=activeConfigData.globalConfig?.thresholds||window._thresholds;
     window._routingRules=activeConfigData.routingRules||{forceCoreTransit:false};
     closeConfigModal();
-    switchDataset(activeConfigData.datasetId||'custom');
+    // Direct rebuild with custom config
+    disposeAll();
+    buildGalaxies(activeConfigData.galaxies||[]);
+    buildSystems(activeConfigData.systems||[],activeConfigData.globalConfig?.thresholds||window._thresholds);
+    buildRoutes(activeConfigData.galaxies||[]);
+    buildConnections(activeConfigData.connections||[]);
+    buildTubes(activeConfigData.connections||[]);
+    buildStages();
+    initPhysics();
+    buildLegend(activeConfigData.galaxies||[],activeConfigData.systems||[]);
+    seedPackets(activeConfigData.packets||[]);
+    logMsg('Config übernommen','success');
 }
 
 function downloadConfig(){
