@@ -161,12 +161,15 @@ function mkPkt(type,title,status,sx,sy,sz,ex,ey,ez,spd,style){
 // ═══ DYNAMIC UNIVERSE BUILDER ═══
 let G={},Gg={},S=[],Sg={},loopTubes=[];
 let galaxyNames=[],systemIds=[];
+const SPREAD=2.5; // galaxy spacing multiplier
 
 function clampToParent(pos,parentR){const max=parentR*0.85;if(pos.length()>max)pos.setLength(max);return pos;}
 
 function buildGalaxies(galaxies){
     galaxies.forEach(g=>{
-        G[g.id]=g; const gr=new THREE.Group();gr.position.set(g.x,g.y,g.z);U.add(gr);Gg[g.id]=gr;
+        G[g.id]=g; const gr=new THREE.Group();
+        gr.position.set(g.x*SPREAD,g.y*SPREAD,g.z*SPREAD);U.add(gr);Gg[g.id]=gr;
+        g._sx=g.x*SPREAD;g._sy=g.y*SPREAD;g._sz=g.z*SPREAD; // store scaled coords
         galaxyNames.push(g.id);
         // Core
         gr.add(new THREE.Mesh(new THREE.SphereGeometry(0.9,16,16),new THREE.MeshStandardMaterial({color:g.color,emissive:g.color,emissiveIntensity:1.0,roughness:0.05})));
@@ -240,7 +243,10 @@ function buildRoutes(galaxies){
     const irMat=new THREE.LineBasicMaterial({color:0x0088ff,transparent:true,opacity:0.12});
     for(let i=0;i<galaxies.length-1;i++){
         const ga=galaxies[i],gb=galaxies[i+1];
-        U.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(ga.x,ga.y,ga.z),new THREE.Vector3(gb.x,gb.y,gb.z)]),irMat));
+        U.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([
+            new THREE.Vector3(ga.x*SPREAD,ga.y*SPREAD,ga.z*SPREAD),
+            new THREE.Vector3(gb.x*SPREAD,gb.y*SPREAD,gb.z*SPREAD)
+        ]),irMat));
     }
 }
 
@@ -258,8 +264,8 @@ function buildConnections(connections){
         const sa=S.find(s=>s.id===a),sb=S.find(s=>s.id===b);
         if(!sa||!sb)return;
         const ga=G[sa.g],gb=G[sb.g];
-        const p1=new THREE.Vector3(ga.x+sa.x,ga.y+sa.y,ga.z+sa.z);
-        const p2=new THREE.Vector3(gb.x+sb.x,gb.y+sb.y,gb.z+sb.z);
+        const p1=new THREE.Vector3(ga._sx+sa.x,ga._sy+sa.y,ga._sz+sa.z);
+        const p2=new THREE.Vector3(gb._sx+sb.x,gb._sy+sb.y,gb._sz+sb.z);
         // Protocol styling
         const proto=c.protocol||'ping';
         const ps=PROTO_STYLES[proto]||PROTO_STYLES.ping;
@@ -299,8 +305,8 @@ function makeTube(sid1,sid2,color,thickness){
     const s1=S.find(s=>s.id===sid1),s2=S.find(s=>s.id===sid2);
     if(!s1||!s2)return;
     const g1=G[s1.g],g2=G[s2.g];
-    const p1=new THREE.Vector3(g1.x+s1.x,g1.y+s1.y,g1.z+s1.z);
-    const p2=new THREE.Vector3(g2.x+s2.x,g2.y+s2.y,g2.z+s2.z);
+    const p1=new THREE.Vector3(g1._sx+s1.x,g1._sy+s1.y,g1._sz+s1.z);
+    const p2=new THREE.Vector3(g2._sx+s2.x,g2._sy+s2.y,g2._sz+s2.z);
     const mid=new THREE.Vector3().addVectors(p1,p2).multiplyScalar(0.5);mid.y+=5;
     const curve=new THREE.QuadraticBezierCurve3(p1,mid,p2);
     const mesh=new THREE.Mesh(new THREE.TubeGeometry(curve,32,thickness,8,false),
@@ -326,8 +332,8 @@ function mkPktOnPath(type,title,status,sid1,sid2,spd,style,parentId,payloadHisto
     const ct1=S.find(s=>s.id===sid1), ct2=S.find(s=>s.id===sid2);
     if(!ct1||!ct2)return;
     const g1=G[ct1.g], g2=G[ct2.g];
-    const sx=g1.x+ct1.x, sy=g1.y+ct1.y, sz=g1.z+ct1.z;
-    const ex=g2.x+ct2.x, ey=g2.y+ct2.y, ez=g2.z+ct2.z;
+    const sx=g1._sx+ct1.x, sy=g1._sy+ct1.y, sz=g1._sz+ct1.z;
+    const ex=g2._sx+ct2.x, ey=g2._sy+ct2.y, ez=g2._sz+ct2.z;
     const pk=mkPkt(type,title,status,sx,sy,sz,ex,ey,ez,spd,style);
     if(!pk)return;
     pk.startCT=Sg[sid1]?.children[1]; pk.endCT=Sg[sid2]?.children[1];
