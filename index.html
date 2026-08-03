@@ -342,7 +342,7 @@ function buildSystems(systems,thresholds){
             for(let pi=0;pi<2;pi++){
                 const pc=cols[(systemIds.length*2+pi)%cols.length];
                 const m=new THREE.Mesh(new THREE.SphereGeometry(0.5,16,16),new THREE.MeshStandardMaterial({color:pc,emissive:pc,emissiveIntensity:0.7,roughness:0.05}));
-                const pp=new THREE.Vector3((pi===0?-1:1)*1.5,0,0);clampToParent(pp,baseR);m.position.copy(pp);sg.add(m);
+                const pp=new THREE.Vector3((pi===0?-1:1)*1.5,0,0);clampToParent(pp,halosCfg[0].baseRadius);m.position.copy(pp);sg.add(m);
             }
         }
     });
