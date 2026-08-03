@@ -1069,10 +1069,17 @@ function loadFriendlySection(key){
                 '</div></div>';
         });
     }else if(key==='connections'){
-        html='<h4 style="color:#00ff88;">🔗 VERBINDUNGEN</h4><p style="font-size:11px;color:#888;margin-bottom:12px;">'+val.length+' Verbindungen zwischen Geräten.</p>';
+        html='<h4 style="color:#00ff88;">🔗 VERBINDUNGEN</h4><p style="font-size:11px;color:#888;margin-bottom:12px;">'+val.length+' Verbindungen. Tunnel-Transparenz nur wenn Tunnel definiert.</p>';
         val.forEach((c,idx)=>{
-            html+='<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(0,255,136,0.1);padding:8px;border-radius:4px;margin-bottom:5px;font-size:11px;">'+
-                '<span style="color:#0fc;">'+c.from+'</span> → <span style="color:#fa0;">'+c.to+'</span> <span style="color:#666;margin-left:6px;">['+c.protocol+']</span></div>';
+            const hasTunnel=!!(c.tunnel||(c.style&&c.style.tubeOpacity!==undefined));
+            if(hasTunnel&&!c.style)c.style={};
+            const tubeOp=hasTunnel?(c.style.tubeOpacity||0.15):0.15;
+            html+='<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(0,255,136,0.15);padding:10px;border-radius:5px;margin-bottom:8px;">'+
+                '<strong style="color:#0fc;">'+c.from+'</strong> → <strong style="color:#fa0;">'+c.to+'</strong> <span style="color:#666;">['+(c.protocol||'https')+']</span>'+
+                '<div style="margin-top:6px;">'+
+                '<label style="font-size:10px;color:#ccc;cursor:pointer;"><input type="checkbox" '+(c.status!=='disabled'?'checked':'')+' style="accent-color:#00ff88;margin-right:5px;" onchange="activeConfigData.connections['+idx+'].status=this.checked?\'active\':\'disabled\';"> Aktiv</label>'+
+                (hasTunnel?'<div style="margin-top:6px;border-left:2px solid #00ff88;padding-left:8px;"><label style="font-size:10px;color:#aaa;">🚇 '+c.tunnel+': <span style="color:#0fc;">'+tubeOp+'</span></label><input type="range" min="0.01" max="0.5" step="0.01" value="'+tubeOp+'" oninput="this.previousElementSibling.children[0].textContent=parseFloat(this.value).toFixed(2);activeConfigData.connections['+idx+'].style.tubeOpacity=parseFloat(this.value);" style="width:100%;accent-color:#00ff88;"></div>':'')+
+                '</div></div>';
         });
     }
     container.innerHTML=html;
