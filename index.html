@@ -305,7 +305,7 @@ function buildSystems(systems,thresholds){
 }
 
 function buildRoutes(galaxies){
-    const irMat=new THREE.LineBasicMaterial({color:0x0088ff,transparent:true,opacity:0.12});
+    const irMat=new THREE.LineBasicMaterial({color:0x0088ff,transparent:true,opacity:0.05});
     for(let i=0;i<galaxies.length-1;i++){
         const ga=galaxies[i],gb=galaxies[i+1];
         U.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([
@@ -317,10 +317,10 @@ function buildRoutes(galaxies){
 
 // ═══ PROTOCOL DEFAULT STYLES ═══
 const PROTO_STYLES={
-    https:{glowColor:'#ffcc00',lineType:'solid',opacity:0.25},
-    mqtt:{glowColor:'#00ffcc',lineType:'solid',opacity:0.2},
-    ssh:{glowColor:'#3388ff',lineType:'solid',opacity:0.2},
-    ping:{glowColor:'#334455',lineType:'dashed',opacity:0.08}
+    https:{glowColor:'#ffcc00',lineType:'solid',opacity:0.06},
+    mqtt:{glowColor:'#00ffcc',lineType:'solid',opacity:0.05},
+    ssh:{glowColor:'#3388ff',lineType:'solid',opacity:0.05},
+    ping:{glowColor:'#334455',lineType:'dashed',opacity:0.04}
 };
 
 function buildConnections(connections){
