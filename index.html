@@ -205,11 +205,11 @@ function buildSystems(systems,thresholds){
             sg.add(ring);outerRings.push(ring);outerMats.push(mat);
         });
 
-        // ═══ INNER RING: Load / Usage (dynamic, 0..baseR, threshold-colored) ═══
+        // ═══ INNER RING: Load / Usage (dynamic, 0..baseR, threshold-colored, pump) ═══
         const innerRings=[],innerMats=[];
         [0,Math.PI/2,Math.PI/2].forEach((rot,idx)=>{
             const mat=new THREE.MeshBasicMaterial({color:0x00ffcc,transparent:true,opacity:0.7,side:2});
-            const ring=new THREE.Mesh(new THREE.RingGeometry(0.01,baseR*0.1,48),mat);
+            const ring=new THREE.Mesh(new THREE.RingGeometry(baseR*0.3,baseR*0.45,48),mat);
             if(idx===0)ring.rotation.x=Math.PI/2;else if(idx===2)ring.rotation.y=Math.PI/2;
             sg.add(ring);innerRings.push(ring);innerMats.push(mat);
         });
@@ -598,12 +598,12 @@ function animate(){
         // Parse hex color
         const hex=parseInt(activeTh.color.replace('#',''),16);
         const spd=activeTh.speedMultiplier||1.0;
-        // Update inner rings: scale = load × baseR, color = threshold, pulse = speedMultiplier
-        const scale=s._load*s._baseR;
+        // Update inner rings: scale grows with load, pulse = speedMultiplier
         s._innerRings.forEach((ring,i)=>{
-            ring.scale.setScalar(Math.max(0.05,scale/ring.geometry.parameters.outerRadius)*0.8+Math.sin(t*spd*4)*0.1);
+            const pump=1.0+Math.sin(t*spd*4)*0.12*s._load;
+            ring.scale.setScalar(0.15+s._load*1.6*pump);
             s._innerMats[i].color.setHex(hex);
-            s._innerMats[i].opacity=0.4+s._load*0.4;
+            s._innerMats[i].opacity=0.35+s._load*0.6;
         });
     });
 
