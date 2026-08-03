@@ -292,32 +292,30 @@ function buildSystems(systems,thresholds){
     systems.forEach(s=>{
         systemIds.push(s.id);
         const baseR=s.halos&&s.halos[0]?s.halos[0].baseRadius:4;
+        const halosEnabled=s.halos&&s.halos.some(h=>h.enabled!==false);
         const cap=s.capacityScore||100;
         const c=s.color||65535;
         const p=Gg[s.g];const sg=new THREE.Group();
         const pos=new THREE.Vector3(s.x,s.y,s.z);
         clampToParent(pos,G[s.g].r);sg.position.copy(pos);p.add(sg);Sg[s.id]=sg;
 
-        // ═══ OUTER RING: Capacity / Headroom (static, proportional to capacityScore) ═══
-        const outerR=baseR*(cap/maxCap)*1.3;
-        const outerMats=[],outerRings=[];
-        [0,Math.PI/2,Math.PI/2].forEach((rot,idx)=>{
-            const mat=new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:0.35,side:2});
-            const ring=new THREE.Mesh(new THREE.RingGeometry(outerR*0.85,outerR,48),mat);
-            if(idx===0)ring.rotation.x=Math.PI/2;else if(idx===2)ring.rotation.y=Math.PI/2;
-            sg.add(ring);outerRings.push(ring);outerMats.push(mat);
-        });
-
-        // ═══ INNER RING: Load / Usage (dynamic, 0..baseR, threshold-colored, pump) ═══
-        const innerRings=[],innerMats=[];
-        [0,Math.PI/2,Math.PI/2].forEach((rot,idx)=>{
-            const mat=new THREE.MeshBasicMaterial({color:0x00ffcc,transparent:true,opacity:0.7,side:2});
-            const ring=new THREE.Mesh(new THREE.RingGeometry(baseR*0.3,baseR*0.45,48),mat);
-            if(idx===0)ring.rotation.x=Math.PI/2;else if(idx===2)ring.rotation.y=Math.PI/2;
-            sg.add(ring);innerRings.push(ring);innerMats.push(mat);
-        });
-
-        // Store on system object for animation
+        // ═══ DUAL HALOS (conditionally created based on enabled flag) ═══
+        let outerRings=[],outerMats=[],innerRings=[],innerMats=[];
+        if(halosEnabled){
+            const outerR=baseR*(cap/maxCap)*1.3;
+            [0,Math.PI/2,Math.PI/2].forEach((rot,idx)=>{
+                const mat=new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:0.35,side:2});
+                const ring=new THREE.Mesh(new THREE.RingGeometry(outerR*0.85,outerR,48),mat);
+                if(idx===0)ring.rotation.x=Math.PI/2;else if(idx===2)ring.rotation.y=Math.PI/2;
+                sg.add(ring);outerRings.push(ring);outerMats.push(mat);
+            });
+            [0,Math.PI/2,Math.PI/2].forEach((rot,idx)=>{
+                const mat=new THREE.MeshBasicMaterial({color:0x00ffcc,transparent:true,opacity:0.7,side:2});
+                const ring=new THREE.Mesh(new THREE.RingGeometry(baseR*0.3,baseR*0.45,48),mat);
+                if(idx===0)ring.rotation.x=Math.PI/2;else if(idx===2)ring.rotation.y=Math.PI/2;
+                sg.add(ring);innerRings.push(ring);innerMats.push(mat);
+            });
+        }
         s._outerRings=outerRings;s._outerMats=outerMats;
         s._innerRings=innerRings;s._innerMats=innerMats;
         s._baseR=baseR;s._load=0.15+Math.random()*0.25;s._loadDir=1;
@@ -988,17 +986,12 @@ function renderConfigEditor(){
     const nav=document.getElementById('config-nav'),ed=document.getElementById('config-editor');
     nav.innerHTML='';ed.innerHTML='';
     // Layout presets
-    const defs=activeConfigData.globalConfig?.defaults||{};
     ed.innerHTML='<div style="margin-bottom:20px;padding:15px;background:rgba(0,255,136,0.05);border:1px solid rgba(0,255,136,0.2);border-radius:6px;">'+
         '<h4 style="margin:0 0 10px;color:#00ff88;">📐 LAYOUT-VORLAGEN</h4>'+
         '<button onclick="applyPreset(\'compact\')" style="background:rgba(0,255,136,0.1);border:1px solid #00ff88;color:#0fc;padding:6px 12px;border-radius:4px;cursor:pointer;margin-right:6px;">🔘 Kompakter Cluster</button>'+
         '<button onclick="applyPreset(\'balanced\')" style="background:rgba(0,255,136,0.1);border:1px solid #00ff88;color:#0fc;padding:6px 12px;border-radius:4px;cursor:pointer;margin-right:6px;">⚖️ Ausgewogen</button>'+
         '<button onclick="applyPreset(\'spread\')" style="background:rgba(0,255,136,0.1);border:1px solid #00ff88;color:#0fc;padding:6px 12px;border-radius:4px;cursor:pointer;">🌌 Weit aufgespreizt</button>'+
-        '<div id="preset-msg" style="margin-top:8px;font-size:11px;color:#888;"></div>'+
-        '<div style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(0,255,136,0.15);display:grid;grid-template-columns:1fr 1fr;gap:8px;">'+
-        '<div><label style="font-size:10px;color:#aaa;">✨ Trail-Länge: <span style="color:#0fc;">'+(defs.defaultTrailLength||40)+'</span></label><input type="range" min="10" max="200" step="5" value="'+(defs.defaultTrailLength||40)+'" oninput="var v=parseInt(this.value);if(!activeConfigData.globalConfig)activeConfigData.globalConfig={};if(!activeConfigData.globalConfig.defaults)activeConfigData.globalConfig.defaults={};activeConfigData.globalConfig.defaults.defaultTrailLength=v;this.previousElementSibling.children[0].textContent=v;" style="width:100%;accent-color:#ffaa00;"></div>'+
-        '<div><label style="font-size:10px;color:#aaa;">⚡ Speed: <span style="color:#0fc;">'+(defs.defaultSpeed||0.003)+'</span></label><input type="range" min="0.001" max="0.01" step="0.0005" value="'+(defs.defaultSpeed||0.003)+'" oninput="var v=parseFloat(this.value);if(!activeConfigData.globalConfig)activeConfigData.globalConfig={};if(!activeConfigData.globalConfig.defaults)activeConfigData.globalConfig.defaults={};activeConfigData.globalConfig.defaults.defaultSpeed=v;this.previousElementSibling.children[0].textContent=v;" style="width:100%;accent-color:#00ff88;"></div>'+
-        '</div></div><div id="section-editor"></div>';
+        '<div id="preset-msg" style="margin-top:8px;font-size:11px;color:#888;"></div></div><div id="section-editor"></div>';
     // Build nav from sectionMeta
     const sections=Object.entries(sectionMeta).map(([k,v])=>({key:k,icon:v.icon,label:v.title}));
     sections.forEach((s,i)=>{
@@ -1059,7 +1052,10 @@ function loadFriendlySection(key){
                 '<div style="margin-top:6px;display:grid;grid-template-columns:1fr 1fr;gap:6px;">'+
                 '<div><label style="font-size:10px;color:#aaa;">Switch / Galaxie</label><select onchange="activeConfigData.systems['+idx+'].g=this.value" style="width:100%;background:#111;color:#0fc;border:1px solid #444;padding:4px;border-radius:3px;">'+gOpts+'</select></div>'+
                 '<div><label style="font-size:10px;color:#aaa;">Leistung: '+capLabel+'</label><input type="range" min="20" max="200" value="'+s.capacityScore+'" oninput="var v=parseInt(this.value);activeConfigData.systems['+idx+'].capacityScore=v;var l=v>120?\'🔥 Hoch\':v>80?\'⚡ Mittel\':\'💤 Niedrig\';this.previousElementSibling.textContent=\'Leistung: \'+l;this.nextElementSibling.textContent=v;" style="width:100%;"><span style="font-size:9px;color:#888;">'+s.capacityScore+'</span></div>'+
-                '</div></div>';
+                '</div>'+
+                ((s.halos&&s.halos.length)?'<div style="margin-top:6px;padding:8px;background:rgba(0,255,136,0.03);border-radius:4px;">'+
+                '<span style="font-size:10px;color:#00ff88;">✨ Halos:</span>'+s.halos.map((h,hi)=>'<label style="display:block;font-size:10px;color:#ccc;margin-top:3px;cursor:pointer;"><input type="checkbox" '+(h.enabled!==false?'checked':'')+' style="accent-color:#00ff88;margin-right:5px;" onchange="activeConfigData.systems['+idx+'].halos['+hi+'].enabled=this.checked;"> '+h.metricKey+' (r='+h.baseRadius+')</label>').join('')+'</div>':'')+
+                '</div>';
         });
     }else if(key==='packets'){
         html+='<h4 style="color:#00ff88;">📨 DATENPAKETE</h4><p style="font-size:11px;color:#888;margin-bottom:12px;">Trail-Länge und Geschwindigkeit pro Datenstrom.</p>';
