@@ -86,14 +86,15 @@ h1{font-size:16px;margin:0 0 10px;color:#fff;letter-spacing:1px;text-transform:u
 <div id="canvas-container"></div>
 <div id="crosshair"></div>
 
-<div id="cfg-modal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:80vw;max-width:900px;height:80vh;background:rgba(10,10,35,0.95);border:1px solid #00ff88;border-radius:12px;z-index:10000;box-shadow:0 0 30px rgba(0,255,136,0.3);flex-direction:column;font-family:monospace;color:#fff;">
-<div style="padding:15px 20px;border-bottom:1px solid rgba(0,255,136,0.3);display:flex;justify-content:space-between;align-items:center;background:rgba(0,255,136,0.05);">
-<h3 style="margin:0;color:#00ff88;font-size:16px;">⚙️ HOMELAB CONFIGURATION ASSISTANT</h3>
+<div id="cfg-modal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:85vw;max-width:1000px;height:85vh;background:rgba(10,10,35,0.45);border:1px solid rgba(0,255,136,0.6);border-radius:12px;z-index:10000;box-shadow:0 0 40px rgba(0,255,136,0.2);flex-direction:column;font-family:monospace;color:#fff;backdrop-filter:blur(4px);">
+<div style="padding:15px 20px;border-bottom:1px solid rgba(0,255,136,0.3);display:flex;justify-content:space-between;align-items:center;background:rgba(0,0,0,0.3);">
+<div><h3 style="margin:0;color:#00ff88;font-size:16px;">⚙️ HOMELAB LIVE-CONFIG</h3>
+<span style="font-size:11px;color:#aaa;">Universum bleibt im Hintergrund sichtbar</span></div>
 <button id="cfg-close" style="background:none;border:none;color:#00ff88;font-size:18px;cursor:pointer;">✖</button></div>
 <div style="display:flex;flex:1;overflow:hidden;">
-<div id="config-nav" style="width:220px;border-right:1px solid rgba(0,255,136,0.2);padding:15px;overflow-y:auto;background:rgba(0,0,0,0.2);"></div>
-<div id="config-editor" style="flex:1;padding:20px;overflow-y:auto;"></div></div>
-<div style="padding:12px 20px;border-top:1px solid rgba(0,255,136,0.3);display:flex;justify-content:space-between;align-items:center;background:rgba(0,0,0,0.4);">
+<div id="config-nav" style="width:260px;border-right:1px solid rgba(0,255,136,0.2);padding:15px;overflow-y:auto;background:rgba(0,0,0,0.25);"></div>
+<div id="config-editor" style="flex:1;padding:20px;overflow-y:auto;background:rgba(0,0,0,0.15);"></div></div>
+<div style="padding:12px 20px;border-top:1px solid rgba(0,255,136,0.3);display:flex;justify-content:space-between;align-items:center;background:rgba(0,0,0,0.5);">
 <div>
 <input type="file" id="config-import-input" accept=".json" style="display:none" onchange="importConfig(event)">
 <button onclick="document.getElementById('config-import-input').click()" style="background:rgba(0,255,136,0.1);border:1px solid #00ff88;color:#00ff88;padding:6px 12px;border-radius:4px;cursor:pointer;margin-right:8px;">📥 Import</button>
@@ -956,12 +957,15 @@ function renderConfigEditor(){
         '<button onclick="applyPreset(\'balanced\')" style="background:rgba(0,255,136,0.1);border:1px solid #00ff88;color:#0fc;padding:6px 12px;border-radius:4px;cursor:pointer;margin-right:6px;">⚖️ Ausgewogen</button>'+
         '<button onclick="applyPreset(\'spread\')" style="background:rgba(0,255,136,0.1);border:1px solid #00ff88;color:#0fc;padding:6px 12px;border-radius:4px;cursor:pointer;">🌌 Weit aufgespreizt</button>'+
         '<div id="preset-msg" style="margin-top:8px;font-size:11px;color:#888;"></div></div><div id="section-editor"></div>';
-    // Navigation: human-friendly sections
-    const sections=[
-        {key:'galaxies',icon:'🌌',label:'Galaxien & Switches'},
-        {key:'systems',icon:'🪐',label:'Geräte & Container'},
-        {key:'connections',icon:'🔗',label:'Verbindungen'}
-    ];
+// Extended metadata with descriptions
+const sectionMeta={
+    galaxies:{icon:'🌌',title:'Galaxien & Switches',desc:'Physische Netzwerk-Hubs im 3D-Raum. Jede Galaxie ist ein Switch oder Cluster-Kern. Systeme kreisen darum.\n\n  [⊙] ← Orbits →'},
+    systems:{icon:'🪐',title:'Geräte & Container',desc:'VMs, Container und Hosts als Planeten. Halos zeigen Live-Last (innerer Ring) und Kapazität (äußerer Ring).\n\n  ((◉)) ← Doppel-Halo'},
+    connections:{icon:'🔗',title:'Verbindungen & Protokolle',desc:'Netzwerk-Links zwischen Systemen. Jede Verbindung hat ein Protokoll (HTTPS=Gold, SSH=Blau, MQTT=Cyan).\n\n  A ═══ B ← Leitung'},
+    packets:{icon:'📨',title:'Datenpakete',desc:'Animierte Telegramme zwischen Systemen. Request/Response-Paare mit Huckepack-Daten und Trail-Spuren.\n\n  •→→→• ← Packet'}
+};
+    // Build nav from sectionMeta
+    const sections=Object.entries(sectionMeta).map(([k,v])=>({key:k,icon:v.icon,label:v.title}));
     sections.forEach((s,i)=>{
         const item=document.createElement('div');
         item.style.cssText='padding:10px 12px;cursor:pointer;border-radius:5px;margin-bottom:3px;color:#00ff88;';
@@ -990,16 +994,23 @@ function applyPreset(preset){
 function loadFriendlySection(key){
     const container=document.getElementById('section-editor');
     const val=activeConfigData[key];
+    const meta=sectionMeta[key];
     if(!val){container.innerHTML='<p style="color:#888;">Keine Daten.</p>';return;}
     let html='';
+    // Section description
+    if(meta){
+        html+='<div style="background:rgba(0,255,136,0.05);border-left:3px solid #00ff88;padding:10px 12px;border-radius:4px;margin-bottom:15px;font-size:11px;line-height:1.5;white-space:pre-line;color:#ccc;">';
+        html+='<strong style="color:#00ff88;">'+meta.icon+' '+meta.title+'</strong>\n'+meta.desc+'</div>';
+    }
     if(key==='galaxies'){
         html='<h4 style="color:#00ff88;">🌌 GALAXIEN & SWITCHES</h4><p style="font-size:11px;color:#888;margin-bottom:12px;">Jede Galaxie ist ein physischer Switch oder Cluster-Knoten.</p>';
         val.forEach((g,idx)=>{
             html+='<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(0,255,136,0.15);padding:12px;border-radius:5px;margin-bottom:10px;">'+
                 '<strong style="color:#00ff88;">'+g.name+'</strong> <span style="color:#666;font-size:10px;">('+g.id+')</span>'+
                 '<div style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:8px;">'+
-                '<div><label style="font-size:10px;color:#aaa;">Name</label><input id="gal_name_'+idx+'" value="'+g.name+'" onchange="activeConfigData.galaxies['+idx+'].name=this.value" style="width:100%;background:#111;color:#0fc;border:1px solid #444;padding:4px;border-radius:3px;box-sizing:border-box;"></div>'+
-                '<div><label style="font-size:10px;color:#aaa;">Größe <span style="color:#666;">('+g.r+')</span></label><input type="range" min="5" max="30" value="'+g.r+'" oninput="this.nextElementSibling.textContent=this.value;activeConfigData.galaxies['+idx+'].r=parseInt(this.value)" style="width:100%;"><span style="font-size:9px;color:#888;">'+g.r+'</span></div>'+
+                '<div><label style="font-size:10px;color:#aaa;">Name</label><input value="'+g.name+'" onchange="activeConfigData.galaxies['+idx+'].name=this.value" style="width:100%;background:#111;color:#0fc;border:1px solid #444;padding:4px;border-radius:3px;box-sizing:border-box;"></div>'+
+                '<div><label style="font-size:10px;color:#aaa;">Größe <span style="color:#666;">('+g.r+')</span></label><input type="range" min="5" max="30" value="'+g.r+'" oninput="this.nextElementSibling.textContent=this.value;activeConfigData.galaxies['+idx+'].r=parseInt(this.value)" style="width:100%;accent-color:#00ff88;"><span style="font-size:9px;color:#888;">'+g.r+'</span></div>'+
+                '<div><label style="font-size:10px;color:#aaa;">Farbe</label><input type="color" value="#'+g.color.toString(16).padStart(6,'0')+'" oninput="activeConfigData.galaxies['+idx+'].color=parseInt(this.value.slice(1),16)" style="width:50px;height:25px;border:none;background:none;cursor:pointer;"></div>'+
                 '</div></div>';
         });
     }else if(key==='systems'){
