@@ -304,7 +304,7 @@ function buildSystems(systems,thresholds){
         if(halosEnabled){
             // Outer ring: static capacity (depthWrite off so dynamic rings show through)
             const outerR=halosCfg[0].baseRadius*(cap/maxCap)*1.3;
-            const staticOpacity=window._universeCfg?.globalConfig?.defaults?.staticHaloOpacity||0.05;
+            const staticOpacity=window._universeCfg?.globalConfig?.defaults?.staticHaloOpacity||0.003;
             [0,Math.PI/2,Math.PI/2].forEach((rot,idx)=>{
                 const mat=new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:staticOpacity,depthWrite:false,side:2});
                 const ring=new THREE.Mesh(new THREE.RingGeometry(outerR*0.85,outerR,48),mat);
@@ -349,7 +349,7 @@ function buildSystems(systems,thresholds){
 }
 
 function buildRoutes(galaxies){
-    const irMat=new THREE.LineBasicMaterial({color:0x0088ff,transparent:true,opacity:0.05});
+    const irMat=new THREE.LineBasicMaterial({color:0x0088ff,transparent:true,opacity:0.003});
     for(let i=0;i<galaxies.length-1;i++){
         const ga=galaxies[i],gb=galaxies[i+1];
         U.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([
@@ -361,10 +361,10 @@ function buildRoutes(galaxies){
 
 // ═══ PROTOCOL DEFAULT STYLES ═══
 const PROTO_STYLES={
-    https:{glowColor:'#ffcc00',lineType:'solid',opacity:0.06},
-    mqtt:{glowColor:'#00ffcc',lineType:'solid',opacity:0.05},
-    ssh:{glowColor:'#3388ff',lineType:'solid',opacity:0.05},
-    ping:{glowColor:'#334455',lineType:'dashed',opacity:0.04}
+    https:{glowColor:'#ffcc00',lineType:'solid',opacity:0.003},
+    mqtt:{glowColor:'#00ffcc',lineType:'solid',opacity:0.003},
+    ssh:{glowColor:'#3388ff',lineType:'solid',opacity:0.003},
+    ping:{glowColor:'#334455',lineType:'dashed',opacity:0.002}
 };
 
 function buildConnections(connections){
@@ -394,7 +394,7 @@ function buildConnections(connections){
         U.add(line);
         // Tunnel (semi-transparent 3D cylinder around connection)
         if(c.tunnel){
-            const to=style.tubeOpacity||0.05;
+            const to=style.tubeOpacity||0.003;
             const mid=new THREE.Vector3().addVectors(p1,p2).multiplyScalar(0.5);mid.y+=3;
             const curve=new THREE.QuadraticBezierCurve3(p1,mid,p2);
             const tMesh=new THREE.Mesh(
@@ -419,7 +419,7 @@ function makeTube(sid1,sid2,color,thickness){
     const mid=new THREE.Vector3().addVectors(p1,p2).multiplyScalar(0.5);mid.y+=5;
     const curve=new THREE.QuadraticBezierCurve3(p1,mid,p2);
     const mesh=new THREE.Mesh(new THREE.TubeGeometry(curve,32,thickness,8,false),
-        new THREE.MeshStandardMaterial({color,emissive:color,emissiveIntensity:0.3,transparent:true,opacity:0.05,roughness:0.2}));
+        new THREE.MeshStandardMaterial({color,emissive:color,emissiveIntensity:0.1,transparent:true,opacity:0.003,roughness:0.2}));
     U.add(mesh);
     const src=Sg[sid1]?.children[1],dst=Sg[sid2]?.children[1];
     return {mesh,src,dst};
@@ -1106,7 +1106,7 @@ function loadFriendlySection(key){
         val.forEach((c,idx)=>{
             const hasTunnel=!!(c.tunnel||(c.style&&c.style.tubeOpacity!==undefined));
             if(hasTunnel&&!c.style)c.style={};
-            const tubeOp=hasTunnel?(c.style.tubeOpacity||0.05):0.05;
+            const tubeOp=hasTunnel?(c.style.tubeOpacity||0.003):0.003;
             html+='<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(0,255,136,0.15);padding:10px;border-radius:5px;margin-bottom:8px;">'+
                 '<strong style="color:#0fc;">'+c.from+'</strong> → <strong style="color:#fa0;">'+c.to+'</strong> <span style="color:#666;">['+(c.protocol||'https')+']</span>'+
                 '<div style="margin-top:6px;">'+
