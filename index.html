@@ -291,34 +291,43 @@ function buildSystems(systems,thresholds){
     const maxCap=Math.max(...systems.map(s=>s.capacityScore||100),100);
     systems.forEach(s=>{
         systemIds.push(s.id);
-        const baseR=s.halos&&s.halos[0]?s.halos[0].baseRadius:4;
-        const halosEnabled=s.halos&&s.halos.some(h=>h.enabled!==false);
+        const halosCfg=s.halos||[{metricKey:'cpu',baseRadius:4}];
+        const halosEnabled=halosCfg.some(h=>h.enabled!==false);
         const cap=s.capacityScore||100;
         const c=s.color||65535;
         const p=Gg[s.g];const sg=new THREE.Group();
         const pos=new THREE.Vector3(s.x,s.y,s.z);
         clampToParent(pos,G[s.g].r);sg.position.copy(pos);p.add(sg);Sg[s.id]=sg;
 
-        // ═══ DUAL HALOS (conditionally created based on enabled flag) ═══
+        // ═══ MULTI-HALO SYSTEM: one ring per metric (CPU, RAM, Storage, etc.) ═══
         let outerRings=[],outerMats=[],innerRings=[],innerMats=[];
         if(halosEnabled){
-            const outerR=baseR*(cap/maxCap)*1.3;
+            // Outer ring: static capacity
+            const outerR=halosCfg[0].baseRadius*(cap/maxCap)*1.3;
             [0,Math.PI/2,Math.PI/2].forEach((rot,idx)=>{
                 const mat=new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:0.05,side:2});
                 const ring=new THREE.Mesh(new THREE.RingGeometry(outerR*0.85,outerR,48),mat);
                 if(idx===0)ring.rotation.x=Math.PI/2;else if(idx===2)ring.rotation.y=Math.PI/2;
                 sg.add(ring);outerRings.push(ring);outerMats.push(mat);
             });
-            [0,Math.PI/2,Math.PI/2].forEach((rot,idx)=>{
-                const mat=new THREE.MeshBasicMaterial({color:0x00ffcc,transparent:true,opacity:0.7,side:2});
-                const ring=new THREE.Mesh(new THREE.RingGeometry(baseR*0.3,baseR*0.45,48),mat);
-                if(idx===0)ring.rotation.x=Math.PI/2;else if(idx===2)ring.rotation.y=Math.PI/2;
-                sg.add(ring);innerRings.push(ring);innerMats.push(mat);
+            // Inner rings: one per metric, each at different radius
+            halosCfg.forEach((h,hi)=>{
+                if(h.enabled===false)return;
+                const hR=h.baseRadius;
+                // Each metric ring at a different distance: inner=baseR*0.4, next=baseR*0.55, etc.
+                const dist=0.3+(hi*0.2);
+                [0,Math.PI/2,Math.PI/2].forEach((rot,idx)=>{
+                    const mat=new THREE.MeshBasicMaterial({color:0x00ffcc,transparent:true,opacity:0.7,side:2});
+                    const ring=new THREE.Mesh(new THREE.RingGeometry(hR*dist,hR*(dist+0.12),48),mat);
+                    if(idx===0)ring.rotation.x=Math.PI/2;else if(idx===2)ring.rotation.y=Math.PI/2;
+                    sg.add(ring);innerRings.push(ring);innerMats.push(mat);
+                });
             });
         }
         s._outerRings=outerRings;s._outerMats=outerMats;
         s._innerRings=innerRings;s._innerMats=innerMats;
-        s._baseR=baseR;s._load=0.15+Math.random()*0.25;s._loadDir=1;
+        s._baseR=halosCfg[0].baseRadius;s._halosCfg=halosCfg;
+        s._load=0.15+Math.random()*0.25;s._loadDir=1;
 
         // Core
         const co=new THREE.Mesh(new THREE.SphereGeometry(1,24,24),new THREE.MeshStandardMaterial({color:c,emissive:c,emissiveIntensity:0.6,roughness:0.1}));sg.add(co);
@@ -720,31 +729,50 @@ function animate(){
         s.rotation.y+=0.003;
     });
 
-    // ═══ THRESHOLD-DRIVEN DUAL HALOS ═══
+    // ═══ THRESHOLD-DRIVEN MULTI-HALOS (one ring group per metric) ═══
     const thresholds=window._thresholds||[{maxLoad:0.50,color:'#00ffcc',speedMultiplier:1.0},{maxLoad:0.85,color:'#ffaa00',speedMultiplier:2.2},{maxLoad:1.00,color:'#ff3333',speedMultiplier:4.5}];
     S.forEach(s=>{
-        if(!s._innerRings)return;
-        // Hide halos for nodes without live metrics (no Prometheus data)
+        const cfg=s._halosCfg||[{metricKey:'cpu',baseRadius:4}];
+        if(!s._innerRings||!s._innerRings.length)return;
         const showHalos=window._universeCfg?.globalConfig?.showAllHalos!==false||s._liveMetrics;
         s._innerRings.forEach(r=>r.visible=showHalos);
         if(!showHalos)return;
-        if(!s._liveMetrics){
-            s._load+=s._loadDir*0.002*(0.5+Math.random());
-            if(s._load>=0.95){s._load=0.95;s._loadDir=-1;}
-            if(s._load<=0.05){s._load=0.05;s._loadDir=1;}
-        }
-        // Find active threshold
-        let activeTh=thresholds[0];
-        for(let i=0;i<thresholds.length;i++){if(s._load<=thresholds[i].maxLoad){activeTh=thresholds[i];break;}}
-        // Parse hex color
-        const hex=parseInt(activeTh.color.replace('#',''),16);
-        const spd=activeTh.speedMultiplier||1.0;
-        // Update inner rings: scale grows with load, pulse = speedMultiplier
-        s._innerRings.forEach((ring,i)=>{
-            const pump=1.0+Math.sin(t*spd*4)*0.12*s._load;
-            ring.scale.setScalar(0.15+s._load*1.6*pump);
-            s._innerMats[i].color.setHex(hex);
-            s._innerMats[i].opacity=0.35+s._load*0.6;
+        const live=s._liveMetrics;
+        // Animate each halo group independently based on its metric
+        cfg.forEach((h,hi)=>{
+            if(h.enabled===false)return;
+            // Load per metric: CPU, RAM, disk, or simulated
+            let load=0.3;
+            if(live){
+                if(h.metricKey==='cpu'||h.metricKey==='compute')load=live.cpu/100;
+                else if(h.metricKey==='ram'||h.metricKey==='memory')load=live.ram/100;
+                else if(h.metricKey==='storage'||h.metricKey==='disk')load=live.disk/100;
+                else load=live.cpu/100; // fallback to CPU
+            }else{
+                if(!s._loads)s._loads={};
+                if(!s._loadDirs)s._loadDirs={};
+                if(s._loads[hi]===undefined){s._loads[hi]=0.15+Math.random()*0.25;s._loadDirs[hi]=1;}
+                s._loads[hi]+=s._loadDirs[hi]*0.002*(0.5+Math.random());
+                if(s._loads[hi]>=0.95){s._loads[hi]=0.95;s._loadDirs[hi]=-1;}
+                if(s._loads[hi]<=0.05){s._loads[hi]=0.05;s._loadDirs[hi]=1;}
+                load=s._loads[hi];
+            }
+            // Threshold
+            let activeTh=thresholds[0];
+            for(let i=0;i<thresholds.length;i++){if(load<=thresholds[i].maxLoad){activeTh=thresholds[i];break;}}
+            const hex=parseInt(activeTh.color.replace('#',''),16);
+            const spd=activeTh.speedMultiplier||1.0;
+            // Update this halo's ring group (3 rings per halo, at innerRings[hi*3..hi*3+2])
+            const baseIdx=hi*3;
+            for(let ri=0;ri<3;ri++){
+                const ring=s._innerRings[baseIdx+ri];
+                const mat=s._innerMats[baseIdx+ri];
+                if(!ring)continue;
+                const pump=1.0+Math.sin(t*spd*4+(hi*1.5))*0.12*load;
+                ring.scale.setScalar(0.15+load*1.6*pump);
+                mat.color.setHex(hex);
+                mat.opacity=0.35+load*0.6;
+            }
         });
     });
 
