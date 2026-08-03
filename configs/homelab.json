@@ -60,9 +60,12 @@
     "forceCoreTransit": true
   },
   "packets": [
-    {"type":"issue","title":"Demo: Plan","status":"Draft","from":"node-a1","to":"node-c2","speed":0.003},
-    {"type":"deploy","title":"Data Sync","status":"Active","from":"node-b2","to":"node-b1","speed":0.0025},
-    {"type":"issue","title":"Dashboard","status":"Building","from":"node-a1","to":"node-c3","speed":0.002},
-    {"type":"error","title":"API Timeout","status":"Alert","from":"node-b2","to":"node-a1","speed":0.004}
+    {"id":"pkg-req-a","type":"request","title":"Datenabfrage Alpha","from":"node-a1","to":"node-c2","speed":0.003,"style":{"color":"#00ffcc","trailLength":60}},
+    {"id":"pkg-res-a","type":"response","title":"Antwort Alpha (Huckepack)","from":"node-c2","to":"node-a1","parentPacketId":"pkg-req-a","payloadHistory":[{"id":"pkg-req-a","status":"processed"}],"speed":0.0035,"style":{"color":"#ffaa00","trailLength":100,"fadeEffect":"glow-to-core"}},
+    {"id":"pkg-req-b","type":"request","title":"Deploy Sync Beta","from":"node-b2","to":"node-b1","speed":0.0025,"style":{"color":"#00ffcc","trailLength":50}},
+    {"id":"pkg-res-b","type":"response","title":"Sync OK Beta","from":"node-b1","to":"node-b2","parentPacketId":"pkg-req-b","payloadHistory":[{"id":"pkg-req-b","status":"completed"}],"speed":0.003,"style":{"color":"#ffaa00","trailLength":80,"fadeEffect":"glow-to-core"}},
+    {"id":"pkg-err-1","type":"error","title":"API Timeout","from":"node-b2","to":"node-a1","speed":0.004,"style":{"color":"#ff3333","trailLength":40}},
+    {"id":"pkg-req-c","type":"request","title":"Dashboard Build","from":"node-a1","to":"node-c3","speed":0.002,"style":{"color":"#00ffcc","trailLength":55}},
+    {"id":"pkg-res-c","type":"response","title":"Build Complete","from":"node-c3","to":"node-a1","parentPacketId":"pkg-req-c","payloadHistory":[{"id":"pkg-req-c","status":"built"}],"speed":0.0025,"style":{"color":"#ffaa00","trailLength":90,"fadeEffect":"glow-to-core"}}
   ]
 }

@@ -131,23 +131,28 @@ cl=new THREE.Clock();
 const labels=[];
 
 // ═══ PACKET TYPES ═══
-const PT={issue:{c:0xff00ff,e:0xff00ff,s:0.7,n:'Issue'},deploy:{c:0x00ffcc,e:0x00ffcc,s:0.6,n:'Deploy'},error:{c:0xff1111,e:0xff3333,s:0.9,n:'Error'},ping:{c:0x333355,e:0x111122,s:0.3,n:'Ping'},data:{c:0xffaa00,e:0xff8800,s:0.5,n:'Data'}};
+const PT={request:{c:0x00ffcc,e:0x00ffcc,s:0.6,n:'Request'},response:{c:0xffaa00,e:0xff8800,s:0.7,n:'Response'},issue:{c:0xff00ff,e:0xff00ff,s:0.7,n:'Issue'},deploy:{c:0x00ffcc,e:0x00ffcc,s:0.6,n:'Deploy'},error:{c:0xff1111,e:0xff3333,s:0.9,n:'Error'},ping:{c:0x333355,e:0x111122,s:0.3,n:'Ping'},data:{c:0xffaa00,e:0xff8800,s:0.5,n:'Data'}};
 const TL=25;
 const pks=[];
 const pkLabels=[];
 
-function mkPkt(type,title,status,sx,sy,sz,ex,ey,ez,spd){
+function mkPkt(type,title,status,sx,sy,sz,ex,ey,ez,spd,style){
     const cfg=PT[type]||PT.issue;
-    const m=new THREE.MeshStandardMaterial({color:cfg.c,emissive:cfg.e,emissiveIntensity:0.9,roughness:0.1});
+    const st=style||{};
+    const color=st.color?parseInt(st.color.replace('#',''),16):cfg.c;
+    const emissive=st.color?color:cfg.e;
+    const tLen=st.trailLength||TL;
+    const m=new THREE.MeshStandardMaterial({color,emissive,emissiveIntensity:0.9,roughness:0.1});
     const mesh=new THREE.Mesh(new THREE.SphereGeometry(1,16,16),m);mesh.scale.setScalar(cfg.s);
-    mesh.userData={title,status,type:cfg.n,color:'#'+cfg.c.toString(16).padStart(6,'0')};
+    mesh.userData={title,status,type:cfg.n,color:'#'+color.toString(16).padStart(6,'0')};
     PkG.add(mesh);
-    const tp=new Float32Array(TL*3);const tg=new THREE.BufferGeometry();tg.setAttribute('position',new THREE.BufferAttribute(tp,3));
-    const tl=new THREE.Line(tg,new THREE.LineBasicMaterial({color:cfg.c,transparent:true,opacity:0.7}));
+    const tp=new Float32Array(tLen*3);const tg=new THREE.BufferGeometry();tg.setAttribute('position',new THREE.BufferAttribute(tp,3));
+    const tl=new THREE.Line(tg,new THREE.LineBasicMaterial({color,transparent:true,opacity:0.7}));
     PkG.add(tl);
-    const pk={mesh,startCT:null,endCT:null,tl,tg,progress:Math.random(),speed:spd||0.003,logged:false,history:[]};
+    const pk={mesh,startCT:null,endCT:null,tl,tg,progress:Math.random(),speed:spd||0.003,logged:false,history:[],trailLen:tLen,fadeEffect:st.fadeEffect||null};
     pks.push(pk);
-    const lbl=document.createElement('div');lbl.className='packet-label';lbl.textContent=title;lbl.style.borderColor='#'+cfg.c.toString(16).padStart(6,'0');document.body.appendChild(lbl);pkLabels.push({e:lbl,p:pk});
+    const lbl=document.createElement('div');lbl.className='packet-label';lbl.textContent=title;lbl.style.borderColor='#'+color.toString(16).padStart(6,'0');document.body.appendChild(lbl);pkLabels.push({e:lbl,p:pk});
+    return pk;
 }
 
 // ═══ DYNAMIC UNIVERSE BUILDER ═══
@@ -314,26 +319,42 @@ function buildTubes(connections){
     }
 }
 
-function mkPktOnPath(type,title,status,sid1,sid2,spd){
+function mkPktOnPath(type,title,status,sid1,sid2,spd,style,parentId,payloadHistory){
     const ct1=S.find(s=>s.id===sid1), ct2=S.find(s=>s.id===sid2);
     if(!ct1||!ct2)return;
     const g1=G[ct1.g], g2=G[ct2.g];
     const sx=g1.x+ct1.x, sy=g1.y+ct1.y, sz=g1.z+ct1.z;
     const ex=g2.x+ct2.x, ey=g2.y+ct2.y, ez=g2.z+ct2.z;
-    mkPkt(type,title,status,sx,sy,sz,ex,ey,ez,spd);
-    const pk=pks[pks.length-1];
+    const pk=mkPkt(type,title,status,sx,sy,sz,ex,ey,ez,spd,style);
+    if(!pk)return;
     pk.startCT=Sg[sid1]?.children[1]; pk.endCT=Sg[sid2]?.children[1];
+    pk.parentPacketId=parentId||null;
+    pk.payloadHistory=payloadHistory||null;
+    // Response badge: "↩" indicator on label
+    if(parentId&&pkLabels.length>0){
+        const last=document.createElement('span');
+        last.style.cssText='color:#fa0;margin-left:4px;font-size:8px;';
+        last.textContent='↩';
+        pkLabels[pkLabels.length-1].e.appendChild(last);
+    }
     // Store galaxy center for via-center routing
     const viaCenter=window._routingRules&&window._routingRules.forceCoreTransit;
     if(viaCenter){
         const gCenter=Gg[ct1.g]?.children[0];
         if(gCenter){const wc=new THREE.Vector3();gCenter.getWorldPosition(wc);pk._galaxyCenter=wc.clone();}
     }
+    return pk;
 }
 
 function seedPackets(packets){
     if(!R)return;
-    packets.forEach(p=>{mkPktOnPath(p.type,p.title||'Packet',p.status||'OK',p.from,p.to,p.speed||0.003);});
+    packets.forEach(p=>{
+        const type=p.type||'data';
+        const title=p.title||'Packet';
+        const status=p.status||'OK';
+        const style=p.style||{};
+        mkPktOnPath(type,title,status,p.from,p.to,p.speed||0.003,style,p.parentPacketId,p.payloadHistory);
+    });
 }
 
 // ═══ PIPELINE STAGES (inside first system with r>=4) ═══
@@ -513,13 +534,20 @@ function animate(){
         const FZ=0.15;let op=1.0;
         if(p.progress<FZ)op=p.progress/FZ;
         else if(p.progress>(1.0-FZ))op=(1.0-p.progress)/FZ;
+        // Fade-to-center: organic glow as packet approaches target
+        if(p.fadeEffect==='glow-to-core'){
+            const nearTarget=Math.max(0,1.0-(p.progress<0.5?p.progress*2:(2.0-p.progress*2)));
+            op*=0.3+nearTarget*0.7;
+            p.mesh.scale.setScalar(PT.request?.s||0.6*(1+nearTarget*0.5));
+        }
         p.mesh.material.opacity=Math.max(0.1,op);
         p.tl.material.opacity=Math.max(0.05,op*0.5);
-        // Trail: history-based (follows actual movement path)
+        // Trail: history-based (dynamic trailLength per packet)
+        const tLen=p.trailLen||TL;
         p.history.unshift(curPos.clone());
-        if(p.history.length>TL)p.history.pop();
+        if(p.history.length>tLen)p.history.pop();
         const pa=p.tg.attributes.position;
-        for(let i=0;i<TL;i++){if(p.history[i])pa.setXYZ(i,p.history[i].x,p.history[i].y,p.history[i].z);else pa.setXYZ(i,0,0,0);}
+        for(let i=0;i<tLen;i++){if(p.history[i])pa.setXYZ(i,p.history[i].x,p.history[i].y,p.history[i].z);else pa.setXYZ(i,0,0,0);}
         pa.needsUpdate=true;
         p.mesh.position.copy(curPos);
     });
