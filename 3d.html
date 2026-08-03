@@ -112,7 +112,9 @@ PkG=new THREE.Group();U.add(PkG);
 // WebGL renderer — may fail in headless browsers
 try{
 R=new THREE.WebGLRenderer({antialias:true});R.setSize(innerWidth,innerHeight);R.setPixelRatio(devicePixelRatio);C.appendChild(R.domElement);
-}catch(e){console.warn('WebGL unavailable — simulation mode');R=null;}
+}catch(e){console.warn('WebGL unavailable');R=null;
+document.body.insertAdjacentHTML('beforeend','<div id="sim-fallback" style="position:fixed;top:0;left:0;width:100vw;height:100vh;display:flex;align-items:center;justify-content:center;z-index:2;pointer-events:none"><div style="text-align:center;color:#0fc;font-size:20px;font-family:monospace"><div style="font-size:56px;margin-bottom:8px">🌌</div>5 Galaxies Active<br><span style="font-size:12px;opacity:.6">3D rendering unavailable<br>Simulation &amp; events are live</span></div></div>');
+}
 
 if(R){
 controls=new THREE.OrbitControls(cam,R.domElement);
