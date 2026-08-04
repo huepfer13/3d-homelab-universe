@@ -104,7 +104,7 @@ async function runTests() {
 
         // ─── TEST 5: Event log contains init message ───
         const logText = await page.evaluate(() => {
-            const log = document.getElementById('log-entries');
+            const log = document.getElementById('stream-messages');
             return log ? log.textContent.substring(0, 200) : 'missing';
         });
         if (logText.includes('Universe:') || logText.includes('galaxies')) {

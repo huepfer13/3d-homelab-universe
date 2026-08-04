@@ -4,8 +4,9 @@
 <meta charset="UTF-8">
 <title>3D Universe Demo</title>
 <style>
-body{margin:0;padding:0;overflow:hidden;width:100vw;height:100vh;background:#0a0a2e;font-family:'Segoe UI',Tahoma,sans-serif;color:#00ffcc;position:fixed;overscroll-behavior:none;}
-#canvas-container{position:fixed;top:0;left:0;width:100vw;height:100vh;display:block;touch-action:none;}
+body{margin:0;padding:0;overflow:hidden;width:100vw;height:100vh;background:#050510;font-family:'Segoe UI',Tahoma,sans-serif;color:#00ffcc;position:fixed;overscroll-behavior:none;}
+canvas{position:fixed;top:0;left:0;width:100vw!important;height:100vh!important;z-index:1;}
+#canvas-container{position:fixed;top:0;left:0;width:100vw;height:100vh;display:block;touch-action:none;z-index:1;}
 #hud{position:absolute;top:20px;left:20px;background:rgba(5,10,25,0.9);border:1px solid #00ffcc44;padding:15px 20px;border-radius:8px;z-index:10;max-width:340px;}
 #hud button,#hud select{pointer-events:auto}
 h1{font-size:16px;margin:0 0 10px;color:#fff;letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid #00ffcc33;padding-bottom:5px;}
@@ -29,62 +30,84 @@ h1{font-size:16px;margin:0 0 10px;color:#fff;letter-spacing:1px;text-transform:u
 @keyframes pulse-red{0%,100%{box-shadow:0 0 5px rgba(255,51,51,.3)}50%{box-shadow:0 0 15px rgba(255,51,51,.8)}}
 .task-children{padding-left:12px;margin-top:2px;border-left:1px dashed rgba(0,255,204,.25);display:none;}
 .task-item:hover{filter:brightness(1.2);}
+.profile-buttons{display:flex;gap:3px;flex-wrap:wrap;margin-bottom:6px;}
+.profile-btn{flex:1;min-width:60px;background:rgba(0,255,136,.08);border:1px solid rgba(0,255,136,.3);color:#0fc;padding:3px 5px;border-radius:3px;cursor:pointer;font-family:monospace;font-size:9px;transition:all .2s;}
+.profile-btn.active,.profile-btn:hover{background:rgba(0,255,136,.2);border-color:#00ff88;color:#fff;}
+.filter-checkboxes{display:flex;flex-wrap:wrap;gap:4px 8px;}
+.checkbox-label{font-size:9px;color:#aaa;cursor:pointer;display:flex;align-items:center;gap:3px;white-space:nowrap;}
+.checkbox-label input{accent-color:#00ff88;margin:0;width:10px;height:10px;}
+/* ─── Inspection Modal ─── */
+.modal-backdrop{position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(5,5,16,0.85);backdrop-filter:blur(8px);z-index:9999;display:flex;justify-content:center;align-items:center;}
+.inspect-modal-content{background:#0d0d21;border:1px solid rgba(255,255,255,0.15);border-radius:12px;width:650px;max-width:90vw;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 15px 35px rgba(0,0,0,0.6);color:#e0e0e8;font-family:inherit;}
+.modal-header{padding:15px 20px;border-bottom:1px solid rgba(255,255,255,0.1);display:flex;justify-content:space-between;align-items:center;}
+.modal-header h3{margin:0;font-size:1.1rem;color:#00ff88;}
+.close-btn{background:none;border:none;color:#fff;font-size:1.5rem;cursor:pointer;padding:0 5px;}
+.modal-body{padding:20px;overflow-y:auto;flex-grow:1;display:flex;flex-direction:column;gap:10px;}
+.info-row{font-size:0.9rem;line-height:1.4;}
+.info-row p{margin:4px 0 0 0;color:#b0b0c0;font-size:0.85rem;}
+#modal-raw-data{width:100%;height:120px;background:#050510;border:1px solid rgba(255,255,255,0.1);color:#00ff88;padding:10px;border-radius:6px;font-family:monospace;font-size:10px;resize:none;box-sizing:border-box;}
+.modal-footer{padding:12px 20px;border-top:1px solid rgba(255,255,255,0.1);display:flex;justify-content:flex-end;gap:10px;}
+.action-btn{background:#00ff88;color:#050510;border:none;padding:8px 16px;border-radius:6px;font-weight:bold;cursor:pointer;transition:opacity .2s;font-family:monospace;font-size:11px;}
+.action-btn.close-btn{background:rgba(255,255,255,0.1);color:#fff;}
+.action-btn:hover{opacity:0.85;}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js"></script>
 </head>
 <body>
-<div id="hud"><h1>3D Universe</h1>
-<div style="font-size:10px;color:#00ffcc;margin:-5px 0 8px;opacity:.7;">Interactive Demo</div>
-<div class="metric">Nodes: <span id="node-count" style="color:#0088ff;">5 Nodes</span></div>
-<div class="metric">CTs/VMs: <span id="ct-count" style="color:#00ffcc;">25 CTs</span></div>
-<div class="metric">Pipeline: <span id="pl-badge" style="color:#00ff88;">● Simulation</span></div>
-<div class="metric">Documents: <span id="paperless-count" style="color:#ffaa00;">—</span></div>
-<div class="metric">Issues: <span id="issue-count" style="color:#ff00ff;">—</span></div>
-<div style="margin-top:10px;border-top:1px solid rgba(0,255,204,.2);padding-top:8px;">
-<button id="center-btn" style="width:100%;background:rgba(0,255,204,.15);border:1px solid #0fc;color:#0fc;padding:5px;border-radius:4px;cursor:pointer;font-family:monospace;font-size:11px;font-weight:bold;">⌖ CENTER UNIVERSE</button>
-</div>
-<div style="margin-top:6px;"><button id="cfg-btn" style="width:100%;background:rgba(0,255,204,.1);border:1px solid rgba(0,255,204,.5);color:#0fc;padding:5px;border-radius:4px;cursor:pointer;font-family:monospace;font-size:11px;">⚙ KONFIG & HILFE</button>
-</div>
-<div style="margin-top:6px;display:flex;gap:4px;align-items:center;">
-<select id="dataset-switcher" style="flex:1;background:rgba(0,0,0,.6);border:1px solid rgba(0,255,204,.3);color:#0fc;padding:4px 6px;font-size:10px;border-radius:3px;cursor:pointer;font-family:monospace;"><option>Loading...</option></select>
-</div></div>
-<div id="legend-acc" style="margin-top:10px;border-top:1px solid rgba(0,255,204,.2);padding-top:8px;font-family:monospace;font-size:10px;pointer-events:auto;">
-<div style="font-weight:bold;color:#0fc;margin-bottom:6px;">HOMELAB HIERARCHIE</div>
-<div><div class="legend-toggle" onclick="tgl('sub-gal')" style="cursor:pointer;color:#08f;padding:3px 0;">▶ Galaxien (5)</div>
-<div id="sub-gal" style="display:none;padding-left:12px;border-left:1px solid rgba(0,136,255,.3);margin-left:4px;">
-<div class="legend-subitem" onclick="focusNode('galaxy-alpha')" style="cursor:pointer;color:#fff;padding:2px 0;">• Alpha</div>
-<div class="legend-subitem" onclick="focusNode('galaxy-beta')" style="cursor:pointer;color:#fff;padding:2px 0;">• Beta</div>
-<div class="legend-subitem" onclick="focusNode('galaxy-gamma')" style="cursor:pointer;color:#fff;padding:2px 0;">• Gamma</div>
-<div class="legend-subitem" onclick="focusNode('galaxy-delta')" style="cursor:pointer;color:#fff;padding:2px 0;">• Delta</div>
-<div class="legend-subitem" onclick="focusNode('galaxy-epsilon')" style="cursor:pointer;color:#fff;padding:2px 0;">• Epsilon</div>
-</div></div>
-<div style="margin-top:4px;"><div class="legend-toggle" onclick="tgl('sub-ct')" style="cursor:pointer;color:#0f8;padding:3px 0;">▶ Container (25)</div>
-<div id="sub-ct" style="display:none;padding-left:12px;border-left:1px solid rgba(0,255,136,.3);margin-left:4px;">
-<div class="legend-subitem" onclick="focusNode('node-a1')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node A1</div>
-<div class="legend-subitem" onclick="focusNode('node-a2')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node A2</div>
-<div class="legend-subitem" onclick="focusNode('node-b2')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node B2</div>
-<div class="legend-subitem" onclick="focusNode('node-b3')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node B3</div>
-<div class="legend-subitem" onclick="focusNode('node-b1')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node B1</div>
-<div class="legend-subitem" onclick="focusNode('node-c2')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node C2</div>
-<div class="legend-subitem" onclick="focusNode('node-c3')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node C3</div>
-<div class="legend-subitem" onclick="focusNode('node-c1')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node C1</div>
-<div class="legend-subitem" onclick="focusNode('node-a3')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node A3</div>
-<div class="legend-subitem" onclick="focusNode('node-b4')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node B4</div>
-<div class="legend-subitem" onclick="focusNode('node-d1')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node D1</div>
-<div class="legend-subitem" onclick="focusNode('node-d2')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node D2</div>
-<div class="legend-subitem" onclick="focusNode('node-e1')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node E1</div>
-<div class="legend-subitem" onclick="focusNode('node-e2')" style="cursor:pointer;color:#fff;padding:2px 0;">• Node E2</div>
-</div></div>
-<div style="margin-top:4px;"><div class="legend-toggle" onclick="tgl('sub-pipe')" style="cursor:pointer;color:#fa0;padding:3px 0;">▶ Pipelines (2)</div>
-<div id="sub-pipe" style="display:none;padding-left:12px;border-left:1px solid rgba(255,170,0,.3);margin-left:4px;">
-<div class="legend-subitem" onclick="focusNode('node-b2')" style="cursor:pointer;color:#fff;padding:2px 0;">• Data Sync A→B</div>
-<div class="legend-subitem" onclick="focusNode('node-c2')" style="cursor:pointer;color:#fff;padding:2px 0;">• CI/CD Pipeline</div>
-</div></div>
-</div>
+<div id="main-sidebar" style="position:fixed; top:15px; left:15px; width:310px; max-height:calc(100vh - 30px); z-index:100; font-family:monospace; color:#fff; display:flex; flex-direction:column; gap:8px; pointer-events:auto;">
+    <!-- Compact metrics bar -->
+    <div style="background:rgba(10,10,35,0.85); border:1px solid rgba(0,255,136,0.4); border-radius:8px; padding:10px 12px; margin-bottom:10px; backdrop-filter:blur(4px);">
+        <h1 style="font-size:13px; margin:0 0 6px; color:#fff; letter-spacing:1px; text-transform:uppercase; border-bottom:1px solid #00ffcc33; padding-bottom:4px;">3D UNIVERSE</h1>
+        <div class="metric">Nodes: <span id="node-count" style="color:#0088ff;">5 Nodes</span></div>
+        <div class="metric">CTs/VMs: <span id="ct-count" style="color:#00ffcc;">25 CTs</span></div>
+        <div class="metric">Pipeline: <span id="pl-badge" style="color:#00ff88;">● Simulation</span></div>
+        <div class="metric">Documents: <span id="paperless-count" style="color:#ffaa00;">—</span></div>
+        <div class="metric">Issues: <span id="issue-count" style="color:#ff00ff;">—</span></div>
+        <div style="margin-top:6px; display:flex; gap:4px;">
+            <button id="center-btn" style="flex:1; background:rgba(0,255,204,.15); border:1px solid #0fc; color:#0fc; padding:4px 6px; border-radius:4px; cursor:pointer; font-family:monospace; font-size:10px; font-weight:bold;">⌖ CENTER</button>
+            <button id="cfg-btn" style="flex:1; background:rgba(0,255,204,.1); border:1px solid rgba(0,255,204,.5); color:#0fc; padding:4px 6px; border-radius:4px; cursor:pointer; font-family:monospace; font-size:10px;">⚙ KONFIG</button>
+        </div>
+        <select id="dataset-switcher" style="width:100%; margin-top:4px; background:rgba(0,0,0,.6); border:1px solid rgba(0,255,204,.3); color:#0fc; padding:4px 6px; font-size:10px; border-radius:3px; cursor:pointer; font-family:monospace;"><option>Loading...</option></select>
+    </div>
+    <!-- Cockpit: Profile + Filter (datengetrieben aus config) -->
+    <div id="cockpit-controls" style="background:rgba(10,10,35,0.85); border:1px solid rgba(0,255,136,0.4); border-radius:8px; padding:10px 12px; backdrop-filter:blur(4px); flex-shrink:0;"></div>
+    <!-- Tree-view menu -->
+    <div id="menu-tree-container" style="background:rgba(10,10,35,0.85); border:1px solid rgba(0,255,136,0.4); border-radius:8px; padding:12px; backdrop-filter:blur(4px); max-height:40vh; overflow-y:auto; flex-shrink:0;">
+        <h3 style="margin:0 0 10px 0; color:#00ff88; font-size:13px;">🌌 HOMELAB INFRASTRUCTURE</h3>
+        <div id="sidebar-tree-root"></div>
+    </div>
+    <!-- Event stream below the menu -->
+    <div id="homelab-stream" style="margin-top:10px; background:rgba(10,10,35,0.85); border:1px solid rgba(0,255,136,0.4); border-radius:8px; padding:10px; flex:1; min-height:180px; overflow:hidden; font-size:10px; display:flex; flex-direction:column;">
+        <div style="color:#00ff88; font-weight:bold; margin-bottom:6px; flex-shrink:0;">📡 HOMELAB EVENT STREAM</div>
+        <input id="log-filter" placeholder="Filter..." style="width:100%; background:rgba(0,0,0,.5); border:1px solid rgba(0,255,204,.3); color:#0fc; padding:3px 6px; font-size:9px; border-radius:3px; margin-bottom:4px; font-family:monospace; flex-shrink:0;" oninput="filterLog()">
+        <div id="stream-messages" style="overflow-y:auto; flex:1; min-height:0; display:flex; flex-direction:column; gap:3px;"></div>
+    </div>
 </div>
 <div id="canvas-container"></div>
 <div id="crosshair"></div>
+
+<!-- Inspection Modal -->
+<div id="inspect-modal-backdrop" class="modal-backdrop" style="display:none;" onclick="if(event.target===this)closeInspectModal()">
+    <div class="inspect-modal-content">
+        <div class="modal-header">
+            <h3 id="modal-title">Ereignis-Details</h3>
+            <button class="close-btn" onclick="closeInspectModal()">×</button>
+        </div>
+        <div class="modal-body">
+            <div class="info-row"><strong>Quelle:</strong> <span id="modal-source">-</span></div>
+            <div class="info-row"><strong>Ziel:</strong> <span id="modal-target">-</span></div>
+            <div class="info-row"><strong>Was:</strong> <p id="modal-what">-</p></div>
+            <div class="info-row"><strong>Auslöser:</strong> <span id="modal-why">-</span></div>
+            <div class="info-row"><strong>Payload / Raw:</strong></div>
+            <textarea id="modal-raw-data" readonly></textarea>
+        </div>
+        <div class="modal-footer">
+            <button class="action-btn" onclick="copyModalContent()">📋 Kopieren</button>
+            <button class="action-btn close-btn" onclick="closeInspectModal()">Schließen</button>
+        </div>
+    </div>
+</div>
 
 <div id="cfg-modal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:85vw;max-width:1000px;height:85vh;background:rgba(10,10,35,0.9);border:1px solid rgba(0,255,136,0.6);border-radius:12px;z-index:10000;box-shadow:0 0 40px rgba(0,255,136,0.2);flex-direction:column;font-family:monospace;color:#fff;backdrop-filter:blur(8px);">
 <div style="padding:15px 20px;border-bottom:1px solid rgba(0,255,136,0.3);display:flex;justify-content:space-between;align-items:center;background:rgba(0,0,0,0.3);">
@@ -101,13 +124,9 @@ h1{font-size:16px;margin:0 0 10px;color:#fff;letter-spacing:1px;text-transform:u
 <button onclick="downloadConfig()" style="background:rgba(0,255,136,0.1);border:1px solid #00ff88;color:#00ff88;padding:6px 12px;border-radius:4px;cursor:pointer;">💾 Download</button><span id="cfg-status" style="font-size:10px;margin-left:10px;"></span></div>
 <div>
 <button onclick="closeConfigModal()" style="background:transparent;border:1px solid #666;color:#aaa;padding:6px 12px;border-radius:4px;cursor:pointer;margin-right:8px;">Abbrechen</button>
-<button onclick="saveConfigToLive()" style="background:#00ff88;border:none;color:#000;padding:6px 18px;border-radius:4px;font-weight:bold;cursor:pointer;">✔ Übernehmen</button></div></div></div>
+<button onclick="saveConfigToLive()" style="background:#00ff88;border:none;color:#000;padding:6px 18px;border-radius:4px;font-weight:bold;cursor:pointer;">✔ Übernehmen</button></div></div></div></div>
 
-<div id="msg-log" style="position:absolute;top:400px;left:20px;width:20vw;max-width:320px;min-width:260px;max-height:35vh;background:rgba(5,5,15,.85);border:1px solid rgba(0,255,204,.3);border-radius:6px;padding:8px;font-family:monospace;font-size:10px;z-index:100;pointer-events:auto;display:flex;flex-direction:column;overflow:hidden;">
-<div style="font-weight:bold;margin-bottom:4px;color:#0fc;border-bottom:1px solid rgba(0,255,204,.2);padding-bottom:3px;flex-shrink:0;">HOMELAB EVENT STREAM</div>
-<input id="log-filter" placeholder="Filter..." style="width:100%;background:rgba(0,0,0,.5);border:1px solid rgba(0,255,204,.3);color:#0fc;padding:3px 6px;font-size:9px;border-radius:3px;margin-bottom:4px;font-family:monospace;flex-shrink:0;" oninput="filterLog()">
-<div id="log-entries" style="overflow-y:auto;flex:1;min-height:0;display:flex;flex-direction:column;gap:3px;scroll-behavior:smooth;" onmouseenter="logHovered=true" onmouseleave="logHovered=false"></div>
-</div>
+
 
 <script>
 // ═══ SIMULATION DATA ═══
@@ -123,7 +142,8 @@ const C=document.getElementById('canvas-container');
 scene=new THREE.Scene();
 cam=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,0.1,1200);cam.position.set(0,25,70);cam.lookAt(0,0,-12);
 U=new THREE.Group();scene.add(U);
-PkG=new THREE.Group();U.add(PkG);
+window.universeLayers=window.universeLayers||{switches:[],hypervisors:[],containers:[],iot:[],trails:[],halos:[]};
+PkG=new THREE.Group();U.add(PkG);window.universeLayers.trails.push(PkG);
 // WebGL renderer with auto-retry + context loss recovery
 function initWebGL(){
     try{
@@ -155,7 +175,7 @@ function retryWebGL(){
 function rebuildAfterContextLoss(){
     // Clear WebGL-dependent objects (all buffers invalid after context loss)
     Object.values(Gg).forEach(g=>{U.remove(g);g.traverse(c=>{if(c.geometry)c.geometry.dispose();if(c.material)c.material.dispose();});});
-    Gg={};G={};S.forEach(s=>{s._innerRings=null;s._innerMats=null;});S=[];Sg={};
+    Gg={};G={};window.universeNodes={};S.forEach(s=>{s._innerRings=null;s._innerMats=null;});S=[];Sg={};
     pks.forEach(p=>{PkG.remove(p.mesh);if(p.tl)U.remove(p.tl);});pks=[];
     loopTubes.forEach(tb=>{U.remove(tb.mesh);});loopTubes=[];
     pkLabels.forEach(l=>l.e.remove());pkLabels=[];
@@ -190,12 +210,12 @@ function mkPkt(type,title,status,sx,sy,sz,ex,ey,ez,spd,style){
     const color=st.color?parseInt(st.color.replace('#',''),16):cfg.c;
     const emissive=st.color?color:cfg.e;
     const tLen=st.trailLength||TL;
-    const m=new THREE.MeshStandardMaterial({color,emissive,emissiveIntensity:0.9,roughness:0.1});
-    const mesh=new THREE.Mesh(new THREE.SphereGeometry(1,16,16),m);mesh.scale.setScalar(cfg.s);
+    const m=new THREE.MeshBasicMaterial({color,transparent:true,opacity:0.95,blending:THREE.AdditiveBlending,depthWrite:false});
+    const mesh=new THREE.Mesh(new THREE.SphereGeometry(1,16,16),m);mesh.scale.setScalar(cfg.s*1.3);
     mesh.userData={title,status,type:cfg.n,color:'#'+color.toString(16).padStart(6,'0')};
     PkG.add(mesh);
     const tp=new Float32Array(tLen*3);const tg=new THREE.BufferGeometry();tg.setAttribute('position',new THREE.BufferAttribute(tp,3));
-    const tl=new THREE.Line(tg,new THREE.LineBasicMaterial({color,transparent:true,opacity:0.7}));
+    const tl=new THREE.Line(tg,new THREE.LineBasicMaterial({color,transparent:true,opacity:0.85,depthWrite:false,blending:THREE.AdditiveBlending}));
     PkG.add(tl);
     const pk={mesh,startCT:null,endCT:null,tl,tg,progress:Math.random(),speed:spd||0.003,logged:false,history:[],trailLen:tLen,fadeEffect:st.fadeEffect||null};
     pks.push(pk);
@@ -205,6 +225,9 @@ function mkPkt(type,title,status,sx,sy,sz,ex,ey,ez,spd,style){
 
 // ═══ DYNAMIC UNIVERSE BUILDER ═══
 let G={},Gg={},S=[],Sg={},loopTubes=[];
+window.universeNodes={};
+window.universeObjects=window.universeNodes; // alias for console debugging
+window.universeLayers={switches:[],hypervisors:[],containers:[],iot:[],trails:[],halos:[]};
 let galaxyNames=[],systemIds=[];
 const SPREAD=2.5; // galaxy spacing multiplier
 
@@ -269,17 +292,22 @@ function buildGalaxies(galaxies){
     galaxies.forEach(g=>{
         G[g.id]=g; const gr=new THREE.Group();
         gr.position.set(g.x*SPREAD,g.y*SPREAD,g.z*SPREAD);U.add(gr);Gg[g.id]=gr;
+        // Layer tagging
+        const layer=g.layer||'switches';if(window.universeLayers[layer])window.universeLayers[layer].push(gr);
         g._sx=g.x*SPREAD;g._sy=g.y*SPREAD;g._sz=g.z*SPREAD; // store scaled coords
         galaxyNames.push(g.id);
         // Core
-        gr.add(new THREE.Mesh(new THREE.SphereGeometry(0.9,16,16),new THREE.MeshStandardMaterial({color:g.color,emissive:g.color,emissiveIntensity:1.0,roughness:0.05})));
+        const coreMesh=new THREE.Mesh(new THREE.SphereGeometry(0.9,16,16),new THREE.MeshStandardMaterial({color:g.color,emissive:g.color,emissiveIntensity:1.0,roughness:0.05}));
+        gr.add(coreMesh); window.universeNodes[g.id]=coreMesh;
         // 3D Multi-Axis Halo
         const rR=g.r,wR=g.r*0.15,rM=new THREE.MeshBasicMaterial({color:g.color,transparent:true,opacity:0.8,side:2});
+        const haloRings=[];
         [0,Math.PI/2,Math.PI/2].forEach((rot,idx)=>{
             const ring=new THREE.Mesh(new THREE.RingGeometry(rR-wR,rR,48),rM);
             if(idx===0)ring.rotation.x=Math.PI/2; else if(idx===2)ring.rotation.y=Math.PI/2;
-            gr.add(ring);
+            gr.add(ring);haloRings.push(ring);
         });
+        g._haloRings=haloRings;
         // Load ring for pulsing
         const ring=new THREE.Mesh(new THREE.RingGeometry(g.r-0.5,g.r+0.2,64),new THREE.MeshBasicMaterial({color:0x00ff88,side:2,transparent:true,opacity:0.3}));ring.rotateX(Math.PI/2);gr.add(ring);g._ring=ring;
         const lb=document.createElement('div');lb.className='node-label';lb.textContent='🪐 '+g.name;lb.title=g.name;document.body.appendChild(lb);labels.push({e:lb,m:gr.children[0]});
@@ -298,6 +326,8 @@ function buildSystems(systems,thresholds){
         const p=Gg[s.g];const sg=new THREE.Group();
         const pos=new THREE.Vector3(s.x,s.y,s.z);
         clampToParent(pos,G[s.g].r);sg.position.copy(pos);p.add(sg);Sg[s.id]=sg;
+        // Layer tagging for system group
+        const slayer=s.layer||'containers';if(window.universeLayers[slayer])window.universeLayers[slayer].push(sg);
 
         // ═══ MULTI-HALO SYSTEM: one ring per metric (CPU, RAM, Storage, etc.) ═══
         let outerRings=[],outerMats=[],innerRings=[],innerMats=[];
@@ -314,7 +344,7 @@ function buildSystems(systems,thresholds){
             });
             // Inner rings: one per metric, additive blending for brilliant pulse
             halosCfg.forEach((h,hi)=>{
-                if(h.enabled===false)return;
+                if(h.active===false||h.enabled===false)return;
                 const hR=h.baseRadius;
                 const dist=0.3+(hi*0.2);
                 [0,Math.PI/2,Math.PI/2].forEach((rot,idx)=>{
@@ -328,11 +358,14 @@ function buildSystems(systems,thresholds){
         }
         s._outerRings=outerRings;s._outerMats=outerMats;
         s._innerRings=innerRings;s._innerMats=innerMats;
-        s._baseR=halosCfg[0].baseRadius;s._halosCfg=halosCfg;
+        s._baseR=halosCfg[0]?halosCfg[0].baseRadius:4;s._halosCfg=halosCfg;
+        // Tag halos into layers
+        innerRings.forEach(r=>window.universeLayers.halos.push(r));
+        outerRings.forEach(r=>window.universeLayers.halos.push(r));
         s._load=0.15+Math.random()*0.25;s._loadDir=1;
 
         // Core
-        const co=new THREE.Mesh(new THREE.SphereGeometry(1,24,24),new THREE.MeshStandardMaterial({color:c,emissive:c,emissiveIntensity:0.6,roughness:0.1}));sg.add(co);
+        const co=new THREE.Mesh(new THREE.SphereGeometry(1,24,24),new THREE.MeshStandardMaterial({color:c,emissive:c,emissiveIntensity:0.6,roughness:0.1}));sg.add(co); window.universeNodes[s.id]=co;
         const lb=document.createElement('div');lb.className='node-label';lb.textContent=s.name;lb.title=s.name+' · '+s.g;document.body.appendChild(lb);labels.push({e:lb,m:co});
         // Local orbit line from galaxy center
         p.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0),new THREE.Vector3(s.x,s.y,s.z)]),new THREE.LineBasicMaterial({color:c,transparent:true,opacity:0.1})));
@@ -342,7 +375,7 @@ function buildSystems(systems,thresholds){
             for(let pi=0;pi<2;pi++){
                 const pc=cols[(systemIds.length*2+pi)%cols.length];
                 const m=new THREE.Mesh(new THREE.SphereGeometry(0.5,16,16),new THREE.MeshStandardMaterial({color:pc,emissive:pc,emissiveIntensity:0.7,roughness:0.05}));
-                const pp=new THREE.Vector3((pi===0?-1:1)*1.5,0,0);clampToParent(pp,halosCfg[0].baseRadius);m.position.copy(pp);sg.add(m);
+                const pp=new THREE.Vector3((pi===0?-1:1)*1.5,0,0);clampToParent(pp,(halosCfg[0]||{baseRadius:4}).baseRadius);m.position.copy(pp);sg.add(m);
             }
         }
     });
@@ -365,6 +398,14 @@ const PROTO_STYLES={
     mqtt:{glowColor:'#00ffcc',lineType:'solid',opacity:0.003},
     ssh:{glowColor:'#3388ff',lineType:'solid',opacity:0.003},
     ping:{glowColor:'#334455',lineType:'dashed',opacity:0.002}
+};
+// ═══ TUNNEL TYPE STYLES ═══
+const TUNNEL_STYLES={
+    knx:{color:'#ffaa00',thickness:0.25,opacity:0.12,glow:'#ff8800'},
+    wireguard:{color:'#0088ff',thickness:0.3,opacity:0.10,glow:'#0066cc'},
+    proxy:{color:'#ffcc00',thickness:0.25,opacity:0.10,glow:'#ffaa00'},
+    caddy:{color:'#ffcc00',thickness:0.25,opacity:0.10,glow:'#ffaa00'},
+    default:{color:'#ff4400',thickness:0.25,opacity:0.08,glow:'#ff2200'}
 };
 
 function buildConnections(connections){
@@ -392,25 +433,29 @@ function buildConnections(connections){
         }
         const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints([p1,p2]),mat);
         U.add(line);
-        // Tunnel (semi-transparent 3D cylinder around connection)
+        // Tunnel (3D tube with tunnel-type styling)
         if(c.tunnel){
-            const to=style.tubeOpacity||0.003;
+            const ttype=c.tunnelType||c.tunnel||'default';
+            const ts=TUNNEL_STYLES[ttype]||TUNNEL_STYLES.default;
+            const to=style.tubeOpacity||ts.opacity;
+            const tcolor=parseInt(ts.color.replace('#',''),16);
             const mid=new THREE.Vector3().addVectors(p1,p2).multiplyScalar(0.5);mid.y+=3;
             const curve=new THREE.QuadraticBezierCurve3(p1,mid,p2);
             const tMesh=new THREE.Mesh(
-                new THREE.TubeGeometry(curve,24,0.3,8,false),
-                new THREE.MeshStandardMaterial({color:hex,emissive:hex,emissiveIntensity:0.5,transparent:true,opacity:to,roughness:0.4})
+                new THREE.TubeGeometry(curve,24,ts.thickness,8,false),
+                new THREE.MeshBasicMaterial({color:tcolor,transparent:true,opacity:to,blending:THREE.AdditiveBlending,depthWrite:false})
             );
             U.add(tMesh);
-            // Store for animation
             if(!c._tunnelRefs)c._tunnelRefs=[];
             c._tunnelRefs.push(tMesh);
         }
     });
 }
 
-function makeTube(sid1,sid2,color,thickness){
-    color=color||0xff1111; thickness=thickness||0.6;
+function makeTube(sid1,sid2,tunnelType){
+    tunnelType=tunnelType||'default';
+    const ts=TUNNEL_STYLES[tunnelType]||TUNNEL_STYLES.default;
+    const color=parseInt(ts.color.replace('#',''),16);
     const s1=S.find(s=>s.id===sid1),s2=S.find(s=>s.id===sid2);
     if(!s1||!s2)return;
     const g1=G[s1.g],g2=G[s2.g];
@@ -418,22 +463,23 @@ function makeTube(sid1,sid2,color,thickness){
     const p2=new THREE.Vector3(g2._sx+s2.x,g2._sy+s2.y,g2._sz+s2.z);
     const mid=new THREE.Vector3().addVectors(p1,p2).multiplyScalar(0.5);mid.y+=5;
     const curve=new THREE.QuadraticBezierCurve3(p1,mid,p2);
-    const mesh=new THREE.Mesh(new THREE.TubeGeometry(curve,32,thickness,8,false),
-        new THREE.MeshStandardMaterial({color,emissive:color,emissiveIntensity:0.1,transparent:true,opacity:0.003,roughness:0.2}));
+    const mesh=new THREE.Mesh(new THREE.TubeGeometry(curve,32,ts.thickness,8,false),
+        new THREE.MeshBasicMaterial({color,transparent:true,opacity:ts.opacity,blending:THREE.AdditiveBlending,depthWrite:false}));
     U.add(mesh);
-    const src=Sg[sid1]?.children[1],dst=Sg[sid2]?.children[1];
-    return {mesh,src,dst};
+    const src=window.universeNodes[sid1],dst=window.universeNodes[sid2];
+    return {mesh,src,dst,tunnelType};
 }
 
 function buildTubes(connections){
     connections.filter(c=>(c.status||c[2])==='active').forEach((c,i)=>{
         const a=c.from||c[0],b=c.to||c[1];
-        const tb=makeTube(a,b,0xff4400,0.6+(i*0.1));
+        const ttype=c.tunnelType||c.tunnel||'default';
+        const tb=makeTube(a,b,ttype);
         if(tb)loopTubes.push(tb);
     });
     if(loopTubes.length===0&&connections.length>=2){
         const c=connections[0];const a=c.from||c[0],b=c.to||c[1];
-        const tb=makeTube(a,b,0xff1111,0.8);if(tb)loopTubes.push(tb);
+        const tb=makeTube(a,b,'default');if(tb)loopTubes.push(tb);
     }
 }
 
@@ -445,7 +491,7 @@ function mkPktOnPath(type,title,status,sid1,sid2,spd,style,parentId,payloadHisto
     const ex=g2._sx+ct2.x, ey=g2._sy+ct2.y, ez=g2._sz+ct2.z;
     const pk=mkPkt(type,title,status,sx,sy,sz,ex,ey,ez,spd,style);
     if(!pk)return;
-    pk.startCT=Sg[sid1]?.children[1]; pk.endCT=Sg[sid2]?.children[1];
+    pk.startCT=window.universeNodes[sid1]; pk.endCT=window.universeNodes[sid2];
     pk.parentPacketId=parentId||null;
     pk.payloadHistory=payloadHistory||null;
     // Response badge: "↩" indicator on label
@@ -519,22 +565,11 @@ function buildStages(){
 
 // ═══ LEGEND BUILDER ═══
 function buildLegend(galaxies,systems){
-    const galDiv=document.getElementById('sub-gal'); galDiv.innerHTML='';
-    galaxies.forEach(g=>{
-        const el=document.createElement('div');el.className='legend-subitem';el.style.cssText='cursor:pointer;color:#fff;padding:2px 0;';
-        el.textContent='• '+g.name;el.onclick=()=>focusNode('galaxy-'+g.id);galDiv.appendChild(el);
-    });
-    const galToggle=document.querySelector('.legend-toggle');
-    if(galToggle)galToggle.textContent='▶ Galaxien ('+galaxies.length+')';
-
-    const ctDiv=document.getElementById('sub-ct'); ctDiv.innerHTML='';
-    systems.forEach(s=>{
-        const el=document.createElement('div');el.className='legend-subitem';el.style.cssText='cursor:pointer;color:#fff;padding:2px 0;';
-        el.textContent='• '+s.name;el.onclick=()=>focusNode(s.id);ctDiv.appendChild(el);
-    });
-    const ctToggle=document.querySelectorAll('.legend-toggle')[1];
-    if(ctToggle)ctToggle.textContent='▶ Container ('+systems.length+')';
-
+    // Tree-view sidebar is now built dynamically via initSidebarTree
+    initSidebarTree(window._universeCfg);
+    updateCounts(galaxies,systems);
+}
+function updateCounts(galaxies,systems){
     document.getElementById('node-count').textContent=galaxies.length+' Galaxies';
     document.getElementById('ct-count').textContent=systems.length+' CTs';
 }
@@ -612,7 +647,7 @@ async function switchDataset(datasetId){
         buildLegend(cfg.galaxies,cfg.systems);
         seedPackets(cfg.packets,cfg.connections);
         populateSwitcher(ds.datasets,datasetId);
-        document.getElementById('hud').querySelector('h1').textContent=cfg.title||'3D Universe';
+        document.getElementById('main-sidebar').querySelector('h1').textContent=cfg.title||'3D Universe';
         logMsg(datasetId+': '+cfg.galaxies.length+' galaxies, '+cfg.systems.length+' systems','success');
     }catch(e){
         console.error('switchDataset failed:',e);
@@ -633,9 +668,9 @@ function disposeRecursive(obj){
 function initKioskMode(){
     if(!isKiosk)return;
     // Hide HUD + legend + log after 8s of inactivity
-    const hud=document.getElementById('hud');
-    const legend=document.getElementById('legend-acc');
-    const log=document.getElementById('msg-log');
+    const hud=document.getElementById('main-sidebar');
+    const legend=document.getElementById('menu-tree-container');
+    const log=document.getElementById('homelab-stream');
     const hideUI=()=>{
         if(kioskActive)return;
         kioskActive=true;
@@ -689,10 +724,13 @@ async function initUniverse(){
         buildLegend(cfg.galaxies,cfg.systems);
         seedPackets(cfg.packets,cfg.connections);
         populateSwitcher(ds.datasets,activeId);
-        document.getElementById('hud').querySelector('h1').textContent=cfg.title||'3D Universe';
+        document.getElementById('main-sidebar').querySelector('h1').textContent=cfg.title||'3D Universe';
 
         // 4. Kiosk mode
         initKioskMode();
+
+        // 5. Cockpit (data-driven profiles & filters)
+        cockpitReady();
 
         // 5. Start animation
         if(R)animate();
@@ -725,7 +763,8 @@ function animate(){
     // Apply universe offset from click-to-center
     U.position.lerp(uniOffset, 0.08);
     // Galaxy load rings: pulse color green→orange→red
-    Object.entries(G).forEach(([id,g])=>{if(g._ring){g._ring.scale.setScalar(0.9+Math.sin(t*3)*0.15);g._ring.material.opacity=0.2+Math.sin(t*3)*0.1;}});
+    const showHalos=window._universeCfg?.globalConfig?.showAllHalos!==false;
+    Object.entries(G).forEach(([id,g])=>{if(g._ring){g._ring.scale.setScalar(0.9+Math.sin(t*3)*0.15);g._ring.material.opacity=0.2+Math.sin(t*3)*0.1;}if(g._haloRings){g._haloRings.forEach(r=>r.visible=showHalos);}});
     Object.values(Gg).forEach(g=>g.rotation.y=Math.sin(t*0.12)*0.3);
     // Orbit systems around galaxy centers (stable, no global physics drift)
     Object.values(Sg).forEach(s=>{
@@ -811,7 +850,7 @@ function animate(){
                 const a=S[Math.floor(Math.random()*S.length)];
                 let b=S[Math.floor(Math.random()*S.length)];
                 while(b.id===a.id&&S.length>1)b=S[Math.floor(Math.random()*S.length)];
-                p.startCT=Sg[a.id]?.children[1];p.endCT=Sg[b.id]?.children[1];
+                p.startCT=window.universeNodes[a.id];p.endCT=window.universeNodes[b.id];
                 p.progress=0.0;
                 // Update galaxy center for via-center routing
                 if(viaCenter){
@@ -835,7 +874,7 @@ function animate(){
                 // Find parent galaxy group via Sg → Gg
                 let found=false;
                 for(const[sid,sg]of Object.entries(Sg)){
-                    if(sg.children[1]===p.startCT){
+                    if(window.universeNodes[sid]===p.startCT){
                         const gid=S.find(s=>s.id===sid)?.g;
                         if(gid&&Gg[gid]?.children[0]){
                             Gg[gid].children[0].getWorldPosition(gc);found=true;
@@ -902,44 +941,63 @@ function animate(){
 // ═══ LIVE API / SIMULATION ═══
 function simCT(){const ids=systemIds;return ids.length?ids[Math.floor(Math.random()*ids.length)]:'node-a1';}
 function simMsg(){
-    const from=simCT(),to=simCT();if(from===to)return simMsg();
+    const fromId=simCT(),toId=simCT();if(fromId===toId)return simMsg();
+    const fromSys=S.find(s=>s.id===fromId),toSys=S.find(s=>s.id===toId);
+    const fromName=fromSys?fromSys.name:fromId,toName=toSys?toSys.name:toId;
     const type=rnd(MSG_TYPES);
-    const titles={deploy:'Deploy '+rnd(SVCS)+' '+rnd(STAGES),data:'Sync '+rnd(SVCS)+' Data',ping:'Heartbeat '+from+'→'+to,issue:'Issue #'+(200+simCount%100),error:'Timeout '+rnd(SVCS),sync:'Tag-Sync '+rnd(SVCS),backup:'Backup '+rnd(STAGES),health:'Health Check '+from};
+    const titles={deploy:'Deploy',data:'Daten-Sync',ping:'Heartbeat',issue:'Issue',error:'Timeout',sync:'Tag-Sync',backup:'Backup',health:'Health Check'};
+    const title=titles[type]+' '+fromName+'→'+toName;
     const status=type==='error'?'error':type==='ping'?'success':Math.random()<0.15?'warning':'success';
-    addEventTask({text:titles[type],status,startTime:new Date().toLocaleTimeString(),endTime:new Date(Date.now()+2000).toLocaleTimeString()});
+    const details={
+        deploy:{what:'CI/CD Build & Deployment',why:'Code-Push via Gitea Webhook',protocol:'HTTPS',initiator:'hermesagent'},
+        data:{what:'Datenübertragung zwischen Services',why:'Periodische Synchronisation',protocol:'HTTPS',initiator:'Cron-Job'},
+        ping:{what:'Erreichbarkeits-Prüfung',why:'Health-Monitoring Intervall',protocol:'ICMP',initiator:'gatus'},
+        sync:{what:'Tag-basierte Dokument-Sync',why:'Paperless→Nextcloud Synchronisation',protocol:'WebDAV',initiator:'paperless-ngx'},
+        backup:{what:'Automatisches Backup',why:'Tägliches Snapshot-Backup',protocol:'SSH/RSYNC',initiator:'Proxmox'},
+        health:{what:'System-Health-Check',why:'Periodische Überwachung',protocol:'HTTP GET',initiator:'gatus'},
+        issue:{what:'Neues Issue erstellt',why:'Automatische Erkennung',protocol:'Gitea API',initiator:'Monitoring'},
+        error:{what:'API-Timeout erkannt',why:'Zielservice nicht erreichbar',protocol:'HTTPS',initiator:'gatus'},
+    }[type]||{};
+    addEventTask({
+        text:title,status,startTime:new Date().toLocaleTimeString(),
+        endTime:type==='error'?null:new Date(Date.now()+2000).toLocaleTimeString(),
+        source:fromSys?{id:fromSys.id,name:fromSys.name,ipLast:fromSys.ipLast||fromSys.id}:null,
+        target:toSys?{id:toSys.id,name:toSys.name,ipLast:toSys.ipLast||toSys.id}:null,
+        details:{what:details.what||title,why:details.why||'Simuliertes Event',protocol:details.protocol||'TCP',initiator:details.initiator||'System'}
+    });
 }
-// Start 1s message sim
-setInterval(simMsg,1000);
+// Start message sim (DISABLED — only real events)
+// setInterval(simMsg,2500);
 async function fl(){
-    simCount++;
     const cfg=window._universeCfg;
-    const gc=cfg?cfg.galaxies.length:5;
-    const sc=cfg?cfg.systems.length:25;
+    const gc=cfg?cfg.galaxies.length:0;
+    const sc=cfg?cfg.systems.length:0;
     document.getElementById('node-count').textContent=gc+' Galaxies';
     document.getElementById('ct-count').textContent=sc+' CTs';
-    document.getElementById('paperless-count').textContent='Demo Mode';
-    document.getElementById('issue-count').textContent=(5+simCount%3)+' Open';
-    const st=simCount%10===0?'warning':simCount%7===0?'error':'success';
+    document.getElementById('paperless-count').textContent='—';
+    document.getElementById('issue-count').textContent='—';
     const el=document.getElementById('pl-badge');
-    el.textContent='● '+(st==='success'?'Monitoring':st==='error'?'Fehler':'Warning');
-    el.style.color=st==='success'?'#00ff88':st==='error'?'#ff4444':'#ffaa00';
+    el.textContent='● Live';el.style.color='#00ff88';
     // Try real API (async, non-blocking)
     try{const r=await fetch('./api/universe-state');const d=await r.json();
+        document.getElementById('node-count').textContent=((d.nodes||[]).filter(n=>n.online).length||gc)+' Online / '+((d.nodes||[]).length||gc)+' Total';
+        document.getElementById('paperless-count').textContent=(d.paperless_docs||'—')+' Docs';
+        document.getElementById('issue-count').textContent=(d.issues_open!==undefined?d.issues_open:'—')+' Issues';
+        // Inject live Prometheus metrics into system halos
+        if(d.nodes) d.nodes.forEach(n=>{
+            const sys=S.find(s=>s.id===n.id);
+            if(sys&&n.online){
+                sys._load=n.cpu/100||0.15;
+                sys._liveMetrics=n;
+            }
+        });
         if(d.pipeline&&d.pipeline.length>0){
-            document.getElementById('node-count').textContent=((d.nodes||[]).filter(n=>n.online).length||3)+' Galaxies';
-            document.getElementById('paperless-count').textContent=(d.paperless_docs||0)+' Documents';
-            // Inject live Prometheus metrics into system halos
-            if(d.nodes) d.nodes.forEach(n=>{
-                const sys=S.find(s=>s.id===n.id);
-                if(sys&&n.online){
-                    sys._load=n.cpu/100||0.15; // CPU drives inner ring
-                    sys._liveMetrics=n;
-                }
-            });
-            document.getElementById('issue-count').textContent=(d.issues_open||5)+' Open';
             const lr=d.pipeline[0];const el2=document.getElementById('pl-badge');
-            if(lr&&lr.conclusion){el2.textContent=(lr.conclusion==='success'?'●':'●')+' '+(lr.title||'Pipeline');el2.style.color=lr.conclusion==='success'?'#00ff88':'#ff4444';}
+            if(lr&&lr.conclusion){el2.textContent='● '+(lr.title||'Pipeline');el2.style.color=lr.conclusion==='success'?'#00ff88':'#ff4444';}
+            else{el2.textContent='● Live';el2.style.color='#00ff88';}
         }
+        // Update IoT status badges in tree
+        if(d.iot) updateIoTStatus(d.iot);
     }catch(e){}
 }
 function logMsg(txt,level,targetId){
@@ -949,35 +1007,47 @@ function logMsg(txt,level,targetId){
 let logHovered=false;
 
 function addEventTask(td){
-    const c=document.getElementById('log-entries');if(!c)return;
+    const c=document.getElementById('stream-messages');if(!c)return;
     const w=document.createElement('div');
     const el=document.createElement('div');el.className='task-item task-'+td.status;
     const ds=td.endTime?'['+td.startTime+' ➔ '+td.endTime+']':'['+td.startTime+' ➔ aktiv]';
     const hc=td.children&&td.children.length>0;
-    el.innerHTML='<div style=\"display:flex;justify-content:space-between;align-items:center;\"><span>'+ds+' '+td.text+'</span>'+(hc?'<span class=\"toggle-icon\" style=\"font-weight:bold;margin-left:6px;\">▶</span>':'')+'</div>';
+    el.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;"><span>'+ds+' '+td.text+'</span><span class="toggle-icon" style="font-weight:bold;margin-left:6px;font-size:9px;opacity:0.6;">'+(hc?'▶':'ℹ')+'</span></div>';
     el.addEventListener('click',e=>{e.stopPropagation();
-        if(td.sourceUrl){window.open(td.sourceUrl,'_blank');}
-        else if(hc){const cb=w.querySelector('.task-children');const ic=el.querySelector('.toggle-icon');if(cb){const ih=cb.style.display==='none';cb.style.display=ih?'block':'none';ic.textContent=ih?'▼':'▶';}}
+        // Open inspection modal with full details
+        openInspectModal({
+            title: td.text,
+            status: td.status,
+            timestamp: td.startTime + (td.endTime ? ' ➔ ' + td.endTime : ''),
+            source: td.source || null,
+            target: td.target || null,
+            what: td.details?.what || td.text,
+            why: td.details?.why || '-',
+            initiator: td.details?.initiator || 'System',
+            protocol: td.details?.protocol || '-',
+            size: td.details?.size || '-',
+            sourceUrl: td.sourceUrl || null,
+            children: td.children || null,
+        });
     });
     w.appendChild(el);
     if(hc){const cc=document.createElement('div');cc.className='task-children';
         td.children.forEach(ch=>{const ce=document.createElement('div');const cd=ch.endTime?'['+ch.startTime+' ➔ '+ch.endTime+']':'['+ch.startTime+']';ce.className='task-item task-'+ch.status;ce.innerHTML=cd+' ↳ '+ch.text;ce.addEventListener('click',ev=>{ev.stopPropagation();if(ch.sourceUrl)window.open(ch.sourceUrl,'_blank');});cc.appendChild(ce);});
         w.appendChild(cc);}
     c.prepend(w);
-    // Don't auto-scroll when user is hovering (reading/scrolling manually)
+    // Auto-scroll only when user isn't hovering (examining events)
     if(!logHovered)w.scrollIntoView({behavior:'smooth',block:'start'});
-    // Auto-cleanup: delete after 6h, or 6min if pipeline fully completed
     w._ts=Date.now();w._pipeline=td.children&&td.children.every(ch=>ch.status==='success');
     cleanupLog();
 }
 // Filter: search in event log
 function filterLog(){const q=document.getElementById('log-filter').value.toLowerCase();
-    document.querySelectorAll('#log-entries > div').forEach(e=>{e.style.display=!q||e.textContent.toLowerCase().includes(q)?'':'none';});
+    document.querySelectorAll('#stream-messages > div').forEach(e=>{e.style.display=!q||e.textContent.toLowerCase().includes(q)?'':'none';});
 }
 // Auto-cleanup: remove entries after 6h (or 6min if pipeline completed)
 function cleanupLog(){
     const now=Date.now();
-    document.querySelectorAll('#log-entries > div').forEach(w=>{
+    document.querySelectorAll('#stream-messages > div').forEach(w=>{
         const age=(now-(w._ts||0))/1000;
         if((w._pipeline&&age>360)||age>21600)w.remove();
     });
@@ -1187,7 +1257,7 @@ function saveConfigToLive(){
     // Direct rebuild with custom config
     // Cleanup scene
     Object.values(Gg).forEach(g=>{U.remove(g);g.traverse(c=>{if(c.geometry)c.geometry.dispose();if(c.material)c.material.dispose();});});
-    Gg={}; G={}; S.forEach(s=>{s._innerRings=null;s._innerMats=null;}); S=[]; Sg={};
+    Gg={}; G={}; window.universeNodes={}; S.forEach(s=>{s._innerRings=null;s._innerMats=null;}); S=[]; Sg={};
     galaxyNames=[]; systemIds=[];
     // Clear packets & tubes
     pks.forEach(p=>{PkG.remove(p.mesh);if(p.tl)U.remove(p.tl);}); pks=[];
@@ -1230,6 +1300,97 @@ function importConfig(e){
 document.getElementById('cfg-btn').addEventListener('click',openConfigModal);
 document.getElementById('cfg-close').addEventListener('click',closeConfigModal);
 loadParamMeta();
+
+// ═══ COCKPIT: Datengetriebene Profile & Filter ═══
+function initCockpit(cockpitConfig) {
+    const container = document.getElementById('cockpit-controls');
+    if (!container || !cockpitConfig) return;
+    container.innerHTML = '';
+    if (cockpitConfig.profiles) {
+        const pw = document.createElement('div'); pw.className = 'profile-buttons';
+        Object.keys(cockpitConfig.profiles).forEach(key => {
+            const prof = cockpitConfig.profiles[key];
+            const btn = document.createElement('button');
+            btn.innerText = prof.label; btn.className = 'profile-btn';
+            if (key === cockpitConfig.defaultProfile) btn.classList.add('active');
+            btn.onclick = () => {
+                container.querySelectorAll('.profile-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                applyProfile(key, cockpitConfig);
+            };
+            pw.appendChild(btn);
+        });
+        container.appendChild(pw);
+    }
+    if (cockpitConfig.filters) {
+        const fw = document.createElement('div'); fw.className = 'filter-checkboxes';
+        cockpitConfig.filters.forEach(filter => {
+            const label = document.createElement('label'); label.className = 'checkbox-label';
+            const cb = document.createElement('input'); cb.type = 'checkbox'; cb.id = 'filter-' + filter.id;
+            cb.checked = filter.default !== false;
+            cb.onchange = (e) => toggleLayerVisibility(filter.id, e.target.checked);
+            label.appendChild(cb);
+            label.appendChild(document.createTextNode(' ' + filter.label));
+            fw.appendChild(label);
+        });
+        container.appendChild(fw);
+    }
+}
+function applyProfile(profileKey, config) {
+    const profile = config.profiles[profileKey];
+    if (!profile) return;
+    Object.keys(profile.layers).forEach(layerId => {
+        const vis = profile.layers[layerId];
+        const cb = document.getElementById('filter-' + layerId);
+        if (cb) cb.checked = vis;
+        toggleLayerVisibility(layerId, vis);
+    });
+}
+function toggleLayerVisibility(layerId, isVisible) {
+    if (window.universeLayers && window.universeLayers[layerId]) {
+        window.universeLayers[layerId].forEach(obj => { obj.visible = isVisible; });
+    }
+}
+function cockpitReady() {
+    const cfg = window._universeCfg;
+    if (cfg && cfg.cockpit) { initCockpit(cfg.cockpit); applyProfile(cfg.cockpit.defaultProfile, cfg.cockpit); }
+}
+
+// ═══ LIVE IOT STATUS: Update tree with HA states ═══
+function updateIoTStatus(iotData) {
+    if (!iotData) return;
+    // Map HA entity states to system IDs in the tree
+    const stateMap = {};
+    for (const [eid, info] of Object.entries(iotData)) {
+        const state = info.state || '?';
+        // Match HA entities to our system IDs
+        if (eid.includes('knx_interface')) stateMap['knx-if'] = state;
+        else if (eid.includes('viessmann') || eid.includes('heizung') || eid.includes('vicare')) stateMap['viessmann'] = state;
+        else if (eid.includes('shelly') && eid.includes('garten')) stateMap['shelly-garten'] = state;
+        else if (eid.includes('shelly') && eid.includes('rack')) stateMap['shelly-rack'] = state;
+        else if (eid.includes('anker') || eid.includes('solix')) stateMap['anker-solar'] = state;
+    }
+    // Update DOM: append state badges to system buttons
+    document.querySelectorAll('#sidebar-tree-root [data-sid]').forEach(el => {
+        const sid = el.getAttribute('data-sid');
+        if (stateMap[sid]) {
+            let badge = el.querySelector('.iot-badge');
+            if (!badge) {
+                badge = document.createElement('span');
+                badge.className = 'iot-badge';
+                badge.style.cssText = 'margin-left:auto;font-size:8px;padding:1px 4px;border-radius:3px;background:rgba(0,255,136,.15);color:#0fc;';
+                el.appendChild(badge);
+            }
+            const s = stateMap[sid];
+            if (s === 'on' || s === 'heat' || s === 'heating') { badge.style.color = '#ffaa00'; badge.textContent = 'ON'; }
+            else if (s === 'off' || s === 'idle') { badge.style.color = '#666'; badge.textContent = 'OFF'; }
+            else if (s === 'unavailable') { badge.style.color = '#f33'; badge.textContent = '⚠'; }
+            else if (s.includes('.')) { badge.textContent = s.split('.')[0]; }
+            else { badge.textContent = s.substring(0, 8); }
+        }
+    });
+}
+
 initUniverse();
 // Periodic log cleanup every 60s
 setInterval(cleanupLog,60000);
@@ -1244,14 +1405,8 @@ document.getElementById('center-btn').addEventListener('click',()=>{
 });
 // Focus on a node by CT/Galaxy ID
 function focusNode(nodeId){
-    // Strip 'galaxy-' prefix for Gg lookup
-    let cleanId = nodeId.startsWith('galaxy-') ? nodeId.slice(7) : nodeId;
-    // Try solar system first, then galaxy
-    let t=Sg[cleanId]?Sg[cleanId].children[1]:null;
-    if(!t&&Gg[cleanId])t=Gg[cleanId].children[0]; // galaxy core
-    if(!t){logMsg('Ziel '+nodeId+' nicht gefunden','warning');return;}
-    const wp=new THREE.Vector3();t.getWorldPosition(wp);uniOffset.copy(wp).negate();
-    controls.target.set(0,0,0);logMsg('Fokus: '+nodeId,'success');
+    // Uses the new smooth camera zoom
+    focusCameraOnNode(nodeId);
 }
 // Accordion toggle
 function tgl(id){
@@ -1260,12 +1415,162 @@ function tgl(id){
     const h=s.previousElementSibling;
     if(h)h.textContent=h.textContent.replace(v?'▶':'▼',v?'▼':'▶');
 }
+
+// ═══ SIDEBAR TREE-VIEW: Galaxy → Node → CT hierarchy ═══
+function initSidebarTree(config) {
+    const rootContainer = document.getElementById('sidebar-tree-root');
+    if (!rootContainer) return;
+    rootContainer.innerHTML = '';
+
+    if (!config || !config.galaxies || !config.systems) return;
+
+    // Separate node systems (isNode:true) from regular CTs
+    const nodeSystems = config.systems.filter(s => s.isNode);
+    const ctSystems = config.systems.filter(s => !s.isNode);
+
+    config.galaxies.forEach(galaxy => {
+        const galaxyDetails = document.createElement('details');
+        galaxyDetails.open = true;
+        galaxyDetails.style.cssText = "margin-bottom:8px; border-left:2px solid #00ff88; padding-left:8px;";
+
+        const galaxySummary = document.createElement('summary');
+        galaxySummary.style.cssText = "cursor:pointer; color:#00ff88; font-weight:bold; font-size:12px; padding:2px 0;";
+        galaxySummary.innerHTML = '🌌 ' + (galaxy.name || galaxy.id);
+        galaxySummary.onclick = (e) => {
+            e.preventDefault();
+            focusCameraOnNode(galaxy.id);
+            galaxyDetails.open = !galaxyDetails.open;
+        };
+        galaxyDetails.appendChild(galaxySummary);
+
+        // Find nodes that belong to this galaxy
+        const galaxyNodes = nodeSystems.filter(n => n.g === galaxy.id);
+
+        if (galaxyNodes.length === 0) {
+            // No nodes: show CTs directly under galaxy (flat fallback)
+            const flatCts = ctSystems.filter(s => s.g === galaxy.id);
+            const flatList = document.createElement('div');
+            flatList.style.cssText = "margin-left:10px; margin-top:2px;";
+            flatCts.forEach(sys => {
+                flatList.appendChild(makeSystemButton(sys));
+            });
+            galaxyDetails.appendChild(flatList);
+        } else {
+            galaxyNodes.forEach(node => {
+                const nodeDetails = document.createElement('details');
+                nodeDetails.open = true;
+                nodeDetails.style.cssText = "margin:4px 0 2px 8px; border-left:2px solid #3388ff; padding-left:6px;";
+
+                const nodeSummary = document.createElement('summary');
+                nodeSummary.style.cssText = "cursor:pointer; color:#3388ff; font-weight:bold; font-size:11px; padding:1px 0;";
+                nodeSummary.innerHTML = (node.name || node.id);
+                nodeSummary.onclick = (e) => {
+                    e.preventDefault();
+                    focusCameraOnNode(node.id);
+                    nodeDetails.open = !nodeDetails.open;
+                };
+                nodeDetails.appendChild(nodeSummary);
+
+                // CTs under this node
+                const nodeCts = ctSystems.filter(s => s.node === node.node || s.g === node.node);
+                const ctList = document.createElement('div');
+                ctList.style.cssText = "margin-left:8px; margin-top:1px;";
+
+                if (nodeCts.length === 0) {
+                    const empty = document.createElement('div');
+                    empty.style.cssText = "color:#666; font-size:10px; font-style:italic; padding:1px 0;";
+                    empty.innerText = "(keine CTs)";
+                    ctList.appendChild(empty);
+                } else {
+                    nodeCts.forEach(sys => {
+                        ctList.appendChild(makeSystemButton(sys));
+                    });
+                }
+                nodeDetails.appendChild(ctList);
+                galaxyDetails.appendChild(nodeDetails);
+            });
+        }
+
+        rootContainer.appendChild(galaxyDetails);
+    });
+}
+
+function makeSystemButton(sys) {
+    const btn = document.createElement('div');
+    btn.style.cssText = "cursor:pointer; color:#ccc; font-size:10px; padding:2px 0; transition:color 0.2s; display:flex; align-items:center; gap:4px;";
+    btn.setAttribute('data-sid', sys.id);
+    const ipSuffix = sys.ipLast ? ' <span style="color:#666;font-size:9px;">(.'+sys.ipLast+')</span>' : '';
+    btn.innerHTML = '💻 <span>' + (sys.name || sys.title || sys.id) + '</span>' + ipSuffix;
+    btn.onmouseover = () => btn.style.color = '#00ff88';
+    btn.onmouseout = () => btn.style.color = '#ccc';
+    btn.onclick = (e) => {
+        e.stopPropagation();
+        focusCameraOnNode(sys.id);
+    };
+    return btn;
+}
+
+// ═══ SMOOTH CAMERA ZOOM: Lerp camera + controls target to a node ═══
+const _targetCameraPos = new THREE.Vector3();
+const _targetControlsTarget = new THREE.Vector3();
+const _tempWorldPos = new THREE.Vector3();
+let isZooming = false;
+let _zoomTargetMesh = null;
+let _zoomStartTime = 0;
+const ZOOM_DURATION = 600;   // ms (faster)
+
+function focusCameraOnNode(nodeId) {
+    let cleanId = nodeId.startsWith('galaxy-') ? nodeId.slice(7) : nodeId;
+    let mesh = window.universeNodes?.[cleanId];
+    if (!mesh && Gg[cleanId]) mesh = Gg[cleanId].children[0];
+    if (!mesh) { console.warn('Node ' + nodeId + ' nicht gefunden.'); return; }
+
+    _zoomTargetMesh = mesh;
+    _zoomStartTime = performance.now();
+
+    // Capture start positions once
+    if (controls) _targetControlsTarget.copy(controls.target);
+    if (cam) _targetCameraPos.copy(cam.position);
+
+    isZooming = true;
+    requestAnimationFrame(animateCameraTransition);  // kick off animation loop
+    logMsg('Fokus: ' + nodeId, 'success');
+}
+
+function animateCameraTransition(now) {
+    if (!isZooming || !controls || !cam || !_zoomTargetMesh) {
+        isZooming = false; return;
+    }
+
+    const elapsed = now - _zoomStartTime;
+    let progress = Math.min(elapsed / ZOOM_DURATION, 1.0);
+    const ease = progress < 0.5 ? 2 * progress * progress : -1 + (4 - 2 * progress) * progress;
+
+    _zoomTargetMesh.getWorldPosition(_tempWorldPos);
+    const endTarget = _tempWorldPos;
+    const endCam = new THREE.Vector3(endTarget.x, endTarget.y + 12, endTarget.z + 25);
+
+    controls.target.lerpVectors(_targetControlsTarget, endTarget, ease);
+    cam.position.lerpVectors(_targetCameraPos, endCam, ease);
+    controls.update();
+
+    if (progress < 1) {
+        requestAnimationFrame(animateCameraTransition);
+    } else {
+        isZooming = false;
+    }
+}
 fl();setInterval(fl,30000);
+// Stream hover-pause via JS (more reliable than inline attrs)
+(function(){
+    const sm=document.getElementById('stream-messages');
+    if(sm){sm.addEventListener('mouseenter',()=>{logHovered=true;});sm.addEventListener('mouseleave',()=>{logHovered=false;});}
+})();
 // Seed event log
 setTimeout(()=>{
     addEventTask({text:'Universe initialisiert',status:'success',startTime:new Date().toLocaleTimeString(),endTime:new Date().toLocaleTimeString(),ghost:false,sourceUrl:null});
 },1500);
-window.addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();if(R)R.setSize(innerWidth,innerHeight);});
+window.addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();if(R){R.setSize(innerWidth,innerHeight);R.setPixelRatio(Math.min(devicePixelRatio,2));}});
 
 // ═══ CLICK-TO-CENTER: Universe verschiebt sich zum angeklickten Objekt ═══
 let camTarget=new THREE.Vector3(0,0,0),camDirty=false,uniOffset=new THREE.Vector3(0,0,0);
@@ -1275,15 +1580,60 @@ window.addEventListener('click',e=>{
     rc.setFromCamera(mc,cam);
     const hits=rc.intersectObjects(U.children,true);
     if(hits.length>0){
-        let tg=hits[0].object;
+        let obj=hits[0].object;
+        // Packet inspection: show metadata for clicked packet mesh
+        if(obj.userData && obj.userData.title){
+            const pk=pks.find(p=>p.mesh===obj||p.tl===obj);
+            if(pk){
+                const srcName=pk.startCT?S.find(s=>window.universeNodes[s.id]===pk.startCT):null;
+                const dstName=pk.endCT?S.find(s=>window.universeNodes[s.id]===pk.endCT):null;
+                addEventTask({
+                    text:'📦 '+obj.userData.title,
+                    status:obj.userData.status==='error'?'error':'success',
+                    startTime:new Date().toLocaleTimeString(),
+                    source:srcName?{id:srcName.id,name:srcName.name}:null,
+                    target:dstName?{id:dstName.id,name:dstName.name}:null,
+                    details:{what:'Datenpaket im 3D-Universum',why:'Netzwerk-Traffic Simulation',protocol:obj.userData.type||'data'}
+                });
+                return;
+            }
+        }
+        let tg=obj;
         while(tg.parent&&tg.parent!==U&&tg.parent!==scene)tg=tg.parent;
         const wp=new THREE.Vector3();tg.getWorldPosition(wp);
-        // Shift universe so clicked object becomes (0,0,0)
         uniOffset.copy(wp).negate();
         camTarget.set(0,0,0);camDirty=true;
     }
 });
 window.addEventListener('dblclick',e=>{uniOffset.set(0,0,0);camTarget.set(0,0,0);camDirty=true;});
+
+// ═══ INSPECTION MODAL: Open/Close/Copy ═══
+function openInspectModal(evt){
+    document.getElementById('modal-title').innerText = evt.title || 'Ereignis-Details';
+    document.getElementById('modal-source').innerHTML = evt.source
+        ? evt.source.name+' <span style="color:#666;">(.'+(evt.source.ipLast||evt.source.id)+')</span>'
+        : '-';
+    document.getElementById('modal-target').innerHTML = evt.target
+        ? evt.target.name+' <span style="color:#666;">(.'+(evt.target.ipLast||evt.target.id)+')</span>'
+        : '-';
+    document.getElementById('modal-what').innerText = evt.what || '-';
+    document.getElementById('modal-why').innerText = evt.why || '-';
+    document.getElementById('modal-raw-data').value = JSON.stringify(evt, null, 2);
+    document.getElementById('inspect-modal-backdrop').style.display = 'flex';
+    logHovered = true; // Pause stream while modal open
+}
+function closeInspectModal(){
+    document.getElementById('inspect-modal-backdrop').style.display = 'none';
+    logHovered = false;
+}
+function copyModalContent(){
+    const ta = document.getElementById('modal-raw-data');
+    ta.select();
+    navigator.clipboard.writeText(ta.value).then(()=>{
+        const btns = document.querySelectorAll('.modal-footer .action-btn');
+        if(btns[0]){const orig=btns[0].innerText;btns[0].innerText='✓ Kopiert!';setTimeout(()=>btns[0].innerText=orig,1500);}
+    }).catch(()=>{ta.select();document.execCommand('copy');});
+}
 </script>
 </body>
 </html>
