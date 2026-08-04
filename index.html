@@ -408,6 +408,21 @@ const TUNNEL_STYLES={
     default:{color:'#ff4400',thickness:0.25,opacity:0.08,glow:'#ff2200'}
 };
 
+// ─── Rich connection metadata per protocol ───
+const CONN_DETAIL = {
+    ssh:       {what:'Proxmox Cluster-Sync',    why:'Corosync Heartbeat + Ceph Replikation',         payload:'VM-Configs, HA-Ressourcen'},
+    https:     {what:'REST API-Aufruf',          why:'Service-Kommunikation via Reverse-Proxy',       payload:'JSON Request/Response'},
+    mqtt:      {what:'MQTT Nachricht',           why:'IoT-Telemetrie & Status-Updates',               payload:'Sensorwerte, Schaltbefehle'},
+    knx:       {what:'KNXnet/IP Telegramm',      why:'Bus-Kommunikation Heizung/Beleuchtung',         payload:'Group-Address Write/Read'},
+    dns:       {what:'DNS-Abfrage',              why:'Namensauflösung & Ad-Blocking',                 payload:'A/AAAA/CNAME Records'},
+    wireguard: {what:'VPN-Tunnel Traffic',        why:'Verschlüsselter Fernzugriff',                   payload:'Chiffrierte IP-Pakete'},
+    icmp:      {what:'Health-Check Ping',         why:'Erreichbarkeits-Prüfung',                       payload:'ICMP Echo Request'},
+};
+function getConnDetail(proto, src, dst) {
+    const d = CONN_DETAIL[proto] || {what:'Datenübertragung '+src+'↔'+dst, why:'Netzwerk-Verbindung', payload:'Generische Daten'};
+    return {...d, protocol: proto.toUpperCase(), direction: src+' → '+dst};
+}
+
 function buildConnections(connections){
     connections.forEach(c=>{
         const a=c.from||c[0],b=c.to||c[1];
@@ -845,24 +860,35 @@ function animate(){
         // Linear one-way: 0→1, then respawn at random new path
         p.progress+=Math.abs(p.speed);
         if(p.progress>=1.0){
-            // Respawn: pick random CT pair from S
-            if(S.length>=2){
-                const a=S[Math.floor(Math.random()*S.length)];
-                let b=S[Math.floor(Math.random()*S.length)];
-                while(b.id===a.id&&S.length>1)b=S[Math.floor(Math.random()*S.length)];
-                p.startCT=window.universeNodes[a.id];p.endCT=window.universeNodes[b.id];
-                p.progress=0.0;
+            // Respawn: only use real connections from config
+            const conns=window._universeCfg?.connections||[];
+            if(conns.length>0){
+                const conn=conns[Math.floor(Math.random()*conns.length)];
+                const a=S.find(s=>s.id===conn.from),b=S.find(s=>s.id===conn.to);
+                if(a&&b){p.startCT=window.universeNodes[a.id];p.endCT=window.universeNodes[b.id];p.progress=0.0;}
+                else{p.progress=0.0;} // restart same path
+                // Log packet journey with rich metadata
+                if(!p._lastLog||Date.now()-p._lastLog>5000){
+                    const detail=getConnDetail(conn.protocol||'tcp', a.name, b.name);
+                    addEventTask({
+                        text:'📦 '+a.name+'→'+b.name,
+                        status:'success',
+                        startTime:new Date().toLocaleTimeString(),
+                        source:{id:a.id,name:a.name,ipLast:a.ipLast||a.id},
+                        target:{id:b.id,name:b.name,ipLast:b.ipLast||b.id},
+                        details:{what:detail.what,why:detail.why,protocol:detail.protocol,initiator:detail.payload}
+                    });
+                    p._lastLog=Date.now();
+                }
                 // Update galaxy center for via-center routing
-                if(viaCenter){
+                if(viaCenter&&a.g){
                     const gCenter=Gg[a.g]?.children[0];
                     if(gCenter){const wc=new THREE.Vector3();gCenter.getWorldPosition(wc);p._galaxyCenter=wc.clone();}
                 }
                 // Update label
                 const lbl=pkLabels.find(l=>l.p===p);
                 if(lbl)lbl.e.textContent=a.name;
-            }else{
-                p.progress=0.0; // restart same path
-            }
+            }else{p.progress=0.0;} // fallback: restart same path
             p.history=[]; // clear trail
         }
         // Via-center routing: source → galaxy center → target
@@ -1034,9 +1060,8 @@ function addEventTask(td){
     if(hc){const cc=document.createElement('div');cc.className='task-children';
         td.children.forEach(ch=>{const ce=document.createElement('div');const cd=ch.endTime?'['+ch.startTime+' ➔ '+ch.endTime+']':'['+ch.startTime+']';ce.className='task-item task-'+ch.status;ce.innerHTML=cd+' ↳ '+ch.text;ce.addEventListener('click',ev=>{ev.stopPropagation();if(ch.sourceUrl)window.open(ch.sourceUrl,'_blank');});cc.appendChild(ce);});
         w.appendChild(cc);}
-    c.prepend(w);
-    // Auto-scroll only when user isn't hovering (examining events)
-    if(!logHovered)w.scrollIntoView({behavior:'smooth',block:'start'});
+    // Queue while hovered, prepend when live
+    if(logHovered){_eventQueue.push(w);}else{c.prepend(w);w.scrollIntoView({behavior:'smooth',block:'start'});}
     w._ts=Date.now();w._pipeline=td.children&&td.children.every(ch=>ch.status==='success');
     cleanupLog();
 }
@@ -1561,11 +1586,27 @@ function animateCameraTransition(now) {
     }
 }
 fl();setInterval(fl,30000);
-// Stream hover-pause via JS (more reliable than inline attrs)
+// Stream hover-pause: freeze scrolling AND new messages
 (function(){
-    const sm=document.getElementById('stream-messages');
-    if(sm){sm.addEventListener('mouseenter',()=>{logHovered=true;});sm.addEventListener('mouseleave',()=>{logHovered=false;});}
+    const stream=document.getElementById('homelab-stream');
+    if(stream){
+        stream.addEventListener('mouseenter',()=>{logHovered=true;});
+        stream.addEventListener('mouseleave',()=>{
+            if(document.getElementById('inspect-modal-backdrop').style.display!=='flex'){
+                logHovered=false;
+                flushEventQueue();
+            }
+        });
+    }
 })();
+let _eventQueue=[];
+function flushEventQueue(){
+    if(_eventQueue.length===0)return;
+    const c=document.getElementById('stream-messages');
+    if(!c)return;
+    _eventQueue.forEach(w=>c.prepend(w));
+    _eventQueue=[];
+}
 // Seed event log
 setTimeout(()=>{
     addEventTask({text:'Universe initialisiert',status:'success',startTime:new Date().toLocaleTimeString(),endTime:new Date().toLocaleTimeString(),ghost:false,sourceUrl:null});

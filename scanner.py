@@ -74,7 +74,7 @@ def get_pihole_devices():
                 name = ip_info.get("name", "")
                 if ip.startswith("192.168.2."):
                     last = ip.split(".")[-1]
-                    clean = name.replace(".lan", "").replace(".fritz.box", "")
+                    clean = (name or "").replace(".lan", "").replace(".fritz.box", "")
                     # Deduplicate: check alias registry first
                     canonical = resolve_alias(clean, mac)
                     devices[last] = {"name": canonical or clean, "mac": mac, "ip": ip}
